@@ -3,7 +3,7 @@
 settings_local.py
 /src/
 /paylogic/settings_paylogic_local.py
-/env/
+/.env/
 dev.db*
 *.orig
 .DS_Store
@@ -15,3 +15,4 @@ dev.db*
 htmlcov/
 /build
 *.sqlite3
+/static

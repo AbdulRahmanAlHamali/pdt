@@ -1,7 +1,8 @@
 WHEEL_DIR=$(HOME)/.pip/wheels
 DOWNLOAD_CACHE_DIR=$(HOME)/.pip/downloads
 SHELL := /bin/bash
-PATH := $(PWD)/env/bin:$(PATH)
+ENV := .env
+PATH := $(PWD)/$(ENV)/bin:$(PATH)
 python_version := 3
 cov_report := html
 index_url := https://pypi.python.org/simple/
@@ -13,10 +14,10 @@ pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_ind
 
 env:
 ifndef local_env
-	PATH=/usr/bin/:/usr/local/bin virtualenv env --no-site-packages -p python$(python_version)
-	env/bin/pip install -U pip wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url)
-	env/bin/pip install -U setuptools --index-url=$(index_url) --extra-index-url=$(extra_index_url)
-	env/bin/pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	PATH=/usr/bin/:/usr/local/bin virtualenv $(ENV) --no-site-packages -p python$(python_version)
+	pip install -U pip wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	pip install -U setuptools --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 endif
 
 develop: env
@@ -40,7 +41,7 @@ coveralls:
 	coveralls
 
 clean:
-	-rm -rf ./env ./build /tmp/pip_build_root
+	-rm -rf ./$(ENV) ./build /tmp/pip_build_root
 
 build: clean env
 	mkdir -p ./build
