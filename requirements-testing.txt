@@ -1,0 +1,6 @@
+django-webtest==1.7.7
+mock==1.0.1
+pytest-cache==1.0
+pytest-cov==1.8.1
+pytest-django==2.8.0
+pytest-pep8==1.0.6
