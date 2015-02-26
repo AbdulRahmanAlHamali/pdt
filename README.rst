@@ -53,6 +53,16 @@ you need to setup your web-server to serve the /static/ alias directly from the 
 
 Here is the tutorial for deployment with `uwsgi <https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/uwsgi/>`_
 
+Make sure that production server has system packages mentioned in `<DEPENDENCIES>`_ file are installed (ubuntu 14.04).
+
+After the deployment of the build folder to the production server:
+
+::
+
+    cd <build folder>
+    # apply database migrations
+    PYTHONPATH=. django/bin/django-admin.py syncdb
+
 
 Using wheels
 ------------
@@ -126,6 +136,8 @@ Example of the configuration
             dsn: some-raven-dsn
         api:
             token: some-api-token
+        fogbugz:
+            token: some-fogbugz-token
 
 The most important django settings are:
 
@@ -134,9 +146,6 @@ FOGBUGZ_URL
 
 AUTH_FOGBUGZ_SERVER
    URL of your fogbugz instance
-
-FOGBUGZ_TOKEN
-   Fogbugz user API token to be used for Fogbugz API calls
 
 FOGBUGZ_CI_PROJECT_FIELD_ID
    Fogbugz field id to get CI project field values. Used for release management.

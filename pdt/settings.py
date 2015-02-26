@@ -143,3 +143,6 @@ DATABASES = {
         'PORT': dbcfg['port'],
     }
 }
+
+# Token to use for fogbugz communication
+FOGBUGZ_TOKEN = yam_config['fogbugz']['token']

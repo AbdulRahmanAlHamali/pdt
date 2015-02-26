@@ -1,4 +1,5 @@
 # System package dependencies (apt)
-python3
-python-virtualenv
 libxslt1-dev
+libyaml-dev
+python-virtualenv
+python3
