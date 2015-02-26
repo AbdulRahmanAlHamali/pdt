@@ -1,0 +1,16 @@
+language: python
+python:
+    - 2.7
+# command to install dependencies
+# # command to run tests
+before_install:
+  - sudo apt-get update
+  - make dependencies
+install: true
+script:
+  - make test python_version=
+after_success:
+  - make coveralls
+notifications:
+    email:
+        - opensource-tests@paylogic.com

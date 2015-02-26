@@ -1,0 +1,153 @@
+Paylogic Deployment Tool
+========================
+
+`Paylogic Deployment Tool` manages paylogic migrations, deployments and releases.
+
+If you want to use it, please read the documentation below.
+
+.. image:: https://api.travis-ci.org/paylogic/pdt.png
+   :target: https://travis-ci.org/paylogic/pdt
+.. image:: https://coveralls.io/repos/paylogic/pdt/badge.png?branch=master
+   :target: https://coveralls.io/r/paylogic/pdt
+
+
+Development Environment
+-----------------------
+
+To set up the development environment, run:
+
+::
+
+    # install system dependencies, requires sudo access!
+    make dependencies
+
+    # install python dependencies, initialize configs
+    make develop
+
+
+Then, to run the django development server:
+
+::
+
+    .env/bin/python manage.py runserver
+
+Open a browser, go to http://127.0.0.1:8000/ and you can use the `PDT`.
+
+
+
+Production Deployment
+---------------------
+
+::
+
+    make build [index_url=<local pypi index>]
+
+This command will make ./build folder containing all needed to run the application.
+
+The preferred method to deploy Django applications is to use WSGI supporting
+web server. Use ``build/wsgi.py`` file as WSGI script.
+
+There is one important thing to remember. Django serves media (static) files
+only in development mode. For running Rietveld in a production environment,
+you need to setup your web-server to serve the /static/ alias directly from the ``./build/static`` folder.
+
+Here is the tutorial for deployment with `uwsgi <https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/uwsgi/>`_
+
+
+Using wheels
+------------
+
+To speedup the build process, 2 make targets are implemented:
+
+`make wheel`
+    Build `wheels <https://pypi.python.org/pypi/wheel>`_ for all python dependencies, storing them in the
+    cache directory
+
+`make upload-wheel` (depends on `make wheel`)
+    Upload previously generated wheels to given private `devpi server <https://pypi.python.org/pypi/devpi-server>`_.
+
+    Parameters:
+
+* `devpi_url` - devpi server URL to use
+* `devpi_path` - index path to upload to
+* `devpi_login` - login to use for devpi authorization
+* `devpi_password` - password to use for devpi authorization
+
+After you'll upload wheels, `make build` and `make develop` time will be dramatically reduced, if you will
+pass `index_url` parameter pointing to the same devpi server index you used for `make upload-wheel`, for example:
+
+::
+
+    make build index_url=https://my.pypi.com/index/trusty/+simple/
+
+Be aware that binary wheels can only be used on exactly same architecture and environment as they were built.
+
+
+Creating the local environment
+------------------------------
+
+In order to create new issues - with patches, descriptions and so on - you need
+to create the local environment.
+
+First of all, you need to create a local settings file.
+This can be done by copying example one:
+
+::
+
+    cp paylogic/settings_local_example.py paylogic/settings_local.py
+
+
+Configuration
+-------------
+
+For secret configuration, the nice `YamJam <http://yamjam.readthedocs.org/en/latest/index.html>`_ is used.
+
+Secret settings are loaded from 2 places:
+
+/etc/pdt/config.yaml
+    place the production secrets there
+<pdt root>/config.yaml
+    place the local development secrets there
+
+Example of the configuration
+
+.. code-block:: yaml
+
+    pdt:
+        django_secret_key: my-secret-key-value
+        database:
+            engine: django.db.backends.sqlite3
+            name: db.sqlite3
+            user:
+            password:
+            host:
+            port:
+        raven:
+            dsn: some-raven-dsn
+        api:
+            token: some-api-token
+
+The most important django settings are:
+
+FOGBUGZ_URL
+   URL of your fogbugz instance
+
+AUTH_FOGBUGZ_SERVER
+   URL of your fogbugz instance
+
+FOGBUGZ_TOKEN
+   Fogbugz user API token to be used for Fogbugz API calls
+
+FOGBUGZ_CI_PROJECT_FIELD_ID
+   Fogbugz field id to get CI project field values. Used for release management.
+
+For the defaults of the listed settings, see `<settings.py>`_.
+
+
+License
+-------
+
+This software is licensed under the `MIT license <http://opensource.org/licenses/MIT>`_
+
+
+© 2015 Paylogic International.
