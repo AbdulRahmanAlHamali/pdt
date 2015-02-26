@@ -21,6 +21,7 @@ ifndef local_env
 endif
 
 develop: env
+	test -a config.yml || cp config{_example,}.yaml
 	pip install -r requirements-testing.txt $(pip_args)
 	pip install -r requirements.txt $(pip_args)
 ifndef skip_syncdb
@@ -47,21 +48,20 @@ build: clean env
 	mkdir -p ./build
 	echo "`git rev-parse --abbrev-ref HEAD`: `git rev-parse HEAD`" > ./build/VERSION
 	pip install -r requirements.txt --target=./build $(pip_args)
-	cp -R codereview paylogic *.py rietveld_helper static templates ./build/
-	cd build; python manage.py collectstatic --noinput --settings=paylogic.settings_build
+	cp -R pdt ./build/
+	cd build; PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
 
 dependencies:
 	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'` -y
 
 wheel: clean env
-	$(eval pip_args := --no-use-wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external)
+	$(eval pip_args := --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external)
 	rm -rf $(DOWNLOAD_CACHE_DIR)
 	rm -rf $(WHEEL_DIR)
 	mkdir -p $(DOWNLOAD_CACHE_DIR)
 	pip wheel -w "$(WHEEL_DIR)" -r requirements-testing.txt $(pip_args)
 	for x in `ls "$(DOWNLOAD_CACHE_DIR)/"| grep \.whl` ; do \
 		-mv "$$x" "$(WHEEL_DIR)/$${x$(pound)$(pound)*%2F}"; done
-	-rm -rf $(WHEEL_DIR)/Django-* # django of early versions doesn't work out of the box with wheels
 
 upload-wheel: wheel
 	devpi use $(devpi_url)

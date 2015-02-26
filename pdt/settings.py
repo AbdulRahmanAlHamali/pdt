@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/dev/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
+from YamJam import yamjam
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -38,6 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_auth_fogbugz',
+    'raven.contrib.django.raven_compat',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -71,18 +74,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pdt.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/dev/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/dev/topics/i18n/
 
@@ -102,3 +93,53 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_fogbugz.backend.FogBugzBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = 'https://fogbugz.example.com'
+
+AUTH_FOGBUGZ_AUTO_CREATE_USERS = True
+
+AUTH_FOGBUGZ_ENABLE_PROFILE = True
+
+AUTH_FOGBUGZ_ENABLE_PROFILE_TOKEN = True
+
+SESSION_COOKIE_AGE = 1209600  # (2 weeks, in seconds)
+
+
+try:
+    from .settings_local import *
+except ImportError:
+    pass
+
+
+cfg = yamjam('/etc/pdt/config.yaml;./config.yaml')
+
+yam_config = cfg['pdt']
+
+DJANGO_SECRET_KEY = yam_config['django_secret_key']
+
+RAVEN_CONFIG = {
+    'dsn': yam_config['raven']['dsn']
+}
+
+API_TOKEN = yam_config['api']['token']
+
+# Database
+# https://docs.djangoproject.com/en/dev/ref/settings/#databases
+
+dbcfg = yam_config['database']
+
+DATABASES = {
+    'default': {
+        'ENGINE': dbcfg['engine'],
+        'NAME': dbcfg['name'],
+        'USER': dbcfg['user'],
+        'PASSWORD': dbcfg['password'],
+        'HOST': dbcfg['host'],
+        'PORT': dbcfg['port'],
+    }
+}

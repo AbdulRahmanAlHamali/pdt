@@ -1,1 +1,5 @@
-django==1.8a1
+git+https://github.com/paylogic/fogbugz@python3#egg=fogbugz
+git+https://github.com/paylogic/django-auth-fogbugz.git@django-1.7#egg=django-auth-fogbugz
+django==1.8b1
+raven==5.2.0
+yamjam==0.1.7

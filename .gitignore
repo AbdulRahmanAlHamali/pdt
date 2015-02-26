@@ -1,8 +1,8 @@
 *.pyc
 *.bak
 settings_local.py
+settings_local_*.py
 /src/
-/paylogic/settings_paylogic_local.py
 /.env/
 dev.db*
 *.orig
