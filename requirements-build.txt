@@ -1,0 +1,4 @@
+-r requirements.txt
+
+circus==0.11.1
+uwsgi==2.0.9

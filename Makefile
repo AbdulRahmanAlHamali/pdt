@@ -46,13 +46,24 @@ clean:
 
 build: clean env
 	mkdir -p ./build
-	echo "`git rev-parse --abbrev-ref HEAD`: `git rev-parse HEAD`" > ./build/VERSION
-	pip install -r requirements.txt --target=./build $(pip_args)
+	echo "`git rev-parse --abbrev-ref HEAD`.`git rev-parse HEAD`" > ./build/VERSION
+	pip install -r requirements-build.txt --target=./build --install-option="--install-scripts=$(PWD)/build/bin" $(pip_args)
 	cp -R pdt ./build/
+	cp config_build.yaml build/config.yaml
 	cd build; PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
+	mkdir -p build/etc/pdt
+	cp config_example.yaml build/etc/pdt/config.yaml
+	cp circus.ini build/etc/pdt/
+
+deb: build
+	cd build;\
+		fpm --name pdt -s dir -t deb -v "`cat VERSION`" --config-files=etc/pdt/config.yaml \
+		--config-files=etc/pdt/circus.ini -f \
+		--depends="`cat ../DEPENDENCIES | grep -v '#'`" .
 
 dependencies:
 	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'` -y
+	sudo gem install fpm
 
 wheel: clean env
 	$(eval pip_args := --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external)
