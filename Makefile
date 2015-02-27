@@ -62,6 +62,9 @@ deb: build
 	cd build;\
 		fpm --name pdt -s dir -t deb -v "`cat VERSION`" --config-files=etc/pdt/config.yaml \
 		--config-files=etc/pdt/circus.ini -f \
+		--before-install=../deployment/usr/lib/pdt/bin/before-install \
+		--after-install=../deployment/usr/lib/pdt/bin/after-install \
+		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
 dependencies:
