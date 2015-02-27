@@ -1,4 +1,4 @@
 #!/bin/bash
 DIR=/usr/lib/pdt
 export PYTHONPATH=$DIR
-python3 $DIR/bin/circusd /etc/pdt/circus.ini
+python3 $DIR/bin/circusd /etc/pdt/circus.ini $@

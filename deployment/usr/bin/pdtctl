@@ -1,4 +1,4 @@
 #!/bin/bash
 DIR=/usr/lib/pdt
 export PYTHONPATH=$DIR
-python3 $DIR/bin/circusctl
+python3 $DIR/bin/circusctl $@
