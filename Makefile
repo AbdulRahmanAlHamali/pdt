@@ -52,6 +52,7 @@ build: clean env
 	cp -R pdt ./build$(BUILD_PREFIX)
 	cp config_build.yaml build$(BUILD_PREFIX)/config.yaml
 	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
+	rm build$(BUILD_PREFIX)/config.yaml
 	mkdir -p build/etc/pdt
 	cp config_example.yaml build/etc/pdt/config.yaml
 	cp -R deployment/* build/
