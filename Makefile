@@ -3,6 +3,7 @@ DOWNLOAD_CACHE_DIR=$(HOME)/.pip/downloads
 SHELL := /bin/bash
 ENV := .env
 PATH := $(PWD)/$(ENV)/bin:$(PATH)
+BUILD_PREFIX := /usr/lib/pdt
 python_version := 3
 cov_report := html
 index_url := https://pypi.python.org/simple/
@@ -45,12 +46,12 @@ clean:
 	-rm -rf ./$(ENV) ./build /tmp/pip_build_root
 
 build: clean env
-	mkdir -p ./build
+	mkdir -p ./build$(BUILD_PREFIX)
 	echo "`git rev-parse --abbrev-ref HEAD`.`git rev-parse HEAD`" > ./build/VERSION
-	pip install -r requirements-build.txt --target=./build --install-option="--install-scripts=$(PWD)/build/bin" $(pip_args)
-	cp -R pdt ./build/
-	cp config_build.yaml build/config.yaml
-	cd build; PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
+	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) --install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
+	cp -R pdt ./build$(BUILD_PREFIX)
+	cp config_build.yaml build$(BUILD_PREFIX)/config.yaml
+	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
 	mkdir -p build/etc/pdt
 	cp config_example.yaml build/etc/pdt/config.yaml
 	cp circus.ini build/etc/pdt/
