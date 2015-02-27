@@ -48,7 +48,7 @@ clean:
 build: clean env
 	mkdir -p ./build$(BUILD_PREFIX)
 	cp VERSION ./build/
-	PATH=$(GLOBAL_PATH) pip3 install -r requirements-build.txt --target=./build$(BUILD_PREFIX) --install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
+	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) --install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
 	cp -R pdt ./build$(BUILD_PREFIX)
 	cp config_build.yaml build$(BUILD_PREFIX)/config.yaml
 	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
