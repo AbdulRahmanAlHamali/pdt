@@ -54,7 +54,7 @@ build: clean env
 	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
 	mkdir -p build/etc/pdt
 	cp config_example.yaml build/etc/pdt/config.yaml
-	cp circus.ini build/etc/pdt/
+	cp -R deployment/* build/
 
 deb: build
 	cd build;\
@@ -80,3 +80,5 @@ upload-wheel: wheel
 	devpi use $(devpi_path)
 	devpi login $(devpi_login) --password=$(devpi_password)
 	devpi upload --no-vcs --formats=bdist_wheel $(WHEEL_DIR)/*
+
+.PHONY: clean wheel upload-wheel deb coveralls coverage develop
