@@ -1,4 +1,4 @@
 #!/bin/bash
 DIR=/usr/lib/pdt
 export PYTHONPATH=$DIR
-python3 $DIR/bin/manage.py
+python3 $DIR/bin/manage.py $@
