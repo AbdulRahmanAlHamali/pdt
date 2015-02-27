@@ -55,6 +55,7 @@ build: clean env
 	mkdir -p build/etc/pdt
 	cp config_example.yaml build/etc/pdt/config.yaml
 	cp -R deployment/* build/
+	cp -R manage.py build/$(BUILD_PREFIX)/bin/
 
 deb: build
 	cd build;\
