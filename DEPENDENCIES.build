@@ -1,3 +1,4 @@
 # System package dependencies (apt)
 ruby-dev
 gcc
+python3-pip

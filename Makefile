@@ -2,6 +2,7 @@ WHEEL_DIR=$(HOME)/.pip/wheels
 DOWNLOAD_CACHE_DIR=$(HOME)/.pip/downloads
 SHELL := /bin/bash
 ENV := .env
+GLOBAL_PATH := $(PATH)
 PATH := $(PWD)/$(ENV)/bin:$(PATH)
 BUILD_PREFIX := /usr/lib/pdt
 python_version := 3
@@ -10,8 +11,7 @@ index_url := https://pypi.python.org/simple/
 extra_index_url := $(index_url)
 wheel_args := --use-wheel
 pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external
-
-.PHONY: test clean
+DEPENDENCIES := $(shell grep -v "\#" DEPENDENCIES)
 
 env:
 ifndef local_env
@@ -47,8 +47,8 @@ clean:
 
 build: clean env
 	mkdir -p ./build$(BUILD_PREFIX)
-	echo "`git rev-parse --abbrev-ref HEAD`.`git rev-parse HEAD`" > ./build/VERSION
-	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) --install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
+	cp VERSION ./build/
+	PATH=$(GLOBAL_PATH) pip3 install -r requirements-build.txt --target=./build$(BUILD_PREFIX) --install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
 	cp -R pdt ./build$(BUILD_PREFIX)
 	cp config_build.yaml build$(BUILD_PREFIX)/config.yaml
 	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
@@ -60,10 +60,10 @@ deb: build
 	cd build;\
 		fpm --name pdt -s dir -t deb -v "`cat VERSION`" --config-files=etc/pdt/config.yaml \
 		--config-files=etc/pdt/circus.ini -f \
-		--depends="`cat ../DEPENDENCIES | grep -v '#'`" .
+		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
 dependencies:
-	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'` -y
+	sudo apt-get install $(DEPENDENCIES) -y
 	sudo gem install fpm
 
 wheel: clean env
@@ -81,4 +81,4 @@ upload-wheel: wheel
 	devpi login $(devpi_login) --password=$(devpi_password)
 	devpi upload --no-vcs --formats=bdist_wheel $(WHEEL_DIR)/*
 
-.PHONY: clean wheel upload-wheel deb coveralls coverage develop
+.PHONY: test clean wheel upload-wheel deb coveralls coverage develop
