@@ -85,6 +85,7 @@ deb: #build
 		--directories=/etc/pdt \
 		--before-install=../deployment/usr/lib/pdt/bin/before-install \
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
+		--after-upgrade=../deployment/usr/lib/pdt/bin/after-upgrade \
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 

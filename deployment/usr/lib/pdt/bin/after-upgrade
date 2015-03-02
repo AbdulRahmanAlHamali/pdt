@@ -1,3 +1,3 @@
 #!/bin/bash
-pdtd-admin syncdb
+stop pdt || true
 start pdt || true
