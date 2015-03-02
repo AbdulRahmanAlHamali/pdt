@@ -170,7 +170,7 @@ Example of the configuration
             url: http://fogbugz.example.com
             ci_project_field_id: cixproject
         hostname: localhost
-        debug: false
+        debug: true
 
 
 License

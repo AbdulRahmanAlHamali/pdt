@@ -141,6 +141,6 @@ FOGBUGZ_TOKEN = yam_config['fogbugz']['token']
 FOGBUGZ_CI_PROJECT_FIELD_ID = yam_config['fogbugz']['ci_project_field_id']
 AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = yam_config['fogbugz']['url']
 
-TEMPLATE_DEBUG = DEBUG = yam_config['debug'] == 'true'
+TEMPLATE_DEBUG = DEBUG = yam_config['debug']
 
 ALLOWED_HOSTS = ['.{0}'.format(yam_config['hostname'])] if yam_config['hostname'] else []
