@@ -64,11 +64,14 @@ build: clean env
 		--settings=pdt.settings_build
 	rm build$(BUILD_PREFIX)/config.yaml
 	cp -R deployment/* build/
-	cp -R manage.py build/$(BUILD_PREFIX)/bin/
 
-deb: #build
+deb: build
 	cd build;\
-		fpm --name pdt -s dir -t deb -v "`cat VERSION`" \
+		fpm \
+		--name pdt \
+		-s dir \
+		-t deb \
+		--version="`cat VERSION`" \
 		--config-files=etc/pdt/config.yaml \
 		--config-files=etc/pdt/circus.ini -f \
 		--license='$(DEB_LICENCE)' \
@@ -80,12 +83,11 @@ deb: #build
 		--deb-user=$(DEB_USER) \
 		--deb-group=$(DEB_GROUP) \
 		--deb-changelog=../CHANGES.rst \
-		--directories=/var/lib/pdt \
-		--directories=/usr/lib/pdt \
-		--directories=/etc/pdt \
+		--directories=var/lib/pdt \
+		--directories=usr/lib/pdt \
+		--directories=etc/pdt \
 		--before-install=../deployment/usr/lib/pdt/bin/before-install \
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
-		--after-upgrade=../deployment/usr/lib/pdt/bin/after-upgrade \
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 

@@ -22,14 +22,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '&4qvlp7z%qqka*-_3@zk733xenawadi@1+4%7=l%dg@0ma(sr8'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -146,3 +138,9 @@ DATABASES = {
 
 # Token to use for fogbugz communication
 FOGBUGZ_TOKEN = yam_config['fogbugz']['token']
+FOGBUGZ_CI_PROJECT_FIELD_ID = yam_config['fogbugz']['ci_project_field_id']
+AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = yam_config['fogbugz']['url']
+
+TEMPLATE_DEBUG = DEBUG = yam_config['debug'] == 'true'
+
+ALLOWED_HOSTS = ['.{0}'.format(yam_config['hostname'])] if yam_config['hostname'] else []

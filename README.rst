@@ -138,6 +138,10 @@ Example of the configuration
             token: some-api-token
         fogbugz:
             token: some-fogbugz-token
+            url: http://fogbugz.example.com
+            ci_project_field_id: cixproject
+        hostname: localhost
+        debug: false
 
 The most important django settings are:
 

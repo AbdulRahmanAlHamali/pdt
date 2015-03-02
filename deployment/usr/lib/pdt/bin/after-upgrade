@@ -1,3 +1,0 @@
-#!/bin/bash
-stop pdt || true
-start pdt || true
