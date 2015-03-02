@@ -2,6 +2,7 @@
 *.bak
 settings_local.py
 settings_local_*.py
+/config.yaml
 /src/
 /.env/
 dev.db*
