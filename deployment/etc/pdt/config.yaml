@@ -1,0 +1,15 @@
+pdt:
+    django_secret_key: my-secret-key-value
+    database:
+        engine: django.db.backends.sqlite3
+        name: /var/lib/pdt/db.sqlite3
+        user:
+        password:
+        host:
+        port:
+    raven:
+        dsn: some-raven-dsn
+    api:
+        token: some-api-token
+    fogbugz:
+        token: some-fogbugz-token

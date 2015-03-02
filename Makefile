@@ -48,19 +48,21 @@ clean:
 build: clean env
 	mkdir -p ./build$(BUILD_PREFIX)
 	cp VERSION ./build/
-	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) --install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
+	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) \
+		--install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
 	cp -R pdt ./build$(BUILD_PREFIX)
 	cp config_build.yaml build$(BUILD_PREFIX)/config.yaml
-	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput --settings=pdt.settings_build
+	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput \
+		--settings=pdt.settings_build
 	rm build$(BUILD_PREFIX)/config.yaml
 	mkdir -p build/etc/pdt
-	cp config_example.yaml build/etc/pdt/config.yaml
 	cp -R deployment/* build/
 	cp -R manage.py build/$(BUILD_PREFIX)/bin/
 
 deb: build
 	cd build;\
-		fpm --name pdt -s dir -t deb -v "`cat VERSION`" --config-files=etc/pdt/config.yaml \
+		fpm --name pdt -s dir -t deb -v "`cat VERSION`" \
+		--config-files=etc/pdt/config.yaml \
 		--config-files=etc/pdt/circus.ini -f \
 		--before-install=../deployment/usr/lib/pdt/bin/before-install \
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
