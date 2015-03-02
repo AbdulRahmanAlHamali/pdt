@@ -1,2 +1,3 @@
 #!/bin/bash
 stop pdt || true
+find /usr/lib/pdt/ -name '*.pyc' -delete

@@ -1,2 +1,39 @@
-#!/bin/bash
-exit 0
+#!/bin/sh
+
+set -eu
+
+USER="pdt"
+GROUP="pdt"
+
+# If we use NIS then errors should be tolerated.
+if which ypwhich >/dev/null 2>&1 && ypwhich >/dev/null 2>&1
+then
+        set +e
+fi
+
+if ! getent group $GROUP >/dev/null
+then
+        addgroup --system $GROUP >/dev/null
+fi
+
+# creating user if it isn't already there
+if ! getent passwd $USER >/dev/null
+then
+        useradd \
+          --system \
+          -g $GROUP \
+          --home /nonexistent \
+          --shell /bin/false \
+          $USER >/dev/null
+fi
+
+mkdir -p /var/log/pdt >/dev/null
+chown $USER:$GROUP /var/log/pdt >/dev/null
+chmod 750 /var/log/pdt >/dev/null
+
+mkdir -p /var/lib/pdt >/dev/null
+chown $USER:$GROUP /var/lib/pdt >/dev/null
+chmod 750 /var/log/pdt >/dev/null
+
+# end of NIS tolerance zone
+set -e

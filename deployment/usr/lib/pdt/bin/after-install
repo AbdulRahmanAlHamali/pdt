@@ -1,3 +1,10 @@
 #!/bin/bash
+USER="pdt"
+GROUP="pdt"
+chown $USER:$GROUP /usr/lib/pdt >/dev/null
+chmod 750 /usr/lib/pdt >/dev/null
+chown $USER:$GROUP /etc/pdt >/dev/null
+chmod 750 /etc/pdt >/dev/null
+
 pdt-admin syncdb
 start pdt || true

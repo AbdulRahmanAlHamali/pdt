@@ -65,7 +65,8 @@ build: clean env
 	rm build$(BUILD_PREFIX)/config.yaml
 	cp -R deployment/* build/
 
-deb: build
+deb: #build
+	cp -R deployment/* build/
 	cd build;\
 		fpm \
 		--name pdt \
@@ -83,9 +84,10 @@ deb: build
 		--deb-user=$(DEB_USER) \
 		--deb-group=$(DEB_GROUP) \
 		--deb-changelog=../CHANGES.rst \
-		--directories=var/lib/pdt \
-		--directories=usr/lib/pdt \
-		--directories=etc/pdt \
+		--directories=/var/lib/pdt \
+		--directories=/usr/lib/pdt \
+		--directories=/etc/pdt \
+		--directories=/var/log/pdt \
 		--before-install=../deployment/usr/lib/pdt/bin/before-install \
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
