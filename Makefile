@@ -12,6 +12,14 @@ extra_index_url := $(index_url)
 wheel_args := --use-wheel
 pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external
 DEPENDENCIES := $(shell grep -v "\#" DEPENDENCIES)
+DEB_LICENCE := MIT
+DEB_VENDOR := Paylogic
+DEB_CATEGORY := deployment
+DEB_MAINTAINER := Paylogic developers <develpoers@paylogic.eu>
+DEB_DESCRIPTION := Paylogic deployment tool
+DEB_URI := https://github.com/paylogic/pdt
+DEB_USER := pdt
+DEB_GROUP := pdt
 
 env:
 ifndef local_env
@@ -55,15 +63,26 @@ build: clean env
 	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput \
 		--settings=pdt.settings_build
 	rm build$(BUILD_PREFIX)/config.yaml
-	mkdir -p build/etc/pdt
 	cp -R deployment/* build/
 	cp -R manage.py build/$(BUILD_PREFIX)/bin/
 
-deb: build
+deb: #build
 	cd build;\
 		fpm --name pdt -s dir -t deb -v "`cat VERSION`" \
 		--config-files=etc/pdt/config.yaml \
 		--config-files=etc/pdt/circus.ini -f \
+		--license='$(DEB_LICENCE)' \
+		--vendor='$(DEB_VENDOR)' \
+		--category='$(DEB_CATEGORY)' \
+		--maintainer='$(DEB_MAINTAINER)' \
+		--description='$(DEB_DESCRIPTION)' \
+		--url='$(DEB_URI)' \
+		--deb-user=$(DEB_USER) \
+		--deb-group=$(DEB_GROUP) \
+		--deb-changelog=../CHANGES.rst \
+		--directories=/var/lib/pdt \
+		--directories=/usr/lib/pdt \
+		--directories=/etc/pdt \
 		--before-install=../deployment/usr/lib/pdt/bin/before-install \
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
