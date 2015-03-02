@@ -72,9 +72,10 @@ deb: #build
 		--name pdt \
 		-s dir \
 		-t deb \
+		-f \
 		--version="`cat VERSION`" \
-		--config-files=etc/pdt/config.yaml \
-		--config-files=etc/pdt/circus.ini -f \
+		--config-files=etc/pdt \
+		--config-files=etc/init \
 		--license='$(DEB_LICENCE)' \
 		--vendor='$(DEB_VENDOR)' \
 		--category='$(DEB_CATEGORY)' \
@@ -84,10 +85,10 @@ deb: #build
 		--deb-user=$(DEB_USER) \
 		--deb-group=$(DEB_GROUP) \
 		--deb-changelog=../CHANGES.rst \
-		--directories=/var/lib/pdt \
-		--directories=/usr/lib/pdt \
-		--directories=/etc/pdt \
-		--directories=/var/log/pdt \
+		--directories=var/lib/pdt \
+		--directories=usr/lib/pdt \
+		--directories=etc/pdt \
+		--directories=var/log/pdt \
 		--before-install=../deployment/usr/lib/pdt/bin/before-install \
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \

@@ -38,6 +38,35 @@ Open a browser, go to http://127.0.0.1:8000/ and you can use the `PDT`.
 Production Deployment
 ---------------------
 
+Automatic way - debian package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    make deb [index_url=<local pypi index>]
+
+This command will create debian package (located in ``./build/pdt_<version from ./VERSION>.deb``)
+with the application. Important file locations:
+
+``/etc/pdt/config.yaml``
+    Default configuration located which you need to adjust
+
+``/etc/pdt/circus.ini``
+    PDT circus supervisor configuration located which you DON'T normally need to adjust
+
+``/etc/init/pdt.conf``
+    Upstart configuration for PDT circus supervisor located which you DON'T normally need to adjust
+
+``/var/lib/pdt/db.sqlite3``
+    Default PDT sqlite3 database location
+
+``/usr/lib/pdt``
+    PDT code location
+
+
+Manual way - build folder
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 ::
 
     make build [index_url=<local pypi index>]
@@ -142,19 +171,6 @@ Example of the configuration
             ci_project_field_id: cixproject
         hostname: localhost
         debug: false
-
-The most important django settings are:
-
-FOGBUGZ_URL
-   URL of your fogbugz instance
-
-AUTH_FOGBUGZ_SERVER
-   URL of your fogbugz instance
-
-FOGBUGZ_CI_PROJECT_FIELD_ID
-   Fogbugz field id to get CI project field values. Used for release management.
-
-For the defaults of the listed settings, see `<settings.py>`_.
 
 
 License
