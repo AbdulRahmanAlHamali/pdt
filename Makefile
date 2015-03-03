@@ -30,7 +30,7 @@ ifndef local_env
 endif
 
 develop: env
-	test -a config.yml || cp config{_example,}.yaml
+	test -a config.yaml || cp config{_example,}.yaml
 	pip install -r requirements-testing.txt $(pip_args)
 	pip install -r requirements.txt $(pip_args)
 ifndef skip_syncdb

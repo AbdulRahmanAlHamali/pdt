@@ -13,7 +13,7 @@ from YamJam import yamjam
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # Quick-start development settings - unsuitable for production
@@ -105,12 +105,57 @@ AUTH_FOGBUGZ_ENABLE_PROFILE_TOKEN = True
 SESSION_COOKIE_AGE = 1209600  # (2 weeks, in seconds)
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
+    # Use Django's standard `django.contrib.auth` permissions
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+        'rest_framework.permissions.DjangoModelPermissions'
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    'ORDERING_PARAM': 'order_by'
 }
+
+ATOMIC_REQUESTS = True
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': (
+            os.path.join(BASE_DIR, 'templates'),
+        ),
+        'OPTIONS': {
+            'context_processors': (
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                'settings_context_processor.context_processors.settings',
+            )
+        }
+    }
+]
+
+
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader'
+)
+
+TEMPLATE_VISIBLE_SETTINGS = (
+    'VERSION',
+)
+
+with open(os.path.join(BASE_DIR, 'VERSION')) as fd:
+    VERSION = fd.read().strip()
 
 try:
     from .settings_local import *

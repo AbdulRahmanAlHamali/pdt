@@ -1,6 +1,7 @@
 git+https://github.com/paylogic/fogbugz@python3#egg=fogbugz
 git+https://github.com/paylogic/django-auth-fogbugz.git@django-1.7#egg=django-auth-fogbugz
 django-filter==0.9.2
+django-settings-context-processor==0.2
 django==1.8b1
 djangorestframework==3.0.5
 markdown==2.6

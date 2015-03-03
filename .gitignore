@@ -16,4 +16,4 @@ dev.db*
 htmlcov/
 /build
 *.sqlite3
-/static
+/pdt/static

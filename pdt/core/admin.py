@@ -4,7 +4,7 @@ from django.contrib import admin
 from .models import (
     Release,
     Instance,
-    Project,
+    CIProject,
     Migration,
     MigrationReport,
     Case,
@@ -26,11 +26,11 @@ class InstanceAdmin(admin.ModelAdmin):
 admin.site.register(Instance, InstanceAdmin)
 
 
-class ProjectAdmin(admin.ModelAdmin):
+class CIProjectAdmin(admin.ModelAdmin):
 
-    """Project admin interface class."""
+    """CI Project admin interface class."""
 
-admin.site.register(Project, ProjectAdmin)
+admin.site.register(CIProject, CIProjectAdmin)
 
 
 class MigrationAdmin(admin.ModelAdmin):
