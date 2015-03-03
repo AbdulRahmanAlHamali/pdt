@@ -35,8 +35,8 @@ develop: env
 	pip install -r requirements.txt $(pip_args)
 ifndef skip_syncdb
 	python manage.py syncdb
-	python manage.py collectstatic --noinput
 endif
+	python manage.py collectstatic --noinput
 
 test: env
 	pip install tox

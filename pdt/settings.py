@@ -33,6 +33,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_auth_fogbugz',
     'raven.contrib.django.raven_compat',
+    'rest_framework',
+    'pdt.core',
+    'pdt.api',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -101,6 +104,13 @@ AUTH_FOGBUGZ_ENABLE_PROFILE_TOKEN = True
 
 SESSION_COOKIE_AGE = 1209600  # (2 weeks, in seconds)
 
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 try:
     from .settings_local import *
