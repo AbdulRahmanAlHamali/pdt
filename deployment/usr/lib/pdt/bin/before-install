@@ -28,12 +28,12 @@ then
 fi
 
 mkdir -p /var/log/pdt >/dev/null
-chown $USER:$GROUP /var/log/pdt >/dev/null
-chmod 750 /var/log/pdt >/dev/null
+chown -R $USER:$GROUP /var/log/pdt >/dev/null
+chmod -R 750 /var/log/pdt >/dev/null
 
 mkdir -p /var/lib/pdt >/dev/null
-chown $USER:$GROUP /var/lib/pdt >/dev/null
-chmod 750 /var/log/pdt >/dev/null
+chown -R $USER:$GROUP /var/lib/pdt >/dev/null
+chmod -R 750 /var/log/pdt >/dev/null
 
 # end of NIS tolerance zone
 set -e

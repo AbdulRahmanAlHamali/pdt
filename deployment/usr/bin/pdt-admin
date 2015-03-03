@@ -1,4 +1,3 @@
 #!/bin/bash
 DIR=/usr/lib/pdt
-export PYTHONPATH=$DIR
-python3 $DIR/bin/manage.py $@
+sudo -u pdt PYTHONPATH=$DIR python3 $DIR/bin/manage.py $@

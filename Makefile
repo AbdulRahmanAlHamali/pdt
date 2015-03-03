@@ -65,7 +65,7 @@ build: clean env
 	rm build$(BUILD_PREFIX)/config.yaml
 	cp -R deployment/* build/
 
-deb: #build
+deb: build
 	cp -R deployment/* build/
 	cd build;\
 		fpm \

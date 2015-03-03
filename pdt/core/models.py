@@ -20,20 +20,6 @@ class Release(models.Model):
         return '{self.name}: {self.date}'.format(self=self)
 
 
-class Instance(models.Model):
-
-    """Instance.
-
-    Instance means the isolated set of physical servers.
-    """
-
-    name = models.CharField(max_length=255, blank=False, unique=True)
-    description = models.CharField(max_length=255, blank=True)
-
-    def __str__(self):
-        return '{self.name}'.format(self=self)
-
-
 class CIProject(models.Model):
 
     """Continuous integration project."""
@@ -43,6 +29,21 @@ class CIProject(models.Model):
 
     def __str__(self):
         return '{self.name}'.format(self=self)
+
+
+class Instance(models.Model):
+
+    """Instance.
+
+    Instance means the isolated set of physical servers.
+    """
+
+    name = models.CharField(max_length=255, blank=False, unique=True)
+    ci_project = models.ForeignKey(CIProject, blank=False)
+    description = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return '{self.name}: {self.ci_project}'.format(self=self)
 
 
 class CaseManager(models.Manager):
