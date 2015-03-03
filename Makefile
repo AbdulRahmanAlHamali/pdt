@@ -53,7 +53,8 @@ coveralls:
 clean:
 	-rm -rf ./$(ENV) ./build /tmp/pip_build_root
 
-build: clean env
+build: env
+	rm -rf ./build
 	mkdir -p ./build$(BUILD_PREFIX)
 	cp VERSION ./build/
 	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) \
@@ -113,4 +114,4 @@ upload-wheel: wheel
 	devpi login $(devpi_login) --password=$(devpi_password)
 	devpi upload --no-vcs --formats=bdist_wheel $(WHEEL_DIR)/*
 
-.PHONY: test clean wheel upload-wheel deb coveralls coverage develop
+.PHONY: test build clean wheel upload-wheel deb coveralls coverage develop
