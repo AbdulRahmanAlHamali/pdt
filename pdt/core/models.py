@@ -50,7 +50,7 @@ class CaseManager(models.Manager):
 
     """Case manager to allow automatic fetch from Fogbugz."""
 
-    def get_or_create(self, id=None, **kwargs):
+    def get_or_create_from_fogbugz(self, id=None, **kwargs):
         """Get or create an object from the Fogbugz API.
 
         :param id: Fogbugz case id

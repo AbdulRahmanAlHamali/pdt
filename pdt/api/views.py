@@ -173,7 +173,7 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
     def validate_case(self, value):
         case_id = value['id']
         try:
-            value, created = Case.objects.get_or_create(id=case_id)
+            value, created = Case.objects.get_or_create_from_fogbugz(id=case_id)
         except Exception as e:
             raise serializers.ValidationError(e)
         return value
