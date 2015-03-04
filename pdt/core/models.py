@@ -109,6 +109,7 @@ class Migration(models.Model):
         ('onl', 'Online'),
     )
 
+    uid = models.CharField(max_length=255, blank=False, unique=True)
     case = models.OneToOneField(Case, blank=False, unique=True)
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl')
     sql = models.TextField(blank=True)

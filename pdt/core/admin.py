@@ -76,7 +76,7 @@ class MigrationReportAdmin(admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
 
-    list_display = ('instance', case, 'status', 'datetime')
+    list_display = (case, 'instance', 'status', 'datetime')
     list_filter = ('migration__case__id', 'instance__name', 'status')
     search_fields = ('migration',)
 

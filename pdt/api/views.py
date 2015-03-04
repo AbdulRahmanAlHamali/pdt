@@ -1,4 +1,5 @@
 """PDT API views."""
+import django_filters
 from rest_framework import serializers, viewsets
 
 from pdt.core.models import (
@@ -154,9 +155,20 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
 
     case = CaseSerializer()
 
+    class MigrationReportSerializer(serializers.ModelSerializer):
+
+        ci_project = serializers.CharField(source='instance.ci_project.name')
+        instance = serializers.CharField(source='instance.name')
+
+        class Meta:
+            model = MigrationReport
+            fields = ('id', 'ci_project', 'instance', 'status', 'datetime', 'log')
+
+    migration_reports = MigrationReportSerializer(source='migrationreport_set', read_only=True, many=True)
+
     class Meta:
         model = Migration
-        fields = ('id', 'case', 'category', 'sql', 'code')
+        fields = ('id', 'uid', 'case', 'category', 'sql', 'code', 'migration_reports')
 
     def validate_case(self, value):
         case_id = value['id']
@@ -176,14 +188,35 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
             return super(MigrationSerializer, self).create(validated_data)
 
 
+class MigrationFilter(django_filters.FilterSet):
+
+    """Migration filter to allow lookups for case, status, ci_project and instance."""
+
+    case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
+    status = django_filters.CharFilter(name="migrationreport__status")
+    exclude_status = django_filters.CharFilter(name="migrationreport__status", exclude=True)
+    ci_project = django_filters.CharFilter(
+        name="migrationreport__instance__ci_project__name", lookup_type='exact')
+    instance = django_filters.CharFilter(name="migrationreport__instance__name", lookup_type='exact')
+
+    class Meta:
+        model = Migration
+        fields = ['uid', 'case', 'category', 'ci_project', 'instance', 'status', 'exclude_status']
+
+
 class MigrationViewSet(viewsets.ModelViewSet):
 
     """Return a list of all migrations in the system.
 
     Filters (via **`<parameter>`** query string arguments):
 
+    * uid
     * case
     * category
+    * status
+    * exclude_status
+    * ci_project
+    * instance
 
     Orderings (via **`order_by`** query string parameter):
 
@@ -193,9 +226,9 @@ class MigrationViewSet(viewsets.ModelViewSet):
 
     queryset = Migration.objects.all()
     serializer_class = MigrationSerializer
-    filter_fields = ('case', 'category')
     ordering_fields = ('case', 'category')
     ordering = ('case', 'id')
+    filter_class = MigrationFilter
 
 
 class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
