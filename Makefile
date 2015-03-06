@@ -97,7 +97,7 @@ deb: build
 
 dependencies:
 	sudo apt-get install $(DEPENDENCIES) -y
-	sudo gem install fpm
+	sudo gem2.0 install fpm
 
 wheel: clean env
 	$(eval pip_args := --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external)

@@ -12,6 +12,26 @@ from pdt.core.models import (
 )
 
 
+class EqualsAny(object):
+
+    """Helper object comparison to which is always 'equal'."""
+
+    def __init__(self, type=None):
+        self.type = type
+
+    def __eq__(self, other):
+        return isinstance(other, self.type) if self.type else True
+
+    def __cmp__(self, other):
+        return 0 if (isinstance(other, self.type) if self.type else False) else -1
+
+
+@pytest.fixture
+def equals_any():
+    """Helper for assertions to always succeed."""
+    return EqualsAny()
+
+
 @pytest.fixture
 def ci_project_name():
     """CI Project name."""

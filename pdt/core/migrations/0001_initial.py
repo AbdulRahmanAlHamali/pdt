@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CIProject',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=255, unique=True)),
                 ('description', models.CharField(max_length=255, blank=True)),
             ],
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DeploymentReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('status', models.CharField(choices=[('dpl', 'Deployed'), ('err', 'Error')], max_length=3)),
                 ('datetime', models.DateTimeField(auto_now_add=True)),
                 ('log', models.TextField(blank=True)),
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Instance',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=255, unique=True)),
                 ('description', models.CharField(max_length=255, blank=True)),
                 ('ci_project', models.ForeignKey(to='core.CIProject')),
@@ -50,9 +50,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Migration',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('uid', models.CharField(max_length=255, unique=True)),
-                ('category', models.CharField(choices=[('off', 'Offline'), ('onl', 'Online')], default='onl', max_length=3)),
+                ('category', models.CharField(choices=[('off', 'Offline'), ('onl', 'Online')], max_length=3, default='onl')),
                 ('sql', models.TextField(blank=True)),
                 ('code', models.TextField(blank=True)),
                 ('case', models.OneToOneField(to='core.Case')),
@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MigrationReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('status', models.CharField(choices=[('apl', 'Applied'), ('err', 'Error')], max_length=3)),
                 ('datetime', models.DateTimeField(auto_now_add=True)),
                 ('log', models.TextField(blank=True)),
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Release',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('name', models.CharField(max_length=255, unique=True)),
                 ('date', models.DateField(default=datetime.date.today)),
             ],

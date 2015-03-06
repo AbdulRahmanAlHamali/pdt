@@ -1,4 +1,6 @@
 """PDT API views."""
+from django.db.models import Q
+
 import django_filters
 from rest_framework import serializers, viewsets
 
@@ -150,7 +152,7 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
             fields = ('id', 'title', 'ci_project')
             extra_kwargs = {
                 'title': {'read_only': True},
-                'ci_project': {'read_only': True}
+                'ci_project': {'read_only': True, 'source': 'ci_project.name'}
             }
 
     case = CaseSerializer()
@@ -194,7 +196,7 @@ class MigrationFilter(django_filters.FilterSet):
 
     case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
     status = django_filters.CharFilter(name="migrationreport__status")
-    exclude_status = django_filters.CharFilter(name="migrationreport__status", exclude=True)
+    exclude_status = django_filters.MethodFilter(action="filter_exclude_status")
     ci_project = django_filters.CharFilter(
         name="migrationreport__instance__ci_project__name", lookup_type='exact')
     instance = django_filters.CharFilter(name="migrationreport__instance__name", lookup_type='exact')
@@ -202,6 +204,9 @@ class MigrationFilter(django_filters.FilterSet):
     class Meta:
         model = Migration
         fields = ['uid', 'case', 'category', 'ci_project', 'instance', 'status', 'exclude_status']
+
+    def filter_exclude_status(self, queryset, value):
+        return queryset.filter(Q(migrationreport__status__gt=value) | Q(migrationreport__status__lt=value))
 
 
 class MigrationViewSet(viewsets.ModelViewSet):
