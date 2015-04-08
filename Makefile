@@ -31,8 +31,7 @@ endif
 
 develop: env
 	test -a config.yaml || cp config{_example,}.yaml
-	pip install -r requirements-testing.txt $(pip_args)
-	pip install -r requirements.txt $(pip_args)
+	pip install -r requirements-dev.txt $(pip_args)
 ifndef skip_syncdb
 	python manage.py syncdb
 endif

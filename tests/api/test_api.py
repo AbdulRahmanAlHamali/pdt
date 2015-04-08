@@ -1,6 +1,10 @@
 """Test public API."""
 import json
 
+import pytest
+
+from pdt.core.models import Case
+
 
 def test_migration_filter_exclude_status(admin_client, migration_report_factory, equals_any):
     """Test migration filter when exclude status parameter is used."""
@@ -63,14 +67,14 @@ def test_migration_filter_ci_project(admin_client, migration_factory):
     assert len(data) == 1
 
 
-def test_create_migration_no_case(mocked_fogbugz, admin_client, case_id):
+def test_create_migration_no_case(mocked_fogbugz, admin_client):
     """Test create migration when fb case is not found."""
     mocked_fogbugz.return_value.search.return_value.cases.find.return_value = None
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
             "case": {
-                "id": case_id
+                "id": "33322"
             },
             "category": "onl",
             "sql": "SELECT * from some",
@@ -79,14 +83,14 @@ def test_create_migration_no_case(mocked_fogbugz, admin_client, case_id):
     assert data == {'case': ["['Case with such id cannot be found']"]}
 
 
-def test_create_migration_case_no_milestone(mocked_fogbugz, admin_client, case_id):
+def test_create_migration_case_no_milestone(mocked_fogbugz, admin_client):
     """Test create migration when fb case doesn't have a milestone."""
     mocked_fogbugz.return_value.search.return_value.cases.find.return_value.sfixfor.string = None
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
             "case": {
-                "id": case_id
+                "id": "33322"
             },
             "category": "onl",
             "sql": "SELECT * from some",
@@ -95,7 +99,7 @@ def test_create_migration_case_no_milestone(mocked_fogbugz, admin_client, case_i
     assert data == {'case': ["['Case milestone is not set']"]}
 
 
-def test_create_migration(mocked_fogbugz, admin_client, case_id):
+def test_create_migration(mocked_fogbugz, admin_client):
     """Test create migration."""
     case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     case.sfixfor.string = '1516'
@@ -110,32 +114,33 @@ def test_create_migration(mocked_fogbugz, admin_client, case_id):
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
             "case": {
-                "id": case_id
+                "id": "33322"
             },
             "category": "onl",
             "sql": "SELECT * from some",
             "code": "import py"
         }), content_type='application/json').data
     assert data['uid'] == "234234234234234"
+    assert Case.objects.get(id=33322)
 
 
-def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case_id):
+@pytest.mark.parametrize('case__id', [33322])
+def test_update_migration(migration_factory, mocked_fogbugz, admin_client, migration, case__id):
     """Test update migration."""
-    migration_factory(case__id='1516')
-    case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
-    case.sfixfor.string = '1516'
-    case.dtfixfor.string = '2015-01-18T23:00:00Z'
-    case.stitle.string = 'Some title'
-    case.soriginaltitle.string = 'Some original title'
-    case.cixproject.string = 'some-ci-project'
-    case.sproject.string = 'Some project'
-    case.sproject.string = 'Some project'
-    case.sarea.string = 'Some area'
+    mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
+    mocked_case.sfixfor.string = '1516'
+    mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
+    mocked_case.stitle.string = 'Some title'
+    mocked_case.soriginaltitle.string = 'Some original title'
+    mocked_case.cixproject.string = 'some-ci-project'
+    mocked_case.sproject.string = 'Some project'
+    mocked_case.sproject.string = 'Some project'
+    mocked_case.sarea.string = 'Some area'
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
             "case": {
-                "id": case_id
+                "id": case__id
             },
             "category": "onl",
             "sql": "SELECT * from some",
