@@ -23,7 +23,7 @@ DEB_GROUP := pdt
 
 env:
 ifndef local_env
-	PATH=/usr/bin/:/usr/local/bin virtualenv $(ENV) --no-site-packages -p python$(python_version)
+	PATH=/usr/local/bin/:/usr/bin:$(GLOBAL_PATH) virtualenv $(ENV) --no-site-packages -p python$(python_version)
 	pip install -U pip wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 	pip install -U setuptools --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 	pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
