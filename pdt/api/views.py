@@ -176,7 +176,7 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
         """Validate fogbugz case complex type."""
         case_id = value['id']
         try:
-            value, _ = Case.objects.get_or_create_from_fogbugz(id=case_id)
+            value, _ = Case.objects.get_or_create_from_fogbugz(case_id=case_id)
         except Exception as e:
             raise serializers.ValidationError(e)
         return value
@@ -199,7 +199,7 @@ class MigrationFilter(django_filters.FilterSet):
     status = django_filters.CharFilter(name="migrationreport__status")
     exclude_status = django_filters.MethodFilter(action="filter_exclude_status")
     ci_project = django_filters.CharFilter(
-        name="migrationreport__instance__ci_project__name", lookup_type='exact')
+        name="case__ci_project__name", lookup_type='exact')
     instance = django_filters.CharFilter(name="migrationreport__instance__name", lookup_type='exact')
 
     class Meta:

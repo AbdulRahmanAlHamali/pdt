@@ -1,6 +1,8 @@
 """PDT tests configuration."""
 import datetime
 
+import mock
+
 import factory
 import pytest
 
@@ -114,6 +116,14 @@ def case(case_id, case_title, case_description, ci_project, release):
         id=case_id, title=case_title, description=case_description, ci_project=ci_project, release=release)
 
 
+@pytest.yield_fixture(autouse=True)
+def mocked_fogbugz(monkeypatch):
+    """Mock Fogbugz class to avoid external connections."""
+    mocked_fogbugz = mock.patch('fogbugz.FogBugz')
+    yield mocked_fogbugz.start()
+    mocked_fogbugz.stop()
+
+
 class ReleaseFactory(factory.django.DjangoModelFactory):
 
     """Release factory."""
@@ -187,3 +197,9 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
 def migration_report_factory():
     """Migration report factory."""
     return MigrationReportFactory
+
+
+@pytest.fixture
+def migration_factory():
+    """Migration factory."""
+    return MigrationFactory

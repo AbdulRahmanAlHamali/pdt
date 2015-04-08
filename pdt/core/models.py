@@ -14,7 +14,7 @@ class Release(models.Model):
     """Release."""
 
     name = models.CharField(max_length=255, blank=False, unique=True)
-    date = models.DateField(blank=False, default=datetime.date.today)
+    date = models.DateTimeField(blank=False, default=datetime.date.today)
 
     def __str__(self):
         """String representation."""
@@ -66,18 +66,26 @@ class CaseManager(models.Manager):
                 settings.AUTH_FOGBUGZ_SERVER,
                 settings.FOGBUGZ_TOKEN)
             resp = fb.search(
-                q=id,
+                q=case_id,
                 cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,' + settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
                 max=1
             )
             case = resp.cases.find('case')
+            if case is None:
+                raise ValidationError('Case with such id cannot be found', case_id)
+            if not case.sfixfor.string:
+                raise ValidationError('Case milestone is not set', case_id)
             kwargs['title'] = case.stitle.string
             kwargs['description'] = case.soriginaltitle.string
-            if not case.dtfixfor.string:
-                raise ValidationError('Case milestone is not set.')
-            kwargs['release'], _ = Release.objects.get_or_create(name=case.sfixfor.string)
-            kwargs['release'].date = parse_datetime(case.dtfixfor.string)
-            kwargs['release'].save()
+            release_datetime = parse_datetime(case.dtfixfor.string)
+            try:
+                release = Release.objects.get(name=case.sfixfor.string)
+            except Release.DoesNotExist:
+                release = Release(name=case.sfixfor.string, date=release_datetime)
+            else:
+                release.date = release_datetime
+            release.save()
+            kwargs['release'] = release
             ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
             kwargs['ci_project'], _ = CIProject.objects.get_or_create(name=ci_project)
             kwargs['project'] = case.sproject.string
