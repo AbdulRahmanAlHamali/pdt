@@ -35,6 +35,7 @@ admin.site.register(CIProject, CIProjectAdmin)
 
 
 def ci_project(self):
+    """Get CI project name."""
     return self.ci_project.name
 ci_project.admin_order_field = 'ci_project__name'
 
@@ -51,6 +52,7 @@ admin.site.register(Instance, InstanceAdmin)
 
 
 def case(self):
+    """Get case id."""
     return self.case.id
 case.admin_order_field = 'case__id'
 
@@ -67,16 +69,17 @@ class MigrationAdmin(admin.ModelAdmin):
 admin.site.register(Migration, MigrationAdmin)
 
 
-def case(self):
+def migration_case(self):
+    """Get migration case id."""
     return self.migration.case.id
-case.admin_order_field = 'migration__case__id'
+migration_case.admin_order_field = 'migration__case__id'
 
 
 class MigrationReportAdmin(admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
 
-    list_display = (case, 'instance', 'status', 'datetime')
+    list_display = (migration_case, 'instance', 'status', 'datetime')
     list_filter = ('migration__case__id', 'instance__name', 'status')
     search_fields = ('migration',)
 
@@ -93,11 +96,6 @@ class CaseAdmin(admin.ModelAdmin):
     search_fields = ('id', 'title')
 
 admin.site.register(Case, CaseAdmin)
-
-
-def case(self):
-    return self.migration.case.id
-case.admin_order_field = 'migration__case__id'
 
 
 class DeploymentReportAdmin(admin.ModelAdmin):

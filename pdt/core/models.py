@@ -17,6 +17,7 @@ class Release(models.Model):
     date = models.DateField(blank=False, default=datetime.date.today)
 
     def __str__(self):
+        """String representation."""
         return '{self.name}: {self.date}'.format(self=self)
 
 
@@ -28,6 +29,7 @@ class CIProject(models.Model):
     description = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
+        """String representation."""
         return '{self.name}'.format(self=self)
 
 
@@ -43,6 +45,7 @@ class Instance(models.Model):
     description = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
+        """String representation."""
         return '{self.name}: {self.ci_project}'.format(self=self)
 
 
@@ -50,14 +53,14 @@ class CaseManager(models.Manager):
 
     """Case manager to allow automatic fetch from Fogbugz."""
 
-    def get_or_create_from_fogbugz(self, id=None, **kwargs):
+    def get_or_create_from_fogbugz(self, case_id=None, **kwargs):
         """Get or create an object from the Fogbugz API.
 
         :param id: Fogbugz case id
         :type id: int
         """
         try:
-            return self.get(id=id, **kwargs), False
+            return self.get(id=case_id, **kwargs), False
         except self.model.DoesNotExist:
             fb = fogbugz.FogBugz(
                 settings.AUTH_FOGBUGZ_SERVER,
@@ -72,14 +75,14 @@ class CaseManager(models.Manager):
             kwargs['description'] = case.soriginaltitle.string
             if not case.dtfixfor.string:
                 raise ValidationError('Case milestone is not set.')
-            kwargs['release'], created = Release.objects.get_or_create(name=case.sfixfor.string)
+            kwargs['release'], _ = Release.objects.get_or_create(name=case.sfixfor.string)
             kwargs['release'].date = parse_datetime(case.dtfixfor.string)
             kwargs['release'].save()
             ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
-            kwargs['ci_project'], created = CIProject.objects.get_or_create(name=ci_project)
+            kwargs['ci_project'], _ = CIProject.objects.get_or_create(name=ci_project)
             kwargs['project'] = case.sproject.string
             kwargs['area'] = case.sarea.string
-            return super(CaseManager, self).get_or_create(id=id, **kwargs)
+            return super(CaseManager, self).get_or_create(id=case_id, **kwargs)
 
 
 class Case(models.Model):
@@ -97,6 +100,7 @@ class Case(models.Model):
     objects = CaseManager()
 
     def __str__(self):
+        """String representation."""
         return '{self.id}: {self.title}'.format(self=self)
 
 
@@ -116,7 +120,8 @@ class Migration(models.Model):
     code = models.TextField(blank=True)
 
     def __str__(self):
-        return '{self.case}: {self.category}: {self.id}'.format(self=self)
+        """String representation."""
+        return '{self.case}: {self.category}: {self.uid}'.format(self=self)
 
 
 class MigrationReport(models.Model):
@@ -138,6 +143,7 @@ class MigrationReport(models.Model):
     log = models.TextField(blank=True)
 
     def __str__(self):
+        """String representation."""
         return '{self.migration}: {self.instance}: {self.datetime}'.format(self=self)
 
 
@@ -157,4 +163,5 @@ class DeploymentReport(models.Model):
     log = models.TextField(blank=True)
 
     def __str__(self):
+        """String representation."""
         return '{self.release}: {self.instance}: {self.datetime}'.format(self=self)

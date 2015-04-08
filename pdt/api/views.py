@@ -173,9 +173,10 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'uid', 'case', 'category', 'sql', 'code', 'migration_reports')
 
     def validate_case(self, value):
+        """Validate fogbugz case complex type."""
         case_id = value['id']
         try:
-            value, created = Case.objects.get_or_create_from_fogbugz(id=case_id)
+            value, _ = Case.objects.get_or_create_from_fogbugz(id=case_id)
         except Exception as e:
             raise serializers.ValidationError(e)
         return value
@@ -206,6 +207,7 @@ class MigrationFilter(django_filters.FilterSet):
         fields = ['uid', 'case', 'category', 'ci_project', 'instance', 'status', 'exclude_status']
 
     def filter_exclude_status(self, queryset, value):
+        """Implement ``exclude`` filter by status."""
         return queryset.filter(Q(migrationreport__status__gt=value) | Q(migrationreport__status__lt=value))
 
 
@@ -255,6 +257,7 @@ class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
     instance = InstanceSerializer()
 
     def validate_instance(self, value):
+        """Validate instance complex type."""
         name = value['name']
         try:
             value = Instance.objects.get(name=name)
@@ -289,6 +292,7 @@ class MigrationReportSerializer(InstanceFieldMixin):
         validators = []
 
     def validate_migration(self, value):
+        """Validate migration complex type."""
         case_id = value['case_id']
         try:
             value = Migration.objects.get(case__id=case_id)
@@ -352,9 +356,10 @@ class ReleaseFieldMixin(serializers.HyperlinkedModelSerializer):
     release = ReleaseSerializer()
 
     def validate_release(self, value):
+        """Validate release complex type."""
         name = value['name']
         try:
-            value, created = Release.objects.get_or_create(name=name)
+            value, _ = Release.objects.get_or_create(name=name)
         except Exception as e:
             raise serializers.ValidationError(e)
         return value

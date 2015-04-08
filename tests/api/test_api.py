@@ -27,14 +27,15 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             'instance': mr1.instance.name,
             'status': mr1.status,
             'datetime': equals_any,
-            'log': mr1.log}, {
+            'log': mr1.log
+        }, {
             'id': mr2.id,
             'ci_project': migration.case.ci_project.name,
             'instance': mr2.instance.name,
             'status': mr2.status,
             'datetime': equals_any,
-            'log': mr2.log},
-        ]
+            'log': mr2.log
+        }]
     }
 
 

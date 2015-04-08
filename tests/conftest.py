@@ -16,13 +16,16 @@ class EqualsAny(object):
 
     """Helper object comparison to which is always 'equal'."""
 
-    def __init__(self, type=None):
-        self.type = type
+    def __init__(self, type_=None):
+        """Initialize new instance."""
+        self.type = type_
 
     def __eq__(self, other):
+        """True if the type is correct."""
         return isinstance(other, self.type) if self.type else True
 
     def __cmp__(self, other):
+        """0 if the type is correct."""
         return 0 if (isinstance(other, self.type) if self.type else False) else -1
 
 
