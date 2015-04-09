@@ -7,3 +7,6 @@ DATABASES.update({
         'NAME': 'pdt',
     }
 })
+
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG

@@ -16,9 +16,9 @@ class ReleaseAdmin(admin.ModelAdmin):
 
     """Release admin interface class."""
 
-    list_display = ('name', 'date')
-    list_filter = ('date',)
-    search_fields = ('name', 'date')
+    list_display = ('name', 'datetime')
+    list_filter = ('datetime',)
+    search_fields = ('name', 'datetime')
 
 admin.site.register(Release, ReleaseAdmin)
 

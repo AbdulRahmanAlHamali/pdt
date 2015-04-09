@@ -3,7 +3,14 @@ import mock
 
 import factory
 import pytest
+import py
 from pytest_factoryboy import register
+
+
+@pytest.fixture
+def project_path():
+    """Project path."""
+    return py.path.local(__file__).dirname().dirname()
 
 
 class EqualsAny(object):
@@ -110,3 +117,15 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
     instance = factory.SubFactory(InstanceFactory)
     migration = factory.SubFactory(
         MigrationFactory, case__ci_project=factory.SelfAttribute('...instance.ci_project'))
+
+
+@register
+class DeploymentReportFactory(factory.django.DjangoModelFactory):
+
+    """DeploymentReport factory."""
+
+    class Meta:
+        model = 'core.DeploymentReport'
+
+    instance = factory.SubFactory(InstanceFactory)
+    release = factory.SubFactory(ReleaseFactory)

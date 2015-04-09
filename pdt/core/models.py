@@ -1,6 +1,4 @@
 """PDT core models."""
-import datetime
-
 from django.db import models
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
@@ -14,11 +12,11 @@ class Release(models.Model):
     """Release."""
 
     name = models.CharField(max_length=255, blank=False, unique=True)
-    date = models.DateTimeField(blank=False, default=datetime.date.today)
+    datetime = models.DateTimeField(blank=False, auto_now_add=True)
 
     def __str__(self):
         """String representation."""
-        return '{self.name}: {self.date}'.format(self=self)
+        return '{self.name}: {self.datetime}'.format(self=self)
 
 
 class CIProject(models.Model):
@@ -40,9 +38,12 @@ class Instance(models.Model):
     Instance means the isolated set of physical servers.
     """
 
-    name = models.CharField(max_length=255, blank=False, unique=True)
+    name = models.CharField(max_length=255, blank=False)
     ci_project = models.ForeignKey(CIProject, blank=False)
     description = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        unique_together = (("name", "ci_project"),)
 
     def __str__(self):
         """String representation."""
@@ -81,9 +82,9 @@ class CaseManager(models.Manager):
             try:
                 release = Release.objects.get(name=case.sfixfor.string)
             except Release.DoesNotExist:
-                release = Release(name=case.sfixfor.string, date=release_datetime)
+                release = Release(name=case.sfixfor.string, datetime=release_datetime)
             else:
-                release.date = release_datetime
+                release.datetime = release_datetime
             release.save()
             kwargs['release'] = release
             ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string

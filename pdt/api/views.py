@@ -1,4 +1,6 @@
 """PDT API views."""
+import datetime
+
 from django.db.models import Q
 
 import django_filters
@@ -21,7 +23,7 @@ class ReleaseSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Release
-        fields = ('id', 'name', 'date')
+        fields = ('id', 'name', 'datetime')
 
 
 class ReleaseViewSet(viewsets.ModelViewSet):
@@ -41,18 +43,47 @@ class ReleaseViewSet(viewsets.ModelViewSet):
 
     queryset = Release.objects.all()
     serializer_class = ReleaseSerializer
-    filter_fields = ('name', 'date')
-    ordering_fields = ('name', 'date')
+    filter_fields = ('name', 'datetime')
+    ordering_fields = ('name', 'datetime')
     ordering = ('name',)
 
 
-class InstanceSerializer(serializers.HyperlinkedModelSerializer):
+class CIProjectFieldMixin(serializers.HyperlinkedModelSerializer):
+
+    """Add custom ci_project field handling."""
+
+    class CIProjectSerializer(serializers.ModelSerializer):
+
+        name = serializers.CharField()
+
+        class Meta:
+            model = CIProject
+            fields = ('id', 'name', 'description')
+            extra_kwargs = {
+                'id': {'read_only': True},
+                'name': {'read_only': True},
+                'description': {'read_only': True},
+            }
+
+    ci_project = CIProjectSerializer()
+
+    def validate_ci_project(self, value):
+        """Validate ci_project complex type."""
+        name = value['name']
+        try:
+            value, _ = CIProject.objects.get_or_create(name=name)
+        except Exception as e:  # pragma: no cover
+            raise serializers.ValidationError(e)
+        return value
+
+
+class InstanceSerializer(CIProjectFieldMixin):
 
     """Instance serializer."""
 
     class Meta:
         model = Instance
-        fields = ('id', 'name', 'description')
+        fields = ('id', 'name', 'description', 'ci_project')
 
 
 class InstanceViewSet(viewsets.ModelViewSet):
@@ -104,13 +135,13 @@ class CIProjectViewSet(viewsets.ModelViewSet):
     ordering = ('name',)
 
 
-class CaseSerializer(serializers.HyperlinkedModelSerializer):
+class CaseSerializer(CIProjectFieldMixin):
 
     """Case serializer."""
 
     class Meta:
         model = Case
-        fields = ('id', 'title', 'description', 'project', 'release')
+        fields = ('id', 'title', 'description', 'project', 'release', 'ci_project')
 
 
 class CaseViewSet(viewsets.ModelViewSet):
@@ -134,14 +165,14 @@ class CaseViewSet(viewsets.ModelViewSet):
 
     queryset = Case.objects.all()
     serializer_class = CaseSerializer
-    filter_fields = ('id', 'title', 'project', 'release')
-    ordering_fields = ('id', 'title', 'project', 'release')
+    filter_fields = ('id', 'title', 'project', 'release', 'ci_project')
+    ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')
     ordering = ('id',)
 
 
-class MigrationSerializer(serializers.HyperlinkedModelSerializer):
+class CaseFieldMixin(serializers.HyperlinkedModelSerializer):
 
-    """Migration serializer."""
+    """Add custom case field handling."""
 
     class CaseSerializer(serializers.ModelSerializer):
 
@@ -149,13 +180,28 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
 
         class Meta:
             model = Case
-            fields = ('id', 'title', 'ci_project')
+            fields = ('id', 'title', 'description', 'ci_project')
             extra_kwargs = {
                 'title': {'read_only': True},
-                'ci_project': {'read_only': True, 'source': 'ci_project.name'}
+                'description': {'read_only': True},
+                'ci_project': {'read_only': True, 'source': 'ci_project.name'},
             }
 
     case = CaseSerializer()
+
+    def validate_case(self, value):
+        """Validate case complex type."""
+        name = value['id']
+        try:
+            value, _ = Case.objects.get_or_create_from_fogbugz(case_id=name)
+        except Exception as e:  # pragma: no cover
+            raise serializers.ValidationError(e)
+        return value
+
+
+class MigrationSerializer(CaseFieldMixin):
+
+    """Migration serializer."""
 
     class MigrationReportSerializer(serializers.ModelSerializer):
 
@@ -171,15 +217,6 @@ class MigrationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Migration
         fields = ('id', 'uid', 'case', 'category', 'sql', 'code', 'migration_reports')
-
-    def validate_case(self, value):
-        """Validate fogbugz case complex type."""
-        case_id = value['id']
-        try:
-            value, _ = Case.objects.get_or_create_from_fogbugz(case_id=case_id)
-        except Exception as e:
-            raise serializers.ValidationError(e)
-        return value
 
     def create(self, validated_data):
         """Create or update the instance due to unique key on case."""
@@ -242,15 +279,18 @@ class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
 
     """Add custom instance field handling."""
 
-    class InstanceSerializer(serializers.ModelSerializer):
+    class InstanceSerializer(CIProjectFieldMixin):
 
         name = serializers.CharField()
 
         class Meta:
             model = Instance
-            fields = ('id', 'name', 'description')
+            validators = []
+            fields = ('id', 'name', 'ci_project', 'description')
             extra_kwargs = {
                 'id': {'read_only': True},
+                "name": {'read_only': True},
+                "ci_project": {'read_only': True},
                 'description': {'read_only': True}
             }
 
@@ -260,8 +300,8 @@ class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
         """Validate instance complex type."""
         name = value['name']
         try:
-            value = Instance.objects.get(name=name)
-        except Exception as e:
+            value, _ = Instance.objects.get_or_create(name=name, ci_project=value['ci_project'])
+        except Exception as e:  # pragma: no cover
             raise serializers.ValidationError(e)
         return value
 
@@ -270,17 +310,14 @@ class MigrationReportSerializer(InstanceFieldMixin):
 
     """Migration report serializer."""
 
-    class MigrationSerializer(serializers.HyperlinkedModelSerializer, serializers.ModelSerializer):
-
-        case_id = serializers.IntegerField(write_only=True)
-
-        case = CaseSerializer(read_only=True)
+    class MigrationSerializer(CaseFieldMixin):
 
         class Meta:
             model = Migration
-            fields = ('id', 'case_id', 'case', 'category')
+            fields = ('id', 'case', 'category')
             extra_kwargs = {
                 'id': {'read_only': True},
+                'case': {'read_only': True},
                 'category': {'read_only': True}
             }
 
@@ -290,12 +327,15 @@ class MigrationReportSerializer(InstanceFieldMixin):
         model = MigrationReport
         fields = ('id', 'migration', 'instance', 'status', 'datetime', 'log')
         validators = []
+        extra_kwargs = {
+            'datetime': {'default': datetime.datetime.now},
+        }
 
     def validate_migration(self, value):
         """Validate migration complex type."""
-        case_id = value['case_id']
+        case = value['case']
         try:
-            value = Migration.objects.get(case__id=case_id)
+            value = Migration.objects.get(case=case)
         except Exception as e:
             raise serializers.ValidationError(e)
         return value
@@ -305,7 +345,10 @@ class MigrationReportSerializer(InstanceFieldMixin):
         try:
             instance = MigrationReport.objects.get(
                 migration=validated_data['migration'], instance=validated_data['instance'])
-            return self.update(instance, validated_data)
+            res = self.update(instance, validated_data)
+            # to get timezone-aware datetime
+            res.refresh_from_db()
+            return res
         except MigrationReport.DoesNotExist:
             return super(MigrationReportSerializer, self).create(validated_data)
 
@@ -346,11 +389,11 @@ class ReleaseFieldMixin(serializers.HyperlinkedModelSerializer):
 
         class Meta:
             model = Release
-            fields = ('id', 'name', 'date')
+            fields = ('id', 'name', 'datetime')
             extra_kwargs = {
                 'id': {'read_only': True},
                 'description': {'read_only': True},
-                'date': {'read_only': True}
+                'datetime': {'read_only': True}
             }
 
     release = ReleaseSerializer()
@@ -360,7 +403,7 @@ class ReleaseFieldMixin(serializers.HyperlinkedModelSerializer):
         name = value['name']
         try:
             value, _ = Release.objects.get_or_create(name=name)
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise serializers.ValidationError(e)
         return value
 
