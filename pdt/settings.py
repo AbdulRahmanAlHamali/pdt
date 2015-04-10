@@ -74,7 +74,7 @@ WSGI_APPLICATION = 'pdt.wsgi.application'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'CET'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -90,8 +90,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
 
 AUTHENTICATION_BACKENDS = (
-    'django_auth_fogbugz.backend.FogBugzBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'django_auth_fogbugz.backend.FogBugzBackend',
 )
 
 AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = 'https://fogbugz.example.com'

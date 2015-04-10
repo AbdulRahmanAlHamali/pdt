@@ -1,7 +1,6 @@
 """PDT API views."""
-import datetime
-
 from django.db.models import Q
+from django.utils import timezone
 
 import django_filters
 from rest_framework import serializers, viewsets
@@ -328,7 +327,7 @@ class MigrationReportSerializer(InstanceFieldMixin):
         fields = ('id', 'migration', 'instance', 'status', 'datetime', 'log')
         validators = []
         extra_kwargs = {
-            'datetime': {'default': datetime.datetime.now},
+            'datetime': {'default': lambda: timezone.localtime(timezone.now())},
         }
 
     def validate_migration(self, value):

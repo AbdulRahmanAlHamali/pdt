@@ -12,25 +12,14 @@ def user_role():
     return 'superuser'
 
 
-@pytest.fixture
-def base_url(connection_closer, live_server):
+@pytest.fixture(autouse=True)
+def base_url(live_server):
     """Base url."""
-    connection_closer()
     return live_server.url
 
 
 @pytest.fixture
-def connection_closer():
-    """DB connection closer function."""
-    def closer():
-        from django.db import connections
-        for conn in connections.all():
-            conn.close()
-    return closer
-
-
-@pytest.fixture
-def browser(request, user_role, browser, admin_user, base_url):
+def browser(base_url, request, user_role, admin_user, browser):
     """Pre-log in with given user role."""
     browser.visit(base_url + '/login/')
     browser.fill_form({

@@ -3,7 +3,7 @@ from pytest_bdd import given, parsers
 
 
 @given('I have an instance')
-def i_have_an_instance(db, instance):
+def i_have_an_instance(instance):
     """I have an instance."""
     return instance
 
