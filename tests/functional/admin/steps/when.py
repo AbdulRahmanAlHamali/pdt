@@ -19,8 +19,9 @@ def i_fill_instance_form(browser, ci_project, instance__name):
     """I fill instance form."""
     browser.fill_form({
         'name': instance__name,
-        'ci_project': ci_project.id,
     })
+    browser.find_by_id('id_ci_project-autocomplete').type('{0}'.format(ci_project.id))
+    browser.find_by_xpath('//a[@class="ui-corner-all" and text()="{0}"]'.format(ci_project.name)).click()
 
 
 @when('I submit the form')

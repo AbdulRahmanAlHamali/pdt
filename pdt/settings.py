@@ -25,6 +25,7 @@ SECRET_KEY = '&4qvlp7z%qqka*-_3@zk733xenawadi@1+4%7=l%dg@0ma(sr8'
 # Application definition
 
 INSTALLED_APPS = (
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,6 +35,7 @@ INSTALLED_APPS = (
     'django_auth_fogbugz',
     'raven.contrib.django.raven_compat',
     'rest_framework',
+    'django_ace',
     'pdt.core',
     'pdt.api',
 )
@@ -139,11 +141,13 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 'settings_context_processor.context_processors.settings',
+                "django.core.context_processors.request",
             )
         }
     }
 ]
 
+GRAPPELLI_ADMIN_TITLE = 'Paylogic deployment tool'
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',

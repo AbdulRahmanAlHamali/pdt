@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import datetime
 
 
 class Migration(migrations.Migration):
@@ -17,22 +16,22 @@ class Migration(migrations.Migration):
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
                 ('title', models.CharField(max_length=255)),
                 ('description', models.TextField(blank=True)),
-                ('project', models.CharField(blank=True, max_length=255)),
-                ('area', models.CharField(blank=True, max_length=255)),
+                ('project', models.CharField(max_length=255, blank=True)),
+                ('area', models.CharField(max_length=255, blank=True)),
             ],
         ),
         migrations.CreateModel(
             name='CIProject',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('name', models.CharField(unique=True, max_length=255)),
-                ('description', models.CharField(blank=True, max_length=255)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('name', models.CharField(max_length=255, unique=True)),
+                ('description', models.CharField(max_length=255, blank=True)),
             ],
         ),
         migrations.CreateModel(
             name='DeploymentReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
                 ('status', models.CharField(choices=[('dpl', 'Deployed'), ('err', 'Error')], max_length=3)),
                 ('datetime', models.DateTimeField(auto_now_add=True)),
                 ('log', models.TextField(blank=True)),
@@ -41,17 +40,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Instance',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
                 ('name', models.CharField(max_length=255)),
-                ('description', models.CharField(blank=True, max_length=255)),
+                ('description', models.CharField(max_length=255, blank=True)),
                 ('ci_project', models.ForeignKey(to='core.CIProject')),
             ],
         ),
         migrations.CreateModel(
             name='Migration',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('uid', models.CharField(unique=True, max_length=255)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('uid', models.CharField(max_length=255, unique=True)),
                 ('category', models.CharField(choices=[('off', 'Offline'), ('onl', 'Online')], max_length=3, default='onl')),
                 ('sql', models.TextField(blank=True)),
                 ('code', models.TextField(blank=True)),
@@ -61,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MigrationReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
                 ('status', models.CharField(choices=[('apl', 'Applied'), ('err', 'Error')], max_length=3)),
                 ('datetime', models.DateTimeField(auto_now_add=True)),
                 ('log', models.TextField(blank=True)),
@@ -72,9 +71,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Release',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
-                ('name', models.CharField(unique=True, max_length=255)),
-                ('datetime', models.DateTimeField(default=datetime.date.today)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('name', models.CharField(max_length=255, unique=True)),
+                ('datetime', models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.AddField(

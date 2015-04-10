@@ -14,9 +14,14 @@ class Release(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
     datetime = models.DateTimeField(blank=False, auto_now_add=True)
 
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "name__icontains",)
+
     def __str__(self):
         """String representation."""
-        return '{self.name}: {self.datetime}'.format(self=self)
+        return '{self.name}: {self.datetime:%Y-%m-%d}'.format(self=self)
 
 
 class CIProject(models.Model):
@@ -25,6 +30,11 @@ class CIProject(models.Model):
 
     name = models.CharField(max_length=255, blank=False, unique=True)
     description = models.CharField(max_length=255, blank=True)
+
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "name__icontains",)
 
     def __str__(self):
         """String representation."""
@@ -44,6 +54,11 @@ class Instance(models.Model):
 
     class Meta:
         unique_together = (("name", "ci_project"),)
+
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "name__icontains",)
 
     def __str__(self):
         """String representation."""
@@ -108,6 +123,11 @@ class Case(models.Model):
 
     objects = CaseManager()
 
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__icontains", "title__icontains",)
+
     def __str__(self):
         """String representation."""
         return '{self.id}: {self.title}'.format(self=self)
@@ -127,6 +147,11 @@ class Migration(models.Model):
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl')
     sql = models.TextField(blank=True)
     code = models.TextField(blank=True)
+
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "uid__icontains", "case__id__icontains")
 
     def __str__(self):
         """String representation."""
