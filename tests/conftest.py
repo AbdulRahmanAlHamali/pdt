@@ -10,6 +10,7 @@ from pytest_factoryboy import register
 
 @pytest.fixture(scope='session')
 def faker():
+    """Faker factory to use where fake is needed."""
     return FakerFactory.create()
 
 
