@@ -2,7 +2,6 @@
 
 django-webtest==1.7.7
 factory_boy==2.5.1
-fake-factory==0.5.0
 mock==1.0.1
 pylama==6.3.1
 pylama_pylint==2.0.0
@@ -11,6 +10,7 @@ pytest-cache==1.0
 pytest-cov==1.8.1
 pytest-django==2.8.0
 pytest-factoryboy==1.0.1
+pytest-faker==1.0.0
 pytest-pep257==0.0.1
 pytest-splinter==1.3.4
 pytest==2.7.0
