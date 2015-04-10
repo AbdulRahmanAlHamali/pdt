@@ -1,0 +1,20 @@
+{% extends "admin/base.html" %}
+{% load i18n grp_tags %}
+
+
+{% block extrastyle %}
+    <link rel="icon" href="{{ STATIC_URL }}core/icons/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="{{ STATIC_URL }}core/icons/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="{{ STATIC_URL }}core/icons/touch57.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="{{ STATIC_URL }}core/icons/touch72.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="{{ STATIC_URL }}core/icons/touch114.png" />
+
+{% endblock %}
+
+{% block title %}{{ title }} | {% get_site_title %}{% endblock %}
+
+{% block branding %}
+    <div id="grp-branding"><a href="/"><img width="120px" src="{{ STATIC_URL }}core/img/logo.png" /></a></div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
