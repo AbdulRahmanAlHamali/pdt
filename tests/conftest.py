@@ -1,10 +1,16 @@
 """PDT tests configuration."""
 import mock
 
+from faker import Factory as FakerFactory
 import factory
 import pytest
 import py
 from pytest_factoryboy import register
+
+
+@pytest.fixture(scope='session')
+def faker():
+    return FakerFactory.create()
 
 
 @pytest.fixture

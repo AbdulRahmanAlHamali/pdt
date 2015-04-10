@@ -19,6 +19,12 @@ def base_url(live_server):
 
 
 @pytest.fixture
+def instance__name(faker):
+    """Instance name."""
+    return 'instance - {0}'.format(faker.md5())
+
+
+@pytest.fixture
 def browser(base_url, request, user_role, admin_user, browser):
     """Pre-log in with given user role."""
     browser.visit(base_url + '/login/')
