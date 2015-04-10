@@ -6,6 +6,7 @@ env:
   - TESTENV=coveralls
 install:
 - pip install tox
+- make config
 script: tox -e $TESTENV
 notifications:
   email:

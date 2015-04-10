@@ -29,15 +29,17 @@ ifndef local_env
 	pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 endif
 
-develop: env
+config:
 	test -a config.yaml || cp config{_example,}.yaml
+
+develop: env config
 	pip install -r requirements-dev.txt $(pip_args)
 ifndef skip_syncdb
 	python manage.py syncdb
 endif
 	python manage.py collectstatic --noinput
 
-test: env
+test: env config
 	pip install tox
 	tox --recreate -vv
 
