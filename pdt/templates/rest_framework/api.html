@@ -1,6 +1,14 @@
 {% extends "rest_framework/base.html" %}
+{% load i18n %}
 {% block branding %}
-    <a class="navbar-brand" rel="nofollow" href="https://github.com/paylogic/pdt">
+    <a class="navbar-brand" rel="nofollow" href="/api">
+        <img width="120px" src="{{ STATIC_URL }}core/img/logo.png" />
         Paylogic Deployment Tool API <span class="version">{{ VERSION }}</span>
     </a>{% endblock %}
 {% block title %}Paylogic Deployment Tool API{% endblock %}
+{% block userlinks %}
+    {{ block.super }}
+    <li>
+        <a href="/">{% trans "Admin interface" %}</a>
+    </li>
+{% endblock %}

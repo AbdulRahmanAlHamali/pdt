@@ -25,6 +25,7 @@ SECRET_KEY = '&4qvlp7z%qqka*-_3@zk733xenawadi@1+4%7=l%dg@0ma(sr8'
 # Application definition
 
 INSTALLED_APPS = (
+    'grappelli.dashboard',
     'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -148,6 +149,7 @@ TEMPLATES = [
 ]
 
 GRAPPELLI_ADMIN_TITLE = 'Paylogic deployment tool'
+GRAPPELLI_INDEX_DASHBOARD = 'pdt.dashboard.CustomIndexDashboard'
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
