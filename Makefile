@@ -101,7 +101,7 @@ deb: build
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
-upload-deb: # deb
+upload-deb: deb
 	scp build/$(DEB_FILE_NAME) reprepro@apt.deployment.paylogic.eu:/data/debian/incoming
 	ssh reprepro@apt.deployment.paylogic.eu '\
 		reprepro includedeb $(DEB_DIST) /data/debian/incoming/$(DEB_FILE_NAME) \
