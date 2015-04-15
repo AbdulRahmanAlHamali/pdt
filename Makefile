@@ -22,6 +22,8 @@ DEB_URI := https://github.com/paylogic/pdt
 DEB_USER := pdt
 DEB_GROUP := pdt
 DEB_DIST := $(shell lsb_release -cs)
+VERSION := $(shell cat VERSION)
+DEB_FILE_NAME := pdt_$(VERSION)_amd64.deb
 
 env:
 ifndef local_env
@@ -78,7 +80,7 @@ deb: build
 		-s dir \
 		-t deb \
 		-f \
-		--version="`cat VERSION`" \
+		--version="$(VERSION)" \
 		--config-files=etc/pdt \
 		--config-files=etc/init \
 		--license='$(DEB_LICENCE)' \
@@ -99,13 +101,13 @@ deb: build
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
-upload-deb: deb
-	$(foreach file, $(wildcard build/*.deb), \
-		$(shell \
-			scp $(file) reprepro@apt.deployment.paylogic.eu:/data/debian/incoming/ && \
-			ssh reprepro@apt.deployment.paylogic.eu 'reprepro -b /data/debian includedeb $(DEB_DIST) /data/debian/incoming/$$(basename "$(file)"); \
-			rm -rf /data/debian/incoming/pdt_*' \
-	))
+upload-deb: # deb
+	scp build/$(DEB_FILE_NAME) reprepro@apt.deployment.paylogic.eu:/data/debian/incoming
+	ssh reprepro@apt.deployment.paylogic.eu '\
+		reprepro includedeb $(DEB_DIST) /data/debian/incoming/$(DEB_FILE_NAME) \
+		&& reprepro deleteunreferenced \
+		&& rm /data/debian/incoming/$(DEB_FILE_NAME) \
+		'
 
 dependencies:
 	sudo apt-get install $(BUILD_DEPENDENCIES) -y
