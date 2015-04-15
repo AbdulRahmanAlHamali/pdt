@@ -99,7 +99,7 @@ deb: build
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
-upload-deb: # deb
+upload-deb: deb
 	$(foreach file, $(wildcard build/*.deb), \
 		$(shell \
 			scp $(file) reprepro@apt.deployment.paylogic.eu:/data/debian/incoming/ && \
