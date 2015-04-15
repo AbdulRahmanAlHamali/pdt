@@ -1,4 +1,3 @@
-1.0.0
------
+pdt (1.0.1-0ubuntu1) trusty; urgency=medium
 
-* Initial public release
+  * initial release.

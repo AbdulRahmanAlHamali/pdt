@@ -20,6 +20,7 @@ DEB_DESCRIPTION := Paylogic deployment tool
 DEB_URI := https://github.com/paylogic/pdt
 DEB_USER := pdt
 DEB_GROUP := pdt
+DEB_DIST := $(shell lsb_release -cs)
 
 env:
 ifndef local_env
@@ -95,6 +96,13 @@ deb: build
 		--after-install=../deployment/usr/lib/pdt/bin/after-install \
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
+
+upload-deb: deb
+	for file in build/*.deb ; do \
+		scp $${file} reprepro@apt.deployment.paylogic.eu:/data/debian/incoming/ && \
+		ssh reprepro@apt.deployment.paylogic.eu reprepro -b /data/debian includedeb $(DEB_DIST) /data/debian/incoming/$$(basename "$$file") && \
+		rm /data/debian/incoming/* \
+		; done
 
 dependencies:
 	sudo apt-get install $(DEPENDENCIES) -y
