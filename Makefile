@@ -11,7 +11,8 @@ index_url := https://pypi.python.org/simple/
 extra_index_url := $(index_url)
 wheel_args := --use-wheel
 pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external
-DEPENDENCIES := $(shell grep -v "\#" DEPENDENCIES)
+DEPENDENCIES := $(shell grep -h -v "\#" DEPENDENCIES)
+BUILD_DEPENDENCIES := $(shell grep -h -v "\#" DEPENDENCIES*)
 DEB_LICENCE := MIT
 DEB_VENDOR := Paylogic
 DEB_CATEGORY := deployment
@@ -105,7 +106,7 @@ upload-deb: deb
 		; done
 
 dependencies:
-	sudo apt-get install $(DEPENDENCIES) -y
+	sudo apt-get install $(BUILD_DEPENDENCIES) -y
 	sudo gem2.0 install fpm
 
 wheel: clean env
