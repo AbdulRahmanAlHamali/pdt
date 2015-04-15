@@ -26,7 +26,7 @@ DEB_DIST := $(shell lsb_release -cs)
 env:
 ifndef local_env
 	PATH=/usr/local/bin/:/usr/bin:$(GLOBAL_PATH) virtualenv $(ENV) --no-site-packages -p python$(python_version)
-	pip install -U pip wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	pip install -U "pip==6.0.8" wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 	pip install -U setuptools --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 	pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 endif
@@ -107,7 +107,7 @@ upload-deb: deb
 
 dependencies:
 	sudo apt-get install $(BUILD_DEPENDENCIES) -y
-	sudo gem2.0 install fpm
+	sudo gem2.0 install --no-ri --no-rdoc fpm
 
 wheel: clean env
 	$(eval pip_args := --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external)
