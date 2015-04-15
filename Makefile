@@ -26,9 +26,9 @@ DEB_DIST := $(shell lsb_release -cs)
 env:
 ifndef local_env
 	PATH=/usr/local/bin/:/usr/bin:$(GLOBAL_PATH) virtualenv $(ENV) --no-site-packages -p python$(python_version)
-	easy_install -U pip wheel --index-url=$(index_url)
-	pip install -U setuptools --index-url=$(index_url) --extra-index-url=$(extra_index_url)
-	pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	easy_install -U --index-url=$(index_url) pip wheel
+	pip install -U --index-url=$(index_url) --extra-index-url=$(extra_index_url) setuptools
+	pip install -U --index-url=$(index_url) --extra-index-url=$(extra_index_url) devpi-client==2.0.3
 endif
 
 config:
