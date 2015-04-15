@@ -103,7 +103,7 @@ upload-deb: deb
 	for file in build/*.deb ; do \
 		scp $${file} reprepro@apt.deployment.paylogic.eu:/data/debian/incoming/ && \
 		ssh reprepro@apt.deployment.paylogic.eu reprepro -b /data/debian includedeb $(DEB_DIST) /data/debian/incoming/$$(basename "$$file") && \
-		rm /data/debian/incoming/* \
+		rm -rf /data/debian/incoming/* \
 		; done
 
 dependencies:
