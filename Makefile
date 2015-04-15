@@ -1,6 +1,6 @@
 WHEEL_DIR=$(HOME)/.pip/wheels
 DOWNLOAD_CACHE_DIR=$(HOME)/.pip/downloads
-SHELL := /bin/bash
+SHELL := /bin/bash -x
 ENV := .env
 GLOBAL_PATH := $(PATH)
 PATH := $(PWD)/$(ENV)/bin:$(PATH)
@@ -99,12 +99,13 @@ deb: build
 		--before-remove=../deployment/usr/lib/pdt/bin/before-remove \
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
-upload-deb: deb
-	for file in build/*.deb ; do \
-		scp $${file} reprepro@apt.deployment.paylogic.eu:/data/debian/incoming/ && \
-		ssh reprepro@apt.deployment.paylogic.eu reprepro -b /data/debian includedeb $(DEB_DIST) /data/debian/incoming/$$(basename "$$file") && \
-		rm -rf /data/debian/incoming/* \
-		; done
+upload-deb: # deb
+	$(foreach file, $(wildcard build/*.deb), \
+		$(shell \
+			scp $(file) reprepro@apt.deployment.paylogic.eu:/data/debian/incoming/ && \
+			ssh reprepro@apt.deployment.paylogic.eu 'reprepro -b /data/debian includedeb $(DEB_DIST) /data/debian/incoming/$$(basename "$(file)"); \
+			rm -rf /data/debian/incoming/pdt_*' \
+	))
 
 dependencies:
 	sudo apt-get install $(BUILD_DEPENDENCIES) -y
