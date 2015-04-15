@@ -9,7 +9,7 @@ class CustomIndexDashboard(Dashboard):
     """Custom index dashboard for www."""
 
     def init_with_context(self, context):
-
+        """Add dashboard items."""
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
             _('AppList: Applications'),
