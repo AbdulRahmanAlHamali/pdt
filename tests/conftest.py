@@ -80,6 +80,33 @@ class CaseFactory(factory.django.DjangoModelFactory):
     ci_project = factory.SubFactory(CIProjectFactory)
 
 
+class MigrationStepFactory(factory.django.DjangoModelFactory):
+
+    """Migration step factory."""
+
+    id = factory.Sequence(lambda n: n)
+    position = factory.Sequence(lambda n: n)
+    type = 'sql'
+    code = 'code'
+    migration = factory.SubFactory('tests.conftest.MigrationFactory')
+
+
+class PreDeployMigrationStepFactory(MigrationStepFactory):
+
+    """PreDeployMigrationStep factory."""
+
+    class Meta:
+        model = 'core.PreDeployMigrationStep'
+
+
+class PostDeployMigrationStepFactory(MigrationStepFactory):
+
+    """PostDeployMigrationStep factory."""
+
+    class Meta:
+        model = 'core.PostDeployMigrationStep'
+
+
 @register
 class MigrationFactory(factory.django.DjangoModelFactory):
 
@@ -91,6 +118,8 @@ class MigrationFactory(factory.django.DjangoModelFactory):
         model = 'core.Migration'
 
     case = factory.SubFactory(CaseFactory)
+    pre_deploy_steps = factory.RelatedFactory(PreDeployMigrationStepFactory, 'migration')
+    post_deploy_steps = factory.RelatedFactory(PreDeployMigrationStepFactory, 'migration')
 
 
 @register

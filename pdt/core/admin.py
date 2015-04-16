@@ -10,6 +10,8 @@ from .models import (
     CIProject,
     Migration,
     MigrationStep,
+    PreDeployMigrationStep,
+    PostDeployMigrationStep,
     MigrationReport,
     Case,
     DeploymentReport,
@@ -72,12 +74,15 @@ class MigrationStepForm(forms.ModelForm):
     """Migration form."""
 
     class Meta:
-        model = MigrationStep
+        abstract = True
         fields = '__all__'
         widgets = {
             "code": AceWidget(**ACE_WIDGET_PARAMS),
             "position": forms.HiddenInput,
         }
+
+    class Media:
+        js = ['django_ace/ace/mode-{0}.js'.format(mode) for mode, _ in MigrationStep.TYPE_CHOICES]
 
     def __init__(self, *args, **kwargs):
         """Set code widget mode."""
@@ -85,19 +90,51 @@ class MigrationStepForm(forms.ModelForm):
         type_ = self.initial.get('type')
         if type_:
             self.fields['code'].widget = AceWidget(mode=type_, **ACE_WIDGET_PARAMS)
+        widget = self.fields['code'].widget
+        widget.__dict__['media'] = widget.media
+        self.fields['type'].widget.attrs = {'class': 'migration_step_type'}
 
     def clean_path(self):
         """Optionally make path required."""
         if self.cleaned_data['type'] not in ('sql',) and not self.cleaned_data['path']:
             raise forms.ValidationError('Path is required for non-sql migration step type.')
+        return self.cleaned_data['path']
 
 
-class MigrationStepInline(admin.StackedInline):
+class PreDeployMigrationStepForm(MigrationStepForm):
 
-    """Migration step inline."""
+    """Pre-deploy phase migration step form."""
 
-    form = MigrationStepForm
-    model = MigrationStep
+    class Meta(MigrationStepForm.Meta):
+        model = PreDeployMigrationStep
+
+
+class PostDeployMigrationStepForm(MigrationStepForm):
+
+    """Post-deploy phase migration step form."""
+
+    class Meta(MigrationStepForm.Meta):
+        model = PostDeployMigrationStep
+
+
+class PreDeployMigrationStepInline(admin.StackedInline):
+
+    """Pre-deploy migration step inline."""
+
+    form = PreDeployMigrationStepForm
+    model = PreDeployMigrationStep
+    extra = 0
+    sortable_field_name = "position"
+    classes = ('grp-collapse grp-open',)
+    inline_classes = ('grp-collapse grp-open',)
+
+
+class PostDeployMigrationStepInline(admin.StackedInline):
+
+    """Post-deploy migration step inline."""
+
+    form = PostDeployMigrationStepForm
+    model = PostDeployMigrationStep
     extra = 0
     sortable_field_name = "position"
     classes = ('grp-collapse grp-open',)
@@ -115,7 +152,7 @@ class MigrationAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['case'],
     }
-    inlines = [MigrationStepInline]
+    inlines = [PreDeployMigrationStepInline, PostDeployMigrationStepInline]
 
     class Media:
         js = ('core/js/admin/migration_inline.js',)

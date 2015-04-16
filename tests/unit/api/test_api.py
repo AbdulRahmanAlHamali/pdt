@@ -25,9 +25,13 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             'description': migration.case.description,
             'ci_project': migration.case.ci_project.name
         },
+        'pre_deploy_steps': [
+            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code}
+            for step in migration.pre_deploy_steps.all()],
+        'post_deploy_steps': [
+            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code}
+            for step in migration.post_deploy_steps.all()],
         'category': migration.category,
-        'sql': migration.sql,
-        'code': migration.code,
         'migration_reports': [{
             'id': mr1.id,
             'ci_project': migration.case.ci_project.name,
@@ -119,16 +123,21 @@ def test_create_migration(mocked_fogbugz, admin_client):
                 "id": "33322"
             },
             "category": "onl",
-            "sql": "SELECT * from some",
-            "code": "import py"
+            "pre_deploy_steps": [
+                {"type": "sql", "code": "SELECT * from some", "position": 1},
+            ],
+            "post_deploy_steps": [
+                {"type": "python", "code": "import some", "position": 1},
+            ]
         }), content_type='application/json').data
     assert data['uid'] == "234234234234234"
     assert Case.objects.get(id=33322)
 
 
 @pytest.mark.parametrize('case__id', [33322])
-def test_update_migration(migration_factory, mocked_fogbugz, admin_client, migration, case, case__id):
+def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case, case__id):
     """Test update migration."""
+    migration_factory(case=case)
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.sfixfor.string = '1516'
     mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'

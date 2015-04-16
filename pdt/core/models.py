@@ -161,7 +161,9 @@ class MigrationStep(models.Model):
 
     """Migration step."""
 
-    migration = models.ForeignKey(Migration, blank=False)
+    class Meta:
+        ordering = ['position']
+        abstract = True
 
     TYPE_CHOICES = (
         ('sql', 'SQL'),
@@ -173,13 +175,24 @@ class MigrationStep(models.Model):
     path = models.CharField(max_length=255, blank=True, null=True)
     position = models.PositiveSmallIntegerField()
 
-    class Meta:
-        ordering = ['position']
+    def clean(self):
+        """Require path for non-sql type."""
+        if self.type not in ('sql',) and not self.path:
+            raise ValidationError('Path is required for non-sql migration step type.')
 
-    # def clean(self):
-    #     """Require path for non-sql type."""
-    #     if self.type not in ('sql',) and not self.path:
-    #         raise ValidationError('Path is required for non-sql migration step type.')
+
+class PreDeployMigrationStep(MigrationStep):
+
+    """Pre-deploy phase migration step."""
+
+    migration = models.ForeignKey(Migration, blank=False, related_name="pre_deploy_steps")
+
+
+class PostDeployMigrationStep(MigrationStep):
+
+    """Post-deploy phase migration step."""
+
+    migration = models.ForeignKey(Migration, blank=False, related_name="post_deploy_steps")
 
 
 class MigrationReport(models.Model):

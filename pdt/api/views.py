@@ -6,13 +6,15 @@ import django_filters
 from rest_framework import serializers, viewsets
 
 from pdt.core.models import (
-    Release,
-    Instance,
+    Case,
     CIProject,
+    DeploymentReport,
+    Instance,
     Migration,
     MigrationReport,
-    Case,
-    DeploymentReport,
+    PostDeployMigrationStep,
+    PreDeployMigrationStep,
+    Release,
 )
 
 
@@ -114,6 +116,30 @@ class CIProjectSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'name', 'description')
 
 
+class MigrationStepSerializer(serializers.HyperlinkedModelSerializer):
+
+    """Migration step serializer."""
+
+    class Meta:
+        fields = ('id', 'position', 'type', 'code')
+
+
+class PreDeployMigrationStepSerializer(MigrationStepSerializer):
+
+    """Pre-deploy phase migration step serializer."""
+
+    class Meta(MigrationStepSerializer.Meta):
+        model = PreDeployMigrationStep
+
+
+class PostDeployMigrationStepSerializer(MigrationStepSerializer):
+
+    """Post-deploy phase migration step serializer."""
+
+    class Meta(MigrationStepSerializer.Meta):
+        model = PostDeployMigrationStep
+
+
 class CIProjectViewSet(viewsets.ModelViewSet):
 
     """Return a list of all continuos integration projects in the system.
@@ -211,11 +237,13 @@ class MigrationSerializer(CaseFieldMixin):
             model = MigrationReport
             fields = ('id', 'ci_project', 'instance', 'status', 'datetime', 'log')
 
+    pre_deploy_steps = PreDeployMigrationStepSerializer(many=True)
+    post_deploy_steps = PostDeployMigrationStepSerializer(many=True)
     migration_reports = MigrationReportSerializer(source='migrationreport_set', read_only=True, many=True)
 
     class Meta:
         model = Migration
-        fields = ('id', 'uid', 'case', 'category', 'sql', 'code', 'migration_reports')
+        fields = ('id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'migration_reports', )
 
     def create(self, validated_data):
         """Create or update the instance due to unique key on case."""

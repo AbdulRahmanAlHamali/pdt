@@ -36,9 +36,9 @@ INSTALLED_APPS = (
     'django_auth_fogbugz',
     'raven.contrib.django.raven_compat',
     'rest_framework',
-    'django_ace',
     'pdt.core',
     'pdt.api',
+    'django_ace',
 )
 
 MIDDLEWARE_CLASSES = (
