@@ -2,6 +2,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 import fogbugz
@@ -12,7 +13,7 @@ class Release(models.Model):
     """Release."""
 
     name = models.CharField(max_length=255, blank=False, unique=True)
-    datetime = models.DateTimeField(blank=False, auto_now_add=True)
+    datetime = models.DateTimeField(blank=False, default=timezone.now)
 
     @staticmethod
     def autocomplete_search_fields():
@@ -145,8 +146,6 @@ class Migration(models.Model):
     uid = models.CharField(max_length=255, blank=False, unique=True)
     case = models.OneToOneField(Case, blank=False, unique=True)
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl')
-    sql = models.TextField(blank=True)
-    code = models.TextField(blank=True)
 
     @staticmethod
     def autocomplete_search_fields():
@@ -156,6 +155,31 @@ class Migration(models.Model):
     def __str__(self):
         """String representation."""
         return '{self.case}: {self.category}: {self.uid}'.format(self=self)
+
+
+class MigrationStep(models.Model):
+
+    """Migration step."""
+
+    migration = models.ForeignKey(Migration, blank=False)
+
+    TYPE_CHOICES = (
+        ('sql', 'SQL'),
+        ('python', 'Python'),
+    )
+
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, blank=False)
+    code = models.TextField(blank=False)
+    path = models.CharField(max_length=255, blank=True, null=True)
+    position = models.PositiveSmallIntegerField()
+
+    class Meta:
+        ordering = ['position']
+
+    # def clean(self):
+    #     """Require path for non-sql type."""
+    #     if self.type not in ('sql',) and not self.path:
+    #         raise ValidationError('Path is required for non-sql migration step type.')
 
 
 class MigrationReport(models.Model):
@@ -173,7 +197,7 @@ class MigrationReport(models.Model):
     migration = models.ForeignKey(Migration, blank=False)
     instance = models.ForeignKey(Instance, blank=False)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
-    datetime = models.DateTimeField(auto_now_add=True)
+    datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
 
     def __str__(self):
@@ -193,7 +217,7 @@ class DeploymentReport(models.Model):
     release = models.ForeignKey(Release, blank=False)
     instance = models.ForeignKey(Instance, blank=False)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
-    datetime = models.DateTimeField(auto_now_add=True)
+    datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
 
     def __str__(self):

@@ -9,6 +9,7 @@ from .models import (
     Instance,
     CIProject,
     Migration,
+    MigrationStep,
     MigrationReport,
     Case,
     DeploymentReport,
@@ -66,24 +67,47 @@ def case(self):
 case.admin_order_field = 'case__id'
 
 
-class MigrationForm(forms.ModelForm):
+class MigrationStepForm(forms.ModelForm):
 
     """Migration form."""
 
     class Meta:
-        model = Migration
+        model = MigrationStep
         fields = '__all__'
         widgets = {
-            "sql": AceWidget(mode="sql", **ACE_WIDGET_PARAMS),
-            "code": AceWidget(mode="python", **ACE_WIDGET_PARAMS),
+            "code": AceWidget(**ACE_WIDGET_PARAMS),
+            "position": forms.HiddenInput,
         }
+
+    def __init__(self, *args, **kwargs):
+        """Set code widget mode."""
+        super(MigrationStepForm, self).__init__(*args, **kwargs)
+        type_ = self.initial.get('type')
+        if type_:
+            self.fields['code'].widget = AceWidget(mode=type_, **ACE_WIDGET_PARAMS)
+
+    def clean_path(self):
+        """Optionally make path required."""
+        if self.cleaned_data['type'] not in ('sql',) and not self.cleaned_data['path']:
+            raise forms.ValidationError('Path is required for non-sql migration step type.')
+
+
+class MigrationStepInline(admin.StackedInline):
+
+    """Migration step inline."""
+
+    form = MigrationStepForm
+    model = MigrationStep
+    extra = 0
+    sortable_field_name = "position"
+    classes = ('grp-collapse grp-open',)
+    inline_classes = ('grp-collapse grp-open',)
 
 
 class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
 
-    form = MigrationForm
     list_display = (case, 'category')
     list_filter = ('case__id', 'category',)
     search_fields = ('case__id', 'case__title', 'category')
@@ -91,6 +115,10 @@ class MigrationAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['case'],
     }
+    inlines = [MigrationStepInline]
+
+    class Media:
+        js = ('core/js/admin/migration_inline.js',)
 
 
 admin.site.register(Migration, MigrationAdmin)
