@@ -1,10 +1,16 @@
 """PDT tests configuration."""
 import mock
 
-import factory
+import factory.fuzzy
+from faker import Factory
+
 import pytest
 import py
 from pytest_factoryboy import register
+
+from pdt.core.models import MigrationStep
+
+fake = Factory.create()
 
 
 @pytest.fixture
@@ -49,7 +55,7 @@ class ReleaseFactory(factory.django.DjangoModelFactory):
 
     """Release factory."""
 
-    name = factory.Sequence(lambda n: 'release-{0}'.format(n))
+    name = factory.fuzzy.FuzzyText(prefix='release-')
 
     class Meta:
         model = 'core.Release'
@@ -60,7 +66,7 @@ class CIProjectFactory(factory.django.DjangoModelFactory):
 
     """CIProject factory."""
 
-    name = factory.Sequence(lambda n: 'ci-project-{0}'.format(n))
+    name = factory.fuzzy.FuzzyText(prefix='ci-project-')
 
     class Meta:
         model = 'core.CIProject'
@@ -71,7 +77,7 @@ class CaseFactory(factory.django.DjangoModelFactory):
 
     """Case factory."""
 
-    id = factory.Sequence(lambda n: n)
+    id = factory.fuzzy.FuzzyInteger(10000, 40000)
 
     class Meta:
         model = 'core.Case'
@@ -84,10 +90,9 @@ class MigrationStepFactory(factory.django.DjangoModelFactory):
 
     """Migration step factory."""
 
-    id = factory.Sequence(lambda n: n)
     position = factory.Sequence(lambda n: n)
-    type = 'sql'
-    code = 'code'
+    type = factory.fuzzy.FuzzyChoice(type_ for type_, _ in MigrationStep.TYPE_CHOICES)
+    code = factory.LazyAttribute(lambda o: fake.text())
     migration = factory.SubFactory('tests.conftest.MigrationFactory')
 
 
@@ -112,14 +117,14 @@ class MigrationFactory(factory.django.DjangoModelFactory):
 
     """Migration factory."""
 
-    uid = factory.Sequence(lambda n: 'asdfasdf2342{0}'.format(n))
+    uid = factory.fuzzy.FuzzyText(length=42)
 
     class Meta:
         model = 'core.Migration'
 
     case = factory.SubFactory(CaseFactory)
     pre_deploy_steps = factory.RelatedFactory(PreDeployMigrationStepFactory, 'migration')
-    post_deploy_steps = factory.RelatedFactory(PreDeployMigrationStepFactory, 'migration')
+    post_deploy_steps = factory.RelatedFactory(PostDeployMigrationStepFactory, 'migration')
 
 
 @register
@@ -127,7 +132,7 @@ class InstanceFactory(factory.django.DjangoModelFactory):
 
     """Instance factory."""
 
-    name = factory.Sequence(lambda n: 'instance-{0}'.format(n))
+    name = factory.fuzzy.FuzzyText(prefix='instance-')
 
     class Meta:
         model = 'core.Instance'

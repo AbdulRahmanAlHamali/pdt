@@ -247,12 +247,25 @@ class MigrationSerializer(CaseFieldMixin):
 
     def create(self, validated_data):
         """Create or update the instance due to unique key on case."""
+        pre_deploy_steps = validated_data.pop('pre_deploy_steps')
+        post_deploy_steps = validated_data.pop('post_deploy_steps')
         try:
             instance = Migration.objects.get(
                 case=validated_data['case'])
-            return self.update(instance, validated_data)
+            migration = self.update(instance, validated_data)
+            migration.pre_deploy_steps.get_queryset().delete()
+            migration.post_deploy_steps.get_queryset().delete()
         except Migration.DoesNotExist:
-            return super(MigrationSerializer, self).create(validated_data)
+            migration = super(MigrationSerializer, self).create(validated_data)
+        pre_deploy_steps = [
+            PreDeployMigrationStep.objects.create(**dict(step_data, migration=migration, position=index))
+            for index, step_data in enumerate(pre_deploy_steps)
+        ]
+        post_deploy_steps = [
+            PostDeployMigrationStep.objects.create(**dict(step_data, migration=migration, position=index))
+            for index, step_data in enumerate(post_deploy_steps)
+        ]
+        return migration
 
 
 class MigrationFilter(django_filters.FilterSet):
