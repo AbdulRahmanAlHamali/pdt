@@ -44,8 +44,8 @@ endif
 	python manage.py collectstatic --noinput
 
 test: env config
-	pip install tox
-	tox --recreate -vv
+	pip install tox --index-url=$(index_url)
+	tox --recreate -vv -i $(index_url)
 
 coverage: develop
 	py.test --cov=paylogic --cov=codereview --cov-report=$(cov_report) tests
