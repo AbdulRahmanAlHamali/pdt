@@ -124,7 +124,7 @@ def test_create_migration(mocked_fogbugz, admin_client):
             },
             "category": "onl",
             "pre_deploy_steps": [
-                {"type": "sql", "code": "SELECT * from some", "position": 1},
+                {"type": "mysql", "code": "SELECT * from some", "position": 1},
             ],
             "post_deploy_steps": [
                 {"type": "python", "code": "import some", "position": 1},
@@ -155,7 +155,7 @@ def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case,
             },
             "category": "onl",
             "pre_deploy_steps": [
-                {"type": "sql", "code": "SELECT * from some", "position": 1},
+                {"type": "mysql", "code": "SELECT * from some", "position": 1},
             ],
             "post_deploy_steps": [
                 {"type": "python", "code": "import some", "position": 1},

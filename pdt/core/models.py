@@ -166,7 +166,8 @@ class MigrationStep(models.Model):
         abstract = True
 
     TYPE_CHOICES = (
-        ('sql', 'SQL'),
+        ('mysql', 'MySQL'),
+        ('pgsql', 'pgSQL'),
         ('python', 'Python'),
         ('sh', 'Shell'),
     )
