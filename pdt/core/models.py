@@ -168,6 +168,7 @@ class MigrationStep(models.Model):
     TYPE_CHOICES = (
         ('sql', 'SQL'),
         ('python', 'Python'),
+        ('sh', 'Shell'),
     )
 
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, blank=False)
