@@ -4,5 +4,6 @@ libxslt1-dev
 libyaml-dev
 python3-dev
 mysql-client
+libmysqlclient-dev
 python-virtualenv
 python3.4
