@@ -1,4 +1,6 @@
 """PDT API views."""
+import logging
+
 from django.db.models import Q
 from django.utils import timezone
 
@@ -16,6 +18,9 @@ from pdt.core.models import (
     PreDeployMigrationStep,
     Release,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class ReleaseSerializer(serializers.HyperlinkedModelSerializer):
@@ -342,6 +347,7 @@ class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
         try:
             value, _ = Instance.objects.get_or_create(name=name, ci_project=value['ci_project'])
         except Exception as e:  # pragma: no cover
+            logger.exception('Failed to get or create the case')
             raise serializers.ValidationError(e)
         return value
 
