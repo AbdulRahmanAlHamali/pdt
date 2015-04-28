@@ -137,7 +137,7 @@ def test_create_migration(mocked_fogbugz, admin_client):
 @pytest.mark.parametrize('case__id', [33322])
 def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case, case__id):
     """Test update migration."""
-    migration_factory(case=case)
+    migration = migration_factory(case=case)
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.sfixfor.string = '1516'
     mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
@@ -149,7 +149,7 @@ def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case,
     mocked_case.sarea.string = 'Some area'
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
-            "uid": "234234234234234",
+            "uid": migration.uid,
             "case": {
                 "id": case__id
             },
@@ -161,7 +161,7 @@ def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case,
                 {"type": "python", "code": "import some", "position": 1},
             ]
         }), content_type='application/json').data
-    assert data['uid'] == "234234234234234"
+    assert data['uid'] == migration.uid
 
 
 def test_create_instance(admin_client, ci_project):

@@ -251,6 +251,9 @@ class MigrationSerializer(CaseFieldMixin):
     class Meta:
         model = Migration
         fields = ('id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'migration_reports', )
+        extra_kwargs = {
+            'uid': {'validators': []},
+        }
 
     def create(self, validated_data):
         """Create or update the instance due to unique key on case."""
