@@ -17,7 +17,7 @@ from .models import (
     DeploymentReport,
 )
 
-ACE_WIDGET_PARAMS = dict(width='100%')
+ACE_WIDGET_PARAMS = dict(showprintmargin=False, width='100%')
 
 
 class ReleaseAdmin(admin.ModelAdmin):
