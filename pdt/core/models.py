@@ -94,12 +94,12 @@ class CaseManager(models.Manager):
                 raise ValidationError('Case milestone is not set', case_id)
             kwargs['title'] = case.stitle.string
             kwargs['description'] = case.soriginaltitle.string
-            release_datetime = parse_datetime(case.dtfixfor.string)
+            release_datetime = parse_datetime(case.dtfixfor.string) if case.dtfixfor.string else None
             try:
                 release = Release.objects.get(name=case.sfixfor.string)
             except Release.DoesNotExist:
-                release = Release(name=case.sfixfor.string, datetime=release_datetime)
-            else:
+                release = Release(name=case.sfixfor.string)
+            if release_datetime:
                 release.datetime = release_datetime
             release.save()
             kwargs['release'] = release
