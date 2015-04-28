@@ -79,6 +79,7 @@ class CIProjectFieldMixin(serializers.HyperlinkedModelSerializer):
         try:
             value, _ = CIProject.objects.get_or_create(name=name)
         except Exception as e:  # pragma: no cover
+            logger.exception('Failed to get or create the ci project')
             raise serializers.ValidationError(e)
         return value
 
@@ -225,6 +226,7 @@ class CaseFieldMixin(serializers.HyperlinkedModelSerializer):
         try:
             value, _ = Case.objects.get_or_create_from_fogbugz(case_id=name)
         except Exception as e:  # pragma: no cover
+            logger.exception('Failed to get or create the case')
             raise serializers.ValidationError(e)
         return value
 
@@ -347,7 +349,7 @@ class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
         try:
             value, _ = Instance.objects.get_or_create(name=name, ci_project=value['ci_project'])
         except Exception as e:  # pragma: no cover
-            logger.exception('Failed to get or create the case')
+            logger.exception('Failed to get or create instance')
             raise serializers.ValidationError(e)
         return value
 
@@ -383,6 +385,7 @@ class MigrationReportSerializer(InstanceFieldMixin):
         try:
             value = Migration.objects.get(case=case)
         except Exception as e:
+            logger.exception('Failed to get the migration')
             raise serializers.ValidationError(e)
         return value
 
@@ -450,6 +453,7 @@ class ReleaseFieldMixin(serializers.HyperlinkedModelSerializer):
         try:
             value, _ = Release.objects.get_or_create(name=name)
         except Exception as e:  # pragma: no cover
+            logger.exception('Failed to get or create the release')
             raise serializers.ValidationError(e)
         return value
 
