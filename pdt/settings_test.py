@@ -8,5 +8,9 @@ DATABASES.update({
     }
 })
 
+RAVEN_CONFIG = {
+    'dsn': None
+}
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
