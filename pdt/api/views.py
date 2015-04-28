@@ -283,6 +283,7 @@ class MigrationFilter(django_filters.FilterSet):
     """Migration filter to allow lookups for case, status, ci_project and instance."""
 
     case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
+    reviewed = django_filters.BooleanFilter(name="reviewed", lookup_type='exact')
     status = django_filters.CharFilter(name="migrationreport__status")
     exclude_status = django_filters.MethodFilter(action="filter_exclude_status")
     ci_project = django_filters.CharFilter(
@@ -291,10 +292,15 @@ class MigrationFilter(django_filters.FilterSet):
 
     class Meta:
         model = Migration
-        fields = ['uid', 'case', 'category', 'ci_project', 'instance', 'status', 'exclude_status']
+        fields = ['uid', 'case', 'category', 'ci_project', 'instance', 'status', 'exclude_status', 'reviewed']
 
     def filter_exclude_status(self, queryset, value):
         """Implement ``exclude`` filter by status."""
+        return queryset.filter(Q(migrationreport__status__gt=value) | Q(migrationreport__status__lt=value))
+
+    def filter_reviewed(self, queryset, value):
+        """Implement filter by reviewed."""
+        import pdb; pdb.set_trace()
         return queryset.filter(Q(migrationreport__status__gt=value) | Q(migrationreport__status__lt=value))
 
 

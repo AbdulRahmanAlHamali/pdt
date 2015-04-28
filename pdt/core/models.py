@@ -146,6 +146,7 @@ class Migration(models.Model):
     uid = models.CharField(max_length=255, blank=False, unique=True)
     case = models.OneToOneField(Case, blank=False, unique=True)
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl')
+    reviewed = models.BooleanField(blank=False, default=False)
 
     @staticmethod
     def autocomplete_search_fields():

@@ -145,8 +145,8 @@ class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
 
-    list_display = (case, 'category')
-    list_filter = ('case__id', 'category',)
+    list_display = (case, 'category', 'reviewed')
+    list_filter = ('case__id', 'category', 'reviewed')
     search_fields = ('case__id', 'case__title', 'category')
     raw_id_fields = ('case',)
     autocomplete_lookup_fields = {

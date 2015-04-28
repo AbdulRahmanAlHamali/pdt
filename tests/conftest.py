@@ -118,6 +118,7 @@ class MigrationFactory(factory.django.DjangoModelFactory):
     """Migration factory."""
 
     uid = factory.fuzzy.FuzzyText(length=42)
+    reviewed = False
 
     class Meta:
         model = 'core.Migration'

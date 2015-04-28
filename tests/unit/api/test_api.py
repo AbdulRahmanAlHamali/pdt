@@ -73,6 +73,20 @@ def test_migration_filter_ci_project(admin_client, migration_factory):
     assert len(data) == 1
 
 
+def test_migration_filter_reviewed(admin_client, migration_factory):
+    """Test migration filter when reviewed parameter is used."""
+    migration1 = migration_factory(reviewed=False)
+    migration2 = migration_factory(reviewed=True)
+    data = admin_client.get(
+        '/api/migrations/?reviewed=True').data
+    assert len(data) == 1
+    assert data[0]['uid'] == migration2.uid
+    data = admin_client.get(
+        '/api/migrations/?reviewed=False').data
+    assert len(data) == 1
+    assert data[0]['uid'] == migration1.uid
+
+
 def test_create_migration_no_case(mocked_fogbugz, admin_client):
     """Test create migration when fb case is not found."""
     mocked_fogbugz.return_value.search.return_value.cases.find.return_value = None
