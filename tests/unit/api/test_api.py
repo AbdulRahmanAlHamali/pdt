@@ -26,12 +26,13 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             'ci_project': migration.case.ci_project.name
         },
         'pre_deploy_steps': [
-            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code}
+            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
             for step in migration.pre_deploy_steps.all()],
         'post_deploy_steps': [
-            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code}
+            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
             for step in migration.post_deploy_steps.all()],
         'category': migration.category,
+        'reviewed': False,
         'migration_reports': [{
             'id': mr1.id,
             'ci_project': migration.case.ci_project.name,

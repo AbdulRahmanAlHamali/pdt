@@ -250,7 +250,8 @@ class MigrationSerializer(CaseFieldMixin):
 
     class Meta:
         model = Migration
-        fields = ('id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'migration_reports', )
+        fields = (
+            'id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'migration_reports', 'reviewed')
         extra_kwargs = {
             'uid': {'validators': []},
         }
