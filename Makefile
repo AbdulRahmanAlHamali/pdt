@@ -45,7 +45,7 @@ endif
 
 test: env config
 	pip install tox --index-url=$(index_url)
-	tox --recreate -vv -i $(index_url)
+	tox --recreate -vv -i $(index_url) extra_index_url=$(extra_index_url)
 
 coverage: develop
 	py.test --cov=paylogic --cov=codereview --cov-report=$(cov_report) tests
