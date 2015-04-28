@@ -127,7 +127,7 @@ class MigrationStepSerializer(serializers.HyperlinkedModelSerializer):
     """Migration step serializer."""
 
     class Meta:
-        fields = ('id', 'position', 'type', 'code')
+        fields = ('id', 'position', 'type', 'code', 'path')
 
 
 class PreDeployMigrationStepSerializer(MigrationStepSerializer):
