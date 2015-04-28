@@ -298,11 +298,6 @@ class MigrationFilter(django_filters.FilterSet):
         """Implement ``exclude`` filter by status."""
         return queryset.filter(Q(migrationreport__status__gt=value) | Q(migrationreport__status__lt=value))
 
-    def filter_reviewed(self, queryset, value):
-        """Implement filter by reviewed."""
-        import pdb; pdb.set_trace()
-        return queryset.filter(Q(migrationreport__status__gt=value) | Q(migrationreport__status__lt=value))
-
 
 class MigrationViewSet(viewsets.ModelViewSet):
 
