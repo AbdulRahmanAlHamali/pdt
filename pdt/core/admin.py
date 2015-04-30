@@ -13,6 +13,7 @@ from .models import (
     PreDeployMigrationStep,
     PostDeployMigrationStep,
     MigrationReport,
+    MigrationStepReport,
     Case,
     DeploymentReport,
 )
@@ -141,6 +142,32 @@ class PostDeployMigrationStepInline(admin.StackedInline):
     inline_classes = ('grp-collapse grp-open',)
 
 
+class MigrationStepAdmin(admin.ModelAdmin):
+
+    """MigrationStep admin interface class."""
+
+    list_display = ('id', 'type')
+    list_filter = ('type',)
+    search_fields = ('type', 'script')
+    autocomplete_lookup_fields = {
+        'fk': ['migration'],
+    }
+
+admin.site.register(MigrationStep, MigrationStepAdmin)
+
+
+def mark_migrations_reviewed(modeladmin, request, queryset):
+    """Mark migrations reviewed."""
+    queryset.update(reviewed=True)
+mark_migrations_reviewed.short_description = "Mark selected migrations as reviewed"
+
+
+def mark_migrations_not_reviewed(modeladmin, request, queryset):
+    """Mmark migrations as not reviewed."""
+    queryset.update(reviewed=False)
+mark_migrations_not_reviewed.short_description = "Mark selected migrations as not reviewed"
+
+
 class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
@@ -153,6 +180,7 @@ class MigrationAdmin(admin.ModelAdmin):
         'fk': ['case'],
     }
     inlines = [PreDeployMigrationStepInline, PostDeployMigrationStepInline]
+    actions = [mark_migrations_reviewed, mark_migrations_not_reviewed]
 
     class Media:
         js = ('core/js/admin/migration_inline.js',)
@@ -179,6 +207,33 @@ class MigrationReportForm(forms.ModelForm):
         }
 
 
+class MigrationStepReportForm(forms.ModelForm):
+
+    """Migration step report form."""
+
+    class Meta:
+        model = MigrationStepReport
+        fields = '__all__'
+        widgets = {
+            "log": AceWidget(mode="sh", **ACE_WIDGET_PARAMS),
+        }
+
+
+class MigrationStepReportInline(admin.StackedInline):
+
+    """Migration step inline."""
+
+    form = MigrationStepReportForm
+    model = MigrationStepReport
+    extra = 0
+    classes = ('grp-collapse grp-open',)
+    inline_classes = ('grp-collapse grp-open',)
+    raw_id_fields = ('step',)
+    autocomplete_lookup_fields = {
+        'fk': ['step'],
+    }
+
+
 class MigrationReportAdmin(admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
@@ -191,9 +246,40 @@ class MigrationReportAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['migration', 'instance'],
     }
+    readonly_fields = ('datetime', 'status')
+    inlines = [MigrationStepReportInline]
 
 
 admin.site.register(MigrationReport, MigrationReportAdmin)
+
+
+class MigrationStepReportForm(forms.ModelForm):
+
+    """Migration step report form."""
+
+    class Meta:
+        model = MigrationStepReport
+        fields = '__all__'
+        widgets = {
+            "log": AceWidget(mode="sh", **ACE_WIDGET_PARAMS),
+        }
+
+
+class MigrationStepReportAdmin(admin.ModelAdmin):
+
+    """MigrationStepReport admin interface class."""
+
+    form = MigrationStepReportForm
+    list_display = ('report', 'step', 'status', 'datetime')
+    list_filter = ('report__instance__name', 'status')
+    search_fields = ('report__migration__uid', 'report__migration__case__id')
+    raw_id_fields = ('report', 'step')
+    autocomplete_lookup_fields = {
+        'fk': ['report', 'step'],
+    }
+
+
+admin.site.register(MigrationStepReport, MigrationStepReportAdmin)
 
 
 class CaseAdmin(admin.ModelAdmin):

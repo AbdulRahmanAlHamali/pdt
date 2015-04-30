@@ -8,6 +8,7 @@ from .views import (
     CIProjectViewSet,
     MigrationViewSet,
     MigrationReportViewSet,
+    MigrationStepReportViewSet,
     CaseViewSet,
     DeploymentReportViewSet,
 )
@@ -19,6 +20,7 @@ router.register(r'instances', InstanceViewSet)
 router.register(r'ci-projects', CIProjectViewSet)
 router.register(r'migrations', MigrationViewSet)
 router.register(r'migration-reports', MigrationReportViewSet)
+router.register(r'migration-step-reports', MigrationStepReportViewSet)
 router.register(r'cases', CaseViewSet)
 router.register(r'deployment-reports', DeploymentReportViewSet)
 

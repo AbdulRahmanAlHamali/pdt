@@ -1,5 +1,8 @@
 """PDT core models."""
+from itertools import chain
+
 from django.db import models
+from django.db.models.signals import post_save
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
@@ -157,6 +160,10 @@ class Migration(models.Model):
         """String representation."""
         return '{self.case}: {self.category}: {self.uid}'.format(self=self)
 
+    def get_steps(self):
+        """Get all migration steps."""
+        return chain(self.pre_deploy_steps.all(), self.post_deploy_steps.all())
+
 
 class MigrationStep(models.Model):
 
@@ -164,7 +171,6 @@ class MigrationStep(models.Model):
 
     class Meta:
         ordering = ['position']
-        abstract = True
 
     TYPE_CHOICES = (
         ('mysql', 'MySQL'),
@@ -182,6 +188,15 @@ class MigrationStep(models.Model):
         """Require path for non-sql type."""
         if self.type not in ('sql',) and not self.path:
             raise ValidationError('Path is required for non-sql migration step type.')
+
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "type__icontains")
+
+    def __str__(self):
+        """String representation."""
+        return 'Migration step {self.id}: {self.type}'.format(self=self)
 
 
 class PreDeployMigrationStep(MigrationStep):
@@ -204,13 +219,15 @@ class MigrationReport(models.Model):
 
     STATUS_CHOICES = (
         ('apl', 'Applied'),
+        ('prt', 'Applied partially'),
         ('err', 'Error'),
     )
 
     class Meta:
         unique_together = (("migration", "instance"),)
+        ordering = ['migration', 'instance', 'datetime']
 
-    migration = models.ForeignKey(Migration, blank=False)
+    migration = models.ForeignKey(Migration, blank=False, related_name='report')
     instance = models.ForeignKey(Instance, blank=False)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
     datetime = models.DateTimeField(default=timezone.now)
@@ -218,7 +235,63 @@ class MigrationReport(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.migration}: {self.instance}: {self.datetime}'.format(self=self)
+        return '{self.migration}: {self.instance}: {self.datetime}: {self.status}'.format(self=self)
+
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "migration__uid__icontains", "migration__case__id__icontains")
+
+    def calculate_status(self):
+        """Calculate report status based on step reports."""
+        migration_steps = frozenset(step.id for step in self.migration.get_steps())
+        apl_report_steps = frozenset(report.step.id for report in self.step_reports.all() if report.status == 'apl')
+        err_report_steps = frozenset(report.step.id for report in self.step_reports.all() if report.status != 'apl')
+        if apl_report_steps == migration_steps:
+            self.status = 'apl'
+        elif err_report_steps and apl_report_steps:
+            self.status = 'prt'
+        else:
+            self.status = 'err'
+        self.save()
+
+    def calculate_log(self):
+        """Calculate report log based on step reports."""
+        self.log = "\n\n".join(report.log for report in self.step_reports.all())
+        self.save()
+
+
+class MigrationStepReport(models.Model):
+
+    """Migration step report."""
+
+    STATUS_CHOICES = (
+        ('apl', 'Applied'),
+        ('err', 'Error'),
+    )
+
+    class Meta:
+        unique_together = (("report", "step"),)
+        ordering = ['report', 'step', 'datetime']
+
+    report = models.ForeignKey(MigrationReport, blank=False, related_name='step_reports')
+    step = models.ForeignKey(MigrationStep, blank=False)
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
+    datetime = models.DateTimeField(default=timezone.now)
+    log = models.TextField(blank=True)
+
+    def __str__(self):
+        """String representation."""
+        return '{self.report}: {self.step}: {self.datetime}: {self.status}'.format(self=self)
+
+
+def migration_step_report_changes(sender, instance, **kwargs):
+    """Calculate migration report status."""
+    instance.report.calculate_status()
+    instance.report.calculate_log()
+
+
+post_save.connect(migration_step_report_changes, sender=MigrationStepReport)
 
 
 class DeploymentReport(models.Model):
@@ -229,6 +302,9 @@ class DeploymentReport(models.Model):
         ('dpl', 'Deployed'),
         ('err', 'Error'),
     )
+
+    class Meta:
+        ordering = ['release', 'instance', 'datetime']
 
     release = models.ForeignKey(Release, blank=False)
     instance = models.ForeignKey(Instance, blank=False)
