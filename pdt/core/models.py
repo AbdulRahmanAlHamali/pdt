@@ -196,7 +196,7 @@ class MigrationStep(models.Model):
 
     def __str__(self):
         """String representation."""
-        return 'Migration step {self.id}: {self.type}'.format(self=self)
+        return 'Migration step {self.id}: {self.type}'.format(self=self)  # pylint: disable=W1306
 
 
 class PreDeployMigrationStep(MigrationStep):
@@ -227,7 +227,7 @@ class MigrationReport(models.Model):
         unique_together = (("migration", "instance"),)
         ordering = ['migration', 'instance', 'datetime']
 
-    migration = models.ForeignKey(Migration, blank=False, related_name='report')
+    migration = models.ForeignKey(Migration, blank=False, related_name='reports')
     instance = models.ForeignKey(Instance, blank=False)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
     datetime = models.DateTimeField(default=timezone.now)

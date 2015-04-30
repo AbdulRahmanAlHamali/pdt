@@ -248,12 +248,12 @@ class MigrationSerializer(CaseFieldMixin):
 
     pre_deploy_steps = PreDeployMigrationStepSerializer(many=True)
     post_deploy_steps = PostDeployMigrationStepSerializer(many=True)
-    migration_reports = MigrationReportSerializer(source='migrationreport_set', read_only=True, many=True)
+    reports = MigrationReportSerializer(read_only=True, many=True)
 
     class Meta:
         model = Migration
         fields = (
-            'id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'migration_reports', 'reviewed')
+            'id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'reports', 'reviewed')
         extra_kwargs = {
             'uid': {'validators': []},
             'category': {'read_only': True},
@@ -289,7 +289,7 @@ class MigrationFilter(django_filters.FilterSet):
 
     case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
     reviewed = django_filters.BooleanFilter(name="reviewed", lookup_type='exact')
-    status = django_filters.CharFilter(name="report__status")
+    status = django_filters.CharFilter(name="reports__status")
     exclude_status = django_filters.MethodFilter(action="filter_exclude_status")
     ci_project = django_filters.CharFilter(
         name="case__ci_project__name", lookup_type='exact')
@@ -302,13 +302,13 @@ class MigrationFilter(django_filters.FilterSet):
     def filter_exclude_status(self, queryset, value):
         """Implement ``exclude`` filter by status."""
         return queryset.filter(
-            Q(report__status__gt=value) | Q(report__status__lt=value)
-            | Q(report__isnull=True))
+            Q(reports__status__gt=value) | Q(reports__status__lt=value) |
+            Q(reports__isnull=True))
 
     def filter_instance(self, queryset, value):
         """Implement filter by instance."""
         return queryset.filter(
-            Q(report__instance__name=value) | Q(report__isnull=True))
+            Q(reports__instance__name=value) | Q(reports__isnull=True))
 
 
 class MigrationViewSet(viewsets.ModelViewSet):
@@ -397,30 +397,8 @@ class MigrationReportSerializer(InstanceFieldMixin):
             'status': {'read_only': True}
         }
 
-    def validate_migration(self, value):
-        """Validate migration complex type."""
-        case = value['case']
-        try:
-            value = Migration.objects.get(case=case)
-        except Exception as e:
-            logger.exception('Failed to get the migration')
-            raise serializers.ValidationError(e)
-        return value
 
-    def create(self, validated_data):
-        """Create or update the instance due to unique key on migration and instance."""
-        try:
-            instance = MigrationReport.objects.get(
-                migration=validated_data['migration'], instance=validated_data['instance'])
-            res = self.update(instance, validated_data)
-            # to get timezone-aware datetime
-            res.refresh_from_db()
-            return res
-        except MigrationReport.DoesNotExist:
-            return super(MigrationReportSerializer, self).create(validated_data)
-
-
-class MigrationReportViewSet(viewsets.ModelViewSet):
+class MigrationReportViewSet(viewsets.ReadOnlyModelViewSet):
 
     """Return a list of all migration reports in the system.
 

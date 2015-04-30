@@ -141,6 +141,16 @@ class InstanceFactory(factory.django.DjangoModelFactory):
     ci_project = factory.SubFactory(CIProjectFactory)
 
 
+class MigrationStepReportFactory(factory.django.DjangoModelFactory):
+
+    """MigrationStepReport factory."""
+
+    class Meta:
+        model = 'core.MigrationStepReport'
+
+    step = factory.LazyAttribute(lambda o: o.report.migration.pre_deploy_steps.first())
+
+
 @register
 class MigrationReportFactory(factory.django.DjangoModelFactory):
 
@@ -152,6 +162,7 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
     instance = factory.SubFactory(InstanceFactory)
     migration = factory.SubFactory(
         MigrationFactory, case__ci_project=factory.SelfAttribute('...instance.ci_project'))
+    step_reports = factory.RelatedFactory(MigrationStepReportFactory, 'report')
 
 
 @register

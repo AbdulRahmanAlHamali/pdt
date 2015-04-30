@@ -13,7 +13,7 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
     mr2 = migration_report_factory(
         status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project)
     data = admin_client.get(
-        '/api/migrations/?exclude_status=apl').data
+        '/api/migrations/', exclude_status='apl', ci_project=mr1.instance.ci_project.name).data
     assert len(data) == 1
     migration = mr2.migration
     assert data[0] == {
@@ -33,7 +33,7 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             for step in migration.post_deploy_steps.all()],
         'category': migration.category,
         'reviewed': False,
-        'migration_reports': [{
+        'reports': [{
             'id': mr1.id,
             'ci_project': migration.case.ci_project.name,
             'instance': mr1.instance.name,
@@ -57,7 +57,7 @@ def test_migration_filter_status(admin_client, migration_report_factory):
     migration_report_factory(
         status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project)
     data = admin_client.get(
-        '/api/migrations/?status=apl').data
+        '/api/migrations/', status='apl', ci_project=mr1.instance.ci_project.name).data
     assert len(data) == 1
     assert data[0]['id'] == mr1.id
 
@@ -205,8 +205,8 @@ def test_create_instance_no_ci_project(admin_client):
     assert data['id']
 
 
-def test_create_migration_report(mocked_fogbugz, admin_client, instance, case, migration_factory):
-    """Test create migration report."""
+def test_create_migration_step_report(mocked_fogbugz, admin_client, instance, case, migration_factory):
+    """Test create migration step report."""
     migration = migration_factory(case=case)
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.sfixfor.string = '1516'
@@ -218,17 +218,20 @@ def test_create_migration_report(mocked_fogbugz, admin_client, instance, case, m
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
     data = admin_client.post(
-        '/api/migration-reports/', data=json.dumps({
-            "instance": {
-                "name": instance.name,
-                "ci_project": {
-                    "name": instance.ci_project.name
+        '/api/migration-step-reports/', data=json.dumps({
+            "report": {
+                "instance": {
+                    "name": instance.name,
+                    "ci_project": {
+                        "name": instance.ci_project.name
+                    },
+                },
+                "migration": {
+                    "uid": migration.uid
                 },
             },
-            "migration": {
-                "case": {
-                    "id": migration.case.id
-                }
+            "step": {
+                "id": migration.pre_deploy_steps.first().id
             },
             "status": "apl",
             "log": "some log"
@@ -237,8 +240,9 @@ def test_create_migration_report(mocked_fogbugz, admin_client, instance, case, m
     assert MigrationReport.objects.get(id=data['id'])
 
 
-def test_create_migration_report_no_case(mocked_fogbugz, admin_client, instance, case, migration_factory):
-    """Test create migration report when there's no case."""
+def test_create_migration_step_report_no_migration(mocked_fogbugz, admin_client, instance, migration_factory):
+    """Test create migration report when there's no migration."""
+    migration = migration_factory()
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.sfixfor.string = '1516'
     mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
@@ -249,25 +253,28 @@ def test_create_migration_report_no_case(mocked_fogbugz, admin_client, instance,
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
     data = admin_client.post(
-        '/api/migration-reports/', data=json.dumps({
-            "instance": {
-                "name": instance.name,
-                "ci_project": {
-                    "name": instance.ci_project.name
+        '/api/migration-step-reports/', data=json.dumps({
+            "report": {
+                "instance": {
+                    "name": instance.name,
+                    "ci_project": {
+                        "name": instance.ci_project.name
+                    },
+                },
+                "migration": {
+                    "uid": 1231
                 },
             },
-            "migration": {
-                "case": {
-                    "id": 1231
-                }
+            "step": {
+                "id": migration.pre_deploy_steps.first().id,
             },
             "status": "apl",
             "log": "some log"
         }), content_type='application/json').data
-    assert data == {'migration': ['Migration matching query does not exist.']}
+    assert data == {"report": {"migration": ['Migration matching query does not exist.']}}
 
 
-def test_create_migration_report_update(mocked_fogbugz, admin_client, instance, case, migration_report_factory):
+def test_create_migration_step_report_update(mocked_fogbugz, admin_client, instance, case, migration_report_factory):
     """Test update migration report."""
     migration_report = migration_report_factory(migration__case=case, instance=instance)
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
@@ -280,17 +287,20 @@ def test_create_migration_report_update(mocked_fogbugz, admin_client, instance, 
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
     data = admin_client.post(
-        '/api/migration-reports/', data=json.dumps({
-            "instance": {
-                "name": instance.name,
-                "ci_project": {
-                    "name": instance.ci_project.name
+        '/api/migration-step-reports/', data=json.dumps({
+            "report": {
+                "instance": {
+                    "name": instance.name,
+                    "ci_project": {
+                        "name": instance.ci_project.name
+                    },
+                },
+                "migration": {
+                    "uid": migration_report.migration.uid
                 },
             },
-            "migration": {
-                "case": {
-                    "id": migration_report.migration.case.id
-                }
+            "step": {
+                "id": migration_report.migration.pre_deploy_steps.first().id
             },
             "status": "apl",
             "log": "some log"

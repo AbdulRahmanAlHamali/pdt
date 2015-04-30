@@ -253,35 +253,6 @@ class MigrationReportAdmin(admin.ModelAdmin):
 admin.site.register(MigrationReport, MigrationReportAdmin)
 
 
-class MigrationStepReportForm(forms.ModelForm):
-
-    """Migration step report form."""
-
-    class Meta:
-        model = MigrationStepReport
-        fields = '__all__'
-        widgets = {
-            "log": AceWidget(mode="sh", **ACE_WIDGET_PARAMS),
-        }
-
-
-class MigrationStepReportAdmin(admin.ModelAdmin):
-
-    """MigrationStepReport admin interface class."""
-
-    form = MigrationStepReportForm
-    list_display = ('report', 'step', 'status', 'datetime')
-    list_filter = ('report__instance__name', 'status')
-    search_fields = ('report__migration__uid', 'report__migration__case__id')
-    raw_id_fields = ('report', 'step')
-    autocomplete_lookup_fields = {
-        'fk': ['report', 'step'],
-    }
-
-
-admin.site.register(MigrationStepReport, MigrationStepReportAdmin)
-
-
 class CaseAdmin(admin.ModelAdmin):
 
     """Case admin interface class."""

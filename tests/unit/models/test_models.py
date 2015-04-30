@@ -25,8 +25,16 @@ def test_get_or_create_case(mocked_fogbugz, release):
 def test_migration_report_unicode(migration_report_factory):
     """Test migration report unicode."""
     migration_report = migration_report_factory()
-    assert str(migration_report) == '{self.migration}: {self.instance}: {self.datetime}'.format(
+    assert str(migration_report) == '{self.migration}: {self.instance}: {self.datetime}: {self.status}'.format(
         self=migration_report)
+
+
+@pytest.mark.django_db
+def test_migration_step_report_unicode(migration_report_factory):
+    """Test migration step report unicode."""
+    migration_step_report = migration_report_factory().step_reports.first()
+    assert str(migration_step_report) == '{self.report}: {self.step}: {self.datetime}: {self.status}'.format(
+        self=migration_step_report)
 
 
 @pytest.mark.django_db
