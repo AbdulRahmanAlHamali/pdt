@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+import django.utils.timezone
 
 
 class Migration(migrations.Migration):
@@ -23,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CIProject',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
                 ('name', models.CharField(max_length=255, unique=True)),
                 ('description', models.CharField(max_length=255, blank=True)),
             ],
@@ -31,16 +32,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DeploymentReport',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('status', models.CharField(choices=[('dpl', 'Deployed'), ('err', 'Error')], max_length=3)),
-                ('datetime', models.DateTimeField(auto_now_add=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
+                ('status', models.CharField(max_length=3, choices=[('dpl', 'Deployed'), ('err', 'Error')])),
+                ('datetime', models.DateTimeField(default=django.utils.timezone.now)),
                 ('log', models.TextField(blank=True)),
             ],
+            options={
+                'ordering': ['release', 'instance', 'datetime'],
+            },
         ),
         migrations.CreateModel(
             name='Instance',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
                 ('name', models.CharField(max_length=255)),
                 ('description', models.CharField(max_length=255, blank=True)),
                 ('ci_project', models.ForeignKey(to='core.CIProject')),
@@ -49,32 +53,81 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Migration',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
                 ('uid', models.CharField(max_length=255, unique=True)),
-                ('category', models.CharField(choices=[('off', 'Offline'), ('onl', 'Online')], max_length=3, default='onl')),
-                ('sql', models.TextField(blank=True)),
-                ('code', models.TextField(blank=True)),
+                ('category', models.CharField(max_length=3, choices=[('off', 'Offline'), ('onl', 'Online')], default='onl')),
+                ('reviewed', models.BooleanField(default=False)),
                 ('case', models.OneToOneField(to='core.Case')),
             ],
         ),
         migrations.CreateModel(
             name='MigrationReport',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('status', models.CharField(choices=[('apl', 'Applied'), ('err', 'Error')], max_length=3)),
-                ('datetime', models.DateTimeField(auto_now_add=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
+                ('status', models.CharField(max_length=3, choices=[('apl', 'Applied'), ('prt', 'Applied partially'), ('err', 'Error')])),
+                ('datetime', models.DateTimeField(default=django.utils.timezone.now)),
                 ('log', models.TextField(blank=True)),
                 ('instance', models.ForeignKey(to='core.Instance')),
-                ('migration', models.ForeignKey(to='core.Migration')),
+                ('migration', models.ForeignKey(related_name='reports', to='core.Migration')),
             ],
+            options={
+                'ordering': ['migration', 'instance', 'datetime'],
+            },
+        ),
+        migrations.CreateModel(
+            name='MigrationStep',
+            fields=[
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
+                ('type', models.CharField(max_length=10, choices=[('mysql', 'MySQL'), ('pgsql', 'pgSQL'), ('python', 'Python'), ('sh', 'Shell')])),
+                ('code', models.TextField()),
+                ('path', models.CharField(max_length=255, null=True, blank=True)),
+                ('position', models.PositiveSmallIntegerField()),
+            ],
+            options={
+                'ordering': ['position'],
+            },
+        ),
+        migrations.CreateModel(
+            name='MigrationStepReport',
+            fields=[
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
+                ('status', models.CharField(max_length=3, choices=[('apl', 'Applied'), ('err', 'Error')])),
+                ('datetime', models.DateTimeField(default=django.utils.timezone.now)),
+                ('log', models.TextField(blank=True)),
+                ('report', models.ForeignKey(related_name='step_reports', to='core.MigrationReport')),
+            ],
+            options={
+                'ordering': ['report', 'step', 'datetime'],
+            },
         ),
         migrations.CreateModel(
             name='Release',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
+                ('id', models.AutoField(serialize=False, auto_created=True, verbose_name='ID', primary_key=True)),
                 ('name', models.CharField(max_length=255, unique=True)),
-                ('datetime', models.DateTimeField(auto_now_add=True)),
+                ('datetime', models.DateTimeField(default=django.utils.timezone.now)),
             ],
+        ),
+        migrations.CreateModel(
+            name='PostDeployMigrationStep',
+            fields=[
+                ('migrationstep_ptr', models.OneToOneField(primary_key=True, to='core.MigrationStep', serialize=False, auto_created=True, parent_link=True)),
+                ('migration', models.ForeignKey(related_name='post_deploy_steps', to='core.Migration')),
+            ],
+            bases=('core.migrationstep',),
+        ),
+        migrations.CreateModel(
+            name='PreDeployMigrationStep',
+            fields=[
+                ('migrationstep_ptr', models.OneToOneField(primary_key=True, to='core.MigrationStep', serialize=False, auto_created=True, parent_link=True)),
+                ('migration', models.ForeignKey(related_name='pre_deploy_steps', to='core.Migration')),
+            ],
+            bases=('core.migrationstep',),
+        ),
+        migrations.AddField(
+            model_name='migrationstepreport',
+            name='step',
+            field=models.ForeignKey(to='core.MigrationStep'),
         ),
         migrations.AddField(
             model_name='deploymentreport',
@@ -95,6 +148,10 @@ class Migration(migrations.Migration):
             model_name='case',
             name='release',
             field=models.ForeignKey(to='core.Release'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='migrationstepreport',
+            unique_together=set([('report', 'step')]),
         ),
         migrations.AlterUniqueTogether(
             name='migrationreport',
