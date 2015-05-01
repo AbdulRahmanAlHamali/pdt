@@ -1,6 +1,8 @@
 """PDT core admin interface."""
 from django.contrib import admin
 from django import forms
+from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 
 from django_ace import AceWidget
 
@@ -157,16 +159,31 @@ mark_migrations_reviewed.short_description = "Mark selected migrations as review
 
 
 def mark_migrations_not_reviewed(modeladmin, request, queryset):
-    """Mmark migrations as not reviewed."""
+    """Mark migrations as not reviewed."""
     queryset.update(reviewed=False)
 mark_migrations_not_reviewed.short_description = "Mark selected migrations as not reviewed"
+
+
+def applied_on(migration):
+    """Migration applied on."""
+    return mark_safe(", ".join('<a href="{url}">{name}: {datetime}: {status}</a>'.format(
+        url=reverse("admin:core_migrationreport_change", args=(report.id,)),
+        name=report.instance.name, datetime=report.datetime, status=report.get_status_display())
+        for report in migration.reports.all()))
+applied_on.short_description = "Applied on"
+
+
+def case_ci_project(self):
+    """Get case ci project."""
+    return self.case.ci_project.name
+case_ci_project.admin_order_field = 'case__ci_project__name'
 
 
 class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
 
-    list_display = (case, 'category', 'reviewed')
+    list_display = (case, case_ci_project, 'category', 'reviewed', applied_on)
     list_filter = ('case__id', 'category', 'reviewed')
     search_fields = ('case__id', 'case__title', 'category')
     raw_id_fields = ('case',)

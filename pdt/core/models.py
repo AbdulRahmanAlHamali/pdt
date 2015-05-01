@@ -244,7 +244,8 @@ class MigrationReport(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.migration}: {self.instance}: {self.datetime}: {self.status}'.format(self=self)
+        return '{self.migration}: {self.instance}: {self.datetime}: {status}'.format(
+            self=self, status=self.get_status_display())
 
     @staticmethod
     def autocomplete_search_fields():
@@ -292,7 +293,8 @@ class MigrationStepReport(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.report}: {self.step}: {self.datetime}: {self.status}'.format(self=self)
+        return '{self.report}: {self.step}: {self.datetime}: {status}'.format(
+            self=self, status=self.get_status_display())
 
 
 def migration_step_report_changes(sender, instance, **kwargs):
@@ -325,4 +327,5 @@ class DeploymentReport(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.release}: {self.instance}: {self.datetime}'.format(self=self)
+        return '{self.release}: {self.instance}: {self.datetime}: {status}'.format(
+            self=self, status=self.get_status_display())
