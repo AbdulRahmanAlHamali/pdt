@@ -331,7 +331,7 @@ class MigrationViewSet(viewsets.ModelViewSet):
     * category
     """
 
-    queryset = Migration.objects.all()
+    queryset = Migration.objects.all().distinct()
     serializer_class = MigrationSerializer
     ordering_fields = ('case', 'category')
     ordering = ('case', 'id')
