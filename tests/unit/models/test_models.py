@@ -25,19 +25,20 @@ def test_get_or_create_case(mocked_fogbugz, release):
 def test_migration_report_unicode(migration_report_factory):
     """Test migration report unicode."""
     migration_report = migration_report_factory()
-    assert str(migration_report) == '{self.migration}: {self.instance}: {self.datetime}: {self.status}'.format(
-        self=migration_report)
+    assert str(migration_report) == '{self.migration}: {self.instance}: {self.datetime}: {status}'.format(
+        self=migration_report, status=migration_report.get_status_display())
 
 
 @pytest.mark.django_db
 def test_migration_step_report_unicode(migration_report_factory):
     """Test migration step report unicode."""
     migration_step_report = migration_report_factory().step_reports.first()
-    assert str(migration_step_report) == '{self.report}: {self.step}: {self.datetime}: {self.status}'.format(
-        self=migration_step_report)
+    assert str(migration_step_report) == '{self.report}: {self.step}: {self.datetime}: {status}'.format(
+        self=migration_step_report, status=migration_step_report.get_status_display())
 
 
 @pytest.mark.django_db
 def test_deployment_report_unicode(deployment_report):
     """Test deployment report unicode."""
-    assert str(deployment_report) == '{self.release}: {self.instance}: {self.datetime}'.format(self=deployment_report)
+    assert str(deployment_report) == '{self.release}: {self.instance}: {self.datetime}: {status}'.format(
+        self=deployment_report, status=deployment_report.get_status_display())
