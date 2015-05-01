@@ -166,10 +166,11 @@ mark_migrations_not_reviewed.short_description = "Mark selected migrations as no
 
 def applied_on(migration):
     """Migration applied on."""
-    return mark_safe(", ".join('<a href="{url}">{name}: {datetime}: {status}</a>'.format(
-        url=reverse("admin:core_migrationreport_change", args=(report.id,)),
-        name=report.instance.name, datetime=report.datetime, status=report.get_status_display())
-        for report in migration.reports.all()))
+    return mark_safe(
+        ", ".join('<a href="{url}">{name}: {datetime}: {status}</a>'.format(
+            url=reverse("admin:core_migrationreport_change", args=(report.id,)),
+            name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
+        ) for report in migration.reports.all()))
 applied_on.short_description = "Applied on"
 
 
