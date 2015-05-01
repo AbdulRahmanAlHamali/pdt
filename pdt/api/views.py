@@ -308,7 +308,7 @@ class MigrationFilter(django_filters.FilterSet):
     def filter_instance(self, queryset, value):
         """Implement filter by instance."""
         return queryset.filter(
-            Q(reports__instance__name=value) | Q(reports__isnull=True))
+            Q(reports__instance__name=value) | Q(reports__isnull=True) | Q(case__ci_project__instances__name=value))
 
 
 class MigrationViewSet(viewsets.ModelViewSet):

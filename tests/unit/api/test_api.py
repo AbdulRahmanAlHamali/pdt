@@ -10,10 +10,12 @@ from pdt.core.models import Case, MigrationReport, DeploymentReport
 def test_migration_filter_exclude_status(admin_client, migration_report_factory, equals_any):
     """Test migration filter when exclude status parameter is used."""
     mr1 = migration_report_factory(status='apl')
+    mr1.status = 'apl'
+    mr1.save()
     mr2 = migration_report_factory(
         status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project)
     data = admin_client.get(
-        '/api/migrations/', exclude_status='apl', ci_project=mr1.instance.ci_project.name).data
+        '/api/migrations/', dict(exclude_status='apl', ci_project=mr1.instance.ci_project.name)).data
     assert len(data) == 1
     migration = mr2.migration
     assert data[0] == {
@@ -54,10 +56,12 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
 def test_migration_filter_status(admin_client, migration_report_factory):
     """Test migration filter when status parameter is used."""
     mr1 = migration_report_factory(status='apl')
+    mr1.status = 'apl'
+    mr1.save()
     migration_report_factory(
         status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project)
     data = admin_client.get(
-        '/api/migrations/', status='apl', ci_project=mr1.instance.ci_project.name).data
+        '/api/migrations/', dict(status='apl', ci_project=mr1.instance.ci_project.name)).data
     assert len(data) == 1
     assert data[0]['id'] == mr1.id
 
@@ -67,10 +71,10 @@ def test_migration_filter_ci_project(admin_client, migration_factory):
     migration_factory(case__ci_project__name='some-other-project')
     migration_factory(case__ci_project__name='some-project')
     data = admin_client.get(
-        '/api/migrations/?ci_project=some-project').data
+        '/api/migrations/', dict(ci_project='some-project')).data
     assert len(data) == 1
     data = admin_client.get(
-        '/api/migrations/?ci_project=some-other-project').data
+        '/api/migrations/', dict(ci_project='some-other-project')).data
     assert len(data) == 1
 
 
@@ -79,13 +83,23 @@ def test_migration_filter_reviewed(admin_client, migration_factory):
     migration1 = migration_factory(reviewed=False)
     migration2 = migration_factory(reviewed=True)
     data = admin_client.get(
-        '/api/migrations/?reviewed=True').data
+        '/api/migrations/', dict(reviewed=True)).data
     assert len(data) == 1
     assert data[0]['uid'] == migration2.uid
     data = admin_client.get(
-        '/api/migrations/?reviewed=False').data
+        '/api/migrations/', dict(reviewed=False)).data
     assert len(data) == 1
     assert data[0]['uid'] == migration1.uid
+
+
+def test_migration_filter_instance(admin_client, migration_report_factory, instance_factory):
+    """Test migration filter when instance parameter is used."""
+    mr1 = migration_report_factory()
+    instance = instance_factory(ci_project=mr1.migration.case.ci_project)
+    data = admin_client.get(
+        '/api/migrations/', dict(instance=instance.name)).data
+    assert len(data) == 1
+    assert data[0]['id'] == mr1.id
 
 
 def test_create_migration_no_case(mocked_fogbugz, admin_client):
