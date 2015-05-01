@@ -95,12 +95,6 @@ class MigrationStepForm(forms.ModelForm):
         widget.__dict__['media'] = widget.media
         self.fields['type'].widget.attrs = {'class': 'migration_step_type'}
 
-    def clean_path(self):
-        """Optionally make path required."""
-        if self.cleaned_data['type'] not in ('sql',) and not self.cleaned_data['path']:
-            raise forms.ValidationError('Path is required for non-sql migration step type.')
-        return self.cleaned_data['path']
-
 
 class PreDeployMigrationStepForm(MigrationStepForm):
 

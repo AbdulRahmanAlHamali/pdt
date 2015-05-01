@@ -15,7 +15,7 @@ class Release(models.Model):
 
     """Release."""
 
-    name = models.CharField(max_length=255, blank=False, unique=True)
+    name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
     datetime = models.DateTimeField(blank=False, default=timezone.now)
 
     @staticmethod
@@ -32,7 +32,7 @@ class CIProject(models.Model):
 
     """Continuous integration project."""
 
-    name = models.CharField(max_length=255, blank=False, unique=True)
+    name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
     description = models.CharField(max_length=255, blank=True)
 
     @staticmethod
@@ -52,12 +52,13 @@ class Instance(models.Model):
     Instance means the isolated set of physical servers.
     """
 
-    name = models.CharField(max_length=255, blank=False)
+    name = models.CharField(max_length=255, blank=False, db_index=True)
     ci_project = models.ForeignKey(CIProject, blank=False)
     description = models.CharField(max_length=255, blank=True)
 
     class Meta:
         unique_together = (("name", "ci_project"),)
+        index_together = (("id", "name"),)
 
     @staticmethod
     def autocomplete_search_fields():
@@ -118,12 +119,15 @@ class Case(models.Model):
     """Bug tracking system case."""
 
     id = models.IntegerField(primary_key=True)
-    title = models.CharField(max_length=255, blank=False)
+    title = models.CharField(max_length=255, blank=False, db_index=True)
     description = models.TextField(blank=True)
     project = models.CharField(max_length=255, blank=True)
     area = models.CharField(max_length=255, blank=True)
     ci_project = models.ForeignKey(CIProject, blank=False)
     release = models.ForeignKey(Release, blank=False)
+
+    class Meta:
+        index_together = (("ci_project", "release"), ("id", "title"))
 
     objects = CaseManager()
 
@@ -148,8 +152,11 @@ class Migration(models.Model):
 
     uid = models.CharField(max_length=255, blank=False, unique=True)
     case = models.OneToOneField(Case, blank=False, unique=True)
-    category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl')
-    reviewed = models.BooleanField(blank=False, default=False)
+    category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl', db_index=True)
+    reviewed = models.BooleanField(blank=False, default=False, db_index=True)
+
+    class Meta:
+        index_together = (("id", "uid", "case"), ("category", "reviewed"))
 
     @staticmethod
     def autocomplete_search_fields():
@@ -170,6 +177,7 @@ class MigrationStep(models.Model):
     """Migration step."""
 
     class Meta:
+        index_together = (("id", "position"),)
         ordering = ['position']
 
     TYPE_CHOICES = (
@@ -182,11 +190,11 @@ class MigrationStep(models.Model):
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, blank=False)
     code = models.TextField(blank=False)
     path = models.CharField(max_length=255, blank=True, null=True)
-    position = models.PositiveSmallIntegerField()
+    position = models.PositiveSmallIntegerField(db_index=True)
 
     def clean(self):
         """Require path for non-sql type."""
-        if self.type not in ('sql',) and not self.path:
+        if 'sql' not in self.type and not self.path:
             raise ValidationError('Path is required for non-sql migration step type.')
 
     @staticmethod
@@ -225,12 +233,13 @@ class MigrationReport(models.Model):
 
     class Meta:
         unique_together = (("migration", "instance"),)
-        ordering = ['migration', 'instance', 'datetime']
+        index_together = (("id", "migration"), ("migration", "instance", "datetime", "id"))
+        ordering = ['migration', 'instance', 'datetime', 'id']
 
     migration = models.ForeignKey(Migration, blank=False, related_name='reports')
     instance = models.ForeignKey(Instance, blank=False)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
-    datetime = models.DateTimeField(default=timezone.now)
+    datetime = models.DateTimeField(default=timezone.now, db_index=True)
     log = models.TextField(blank=True)
 
     def __str__(self):
@@ -272,12 +281,13 @@ class MigrationStepReport(models.Model):
 
     class Meta:
         unique_together = (("report", "step"),)
-        ordering = ['report', 'step', 'datetime']
+        index_together = (("report", "step", "status"), ("report", "step", "datetime", "id"))
+        ordering = ["report", "step", "datetime", "id"]
 
     report = models.ForeignKey(MigrationReport, blank=False, related_name='step_reports')
     step = models.ForeignKey(MigrationStep, blank=False)
-    status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
-    datetime = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False, db_index=True)
+    datetime = models.DateTimeField(default=timezone.now, db_index=True)
     log = models.TextField(blank=True)
 
     def __str__(self):
@@ -304,7 +314,8 @@ class DeploymentReport(models.Model):
     )
 
     class Meta:
-        ordering = ['release', 'instance', 'datetime']
+        index_together = (("release", "instance", "datetime", "id"),)
+        ordering = ['release', 'instance', 'datetime', "id"]
 
     release = models.ForeignKey(Release, blank=False)
     instance = models.ForeignKey(Instance, blank=False)
