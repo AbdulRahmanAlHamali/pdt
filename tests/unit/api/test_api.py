@@ -104,12 +104,12 @@ def test_migration_filter_instance(admin_client, migration_report_factory, insta
 
 def test_migration_filter_release(admin_client, migration_report_factory, instance_factory):
     """Test migration filter when instance parameter is used."""
-    mr1 = migration_report_factory(migration__case__release__name='1520')
-    mr2 = migration_report_factory(migration__case__release__name='1510')
+    mr1 = migration_report_factory(migration__case__release__number='1520')
+    mr2 = migration_report_factory(migration__case__release__number='1510')
     migration_report_factory(migration__case__release=None)
-    migration_report_factory(migration__case__release__name='1530')
+    migration_report_factory(migration__case__release__number='1530')
     data = admin_client.get(
-        '/api/migrations/', dict(release=mr1.migration.case.release.name)).data
+        '/api/migrations/', dict(release=mr1.migration.case.release.number)).data
     assert len(data) == 2
     assert {data[0]['uid'], data[1]['uid']} == {mr1.migration.uid, mr2.migration.uid}
 
@@ -347,7 +347,7 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
                 },
             },
             "release": {
-                "name": release.name
+                "number": release.number
             },
             "status": "dpl",
             "log": "some log"

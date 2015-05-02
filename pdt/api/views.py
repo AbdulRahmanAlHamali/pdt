@@ -31,7 +31,7 @@ class ReleaseSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Release
-        fields = ('id', 'name', 'datetime')
+        fields = ('id', 'number', 'datetime')
 
 
 class ReleaseViewSet(viewsets.ModelViewSet):
@@ -40,20 +40,20 @@ class ReleaseViewSet(viewsets.ModelViewSet):
 
     Filters (via **`<parameter>`** query string arguments):
 
-    * name
+    * number
     * date
 
     Orderings (via **`order_by`** query string parameter):
 
-    * name
+    * number
     * date
     """
 
     queryset = Release.objects.all()
     serializer_class = ReleaseSerializer
-    filter_fields = ('name', 'datetime')
-    ordering_fields = ('name', 'datetime')
-    ordering = ('name',)
+    filter_fields = ('number', 'datetime')
+    ordering_fields = ('number', 'datetime')
+    ordering = ('number',)
 
 
 class CIProjectFieldMixin(serializers.HyperlinkedModelSerializer):
@@ -62,14 +62,12 @@ class CIProjectFieldMixin(serializers.HyperlinkedModelSerializer):
 
     class CIProjectSerializer(serializers.ModelSerializer):
 
-        name = serializers.CharField()
-
         class Meta:
             model = CIProject
             fields = ('id', 'name', 'description')
             extra_kwargs = {
                 'id': {'read_only': True},
-                'name': {'read_only': True},
+                'name': {'validators': []},
                 'description': {'read_only': True},
             }
 
@@ -288,7 +286,7 @@ class MigrationFilter(django_filters.FilterSet):
     """Migration filter to allow lookups for case, status, ci_project."""
 
     case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
-    release = django_filters.CharFilter(name="case__release__name", lookup_type='lte')
+    release = django_filters.CharFilter(name="case__release__number", lookup_type='lte')
     reviewed = django_filters.BooleanFilter(name="reviewed", lookup_type='exact')
     status = django_filters.CharFilter(name="reports__status")
     exclude_status = django_filters.MethodFilter(action="filter_exclude_status")
@@ -546,24 +544,23 @@ class ReleaseFieldMixin(serializers.HyperlinkedModelSerializer):
 
     class ReleaseSerializer(serializers.ModelSerializer):
 
-        name = serializers.CharField()
-
         class Meta:
             model = Release
-            fields = ('id', 'name', 'datetime')
+            fields = ('id', 'number', 'datetime')
             extra_kwargs = {
                 'id': {'read_only': True},
                 'description': {'read_only': True},
-                'datetime': {'read_only': True}
+                'datetime': {'read_only': True},
+                'number': {'validators': []}
             }
 
     release = ReleaseSerializer()
 
     def validate_release(self, value):
         """Validate release complex type."""
-        name = value['name']
+        number = value['number']
         try:
-            value, _ = Release.objects.get_or_create(name=name)
+            value, _ = Release.objects.get_or_create(number=number)
         except Exception as e:  # pragma: no cover
             logger.exception('Failed to get or create the release')
             raise serializers.ValidationError(e)

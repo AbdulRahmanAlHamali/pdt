@@ -15,17 +15,17 @@ class Release(models.Model):
 
     """Release."""
 
-    name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
+    number = models.PositiveIntegerField(blank=False, unique=True, db_index=True)
     datetime = models.DateTimeField(blank=False, default=timezone.now)
 
     @staticmethod
     def autocomplete_search_fields():
         """Auto complete search fields."""
-        return ("id__iexact", "name__icontains",)
+        return ("id__iexact", "number__icontains",)
 
     def __str__(self):
         """String representation."""
-        return '{self.name}: {self.datetime:%Y-%m-%d}'.format(self=self)
+        return '{self.number}: {self.datetime:%Y-%m-%d}'.format(self=self)
 
 
 class CIProject(models.Model):
@@ -100,9 +100,9 @@ class CaseManager(models.Manager):
             kwargs['description'] = case.soriginaltitle.string
             release_datetime = parse_datetime(case.dtfixfor.string) if case.dtfixfor.string else None
             try:
-                release = Release.objects.get(name=case.sfixfor.string)
+                release = Release.objects.get(number=case.sfixfor.string)
             except Release.DoesNotExist:
-                release = Release(name=case.sfixfor.string)
+                release = Release(number=case.sfixfor.string)
             if release_datetime:
                 release.datetime = release_datetime
             release.save()

@@ -27,9 +27,9 @@ class ReleaseAdmin(admin.ModelAdmin):
 
     """Release admin interface class."""
 
-    list_display = ('id', 'name', 'datetime')
+    list_display = ('id', 'number', 'datetime')
     list_filter = ('datetime',)
-    search_fields = ('id', 'name', 'datetime')
+    search_fields = ('id', 'number', 'datetime')
 
 admin.site.register(Release, ReleaseAdmin)
 
@@ -252,10 +252,10 @@ def migration_uid(self):
 migration_uid.admin_order_field = 'migration__uid'
 
 
-def migration_release_name(self):
-    """Get migration release name."""
-    return self.migration.case.release.name
-migration_release_name.admin_order_field = 'migration__case__release__name'
+def migration_release_number(self):
+    """Get migration release number."""
+    return self.migration.case.release.number
+migration_release_number.admin_order_field = 'migration__case__release__number'
 
 
 class MigrationReportAdmin(admin.ModelAdmin):
@@ -263,7 +263,7 @@ class MigrationReportAdmin(admin.ModelAdmin):
     """MigrationReport admin interface class."""
 
     form = MigrationReportForm
-    list_display = ('id', migration_uid, migration_case, migration_release_name, 'instance', 'status', 'datetime')
+    list_display = ('id', migration_uid, migration_case, migration_release_number, 'instance', 'status', 'datetime')
     list_filter = ('instance__name', 'status')
     search_fields = ('migration__uid', 'migration__case__id')
     raw_id_fields = ('migration', 'instance')
@@ -311,8 +311,8 @@ class DeploymentReportAdmin(admin.ModelAdmin):
 
     form = DeploymentReportForm
     list_display = ('id', 'release', 'instance', 'status', 'datetime')
-    list_filter = ('release__name', 'instance__name', 'status')
-    search_fields = ('release__name', 'instance__name')
+    list_filter = ('release__number', 'instance__name', 'status')
+    search_fields = ('release__number', 'instance__name')
     raw_id_fields = ('release', 'instance')
     autocomplete_lookup_fields = {
         'fk': ['release', 'instance'],

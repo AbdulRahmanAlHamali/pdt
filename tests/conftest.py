@@ -55,7 +55,7 @@ class ReleaseFactory(factory.django.DjangoModelFactory):
 
     """Release factory."""
 
-    name = factory.fuzzy.FuzzyText(prefix='release-')
+    number = factory.fuzzy.FuzzyInteger(1110, 9999)
 
     class Meta:
         model = 'core.Release'
