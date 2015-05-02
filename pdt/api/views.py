@@ -288,6 +288,7 @@ class MigrationFilter(django_filters.FilterSet):
     """Migration filter to allow lookups for case, status, ci_project."""
 
     case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
+    release = django_filters.CharFilter(name="case__release__name", lookup_type='lte')
     reviewed = django_filters.BooleanFilter(name="reviewed", lookup_type='exact')
     status = django_filters.CharFilter(name="reports__status")
     exclude_status = django_filters.MethodFilter(action="filter_exclude_status")
@@ -297,7 +298,8 @@ class MigrationFilter(django_filters.FilterSet):
 
     class Meta:
         model = Migration
-        fields = ['uid', 'case', 'category', 'ci_project', 'instance', 'status', 'exclude_status', 'reviewed']
+        fields = [
+            'uid', 'case', 'release', 'category', 'ci_project', 'instance', 'status', 'exclude_status', 'reviewed']
 
     def filter_exclude_status(self, queryset, value):
         """Implement ``exclude`` filter by status."""

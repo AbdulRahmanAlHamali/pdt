@@ -27,9 +27,9 @@ class ReleaseAdmin(admin.ModelAdmin):
 
     """Release admin interface class."""
 
-    list_display = ('name', 'datetime')
+    list_display = ('id', 'name', 'datetime')
     list_filter = ('datetime',)
-    search_fields = ('name', 'datetime')
+    search_fields = ('id', 'name', 'datetime')
 
 admin.site.register(Release, ReleaseAdmin)
 
@@ -38,8 +38,8 @@ class CIProjectAdmin(admin.ModelAdmin):
 
     """CI Project admin interface class."""
 
-    list_display = ('name', 'description')
-    search_fields = ('name', 'description')
+    list_display = ('id', 'name', 'description')
+    search_fields = ('id', 'name', 'description')
 
 
 admin.site.register(CIProject, CIProjectAdmin)
@@ -55,9 +55,9 @@ class InstanceAdmin(admin.ModelAdmin):
 
     """Instance admin interface class."""
 
-    list_display = ('name', 'description', ci_project)
+    list_display = ('id', 'name', 'description', ci_project)
     list_filter = ('ci_project__name',)
-    search_fields = ('name', 'description')
+    search_fields = ('id', 'name', 'description')
     raw_id_fields = ('ci_project',)
     autocomplete_lookup_fields = {
         'fk': ['ci_project'],
@@ -144,7 +144,7 @@ class MigrationStepAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'type')
     list_filter = ('type',)
-    search_fields = ('type', 'script')
+    search_fields = ('id', 'type', 'script')
     autocomplete_lookup_fields = {
         'fk': ['migration'],
     }
@@ -184,9 +184,9 @@ class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
 
-    list_display = (case, case_ci_project, 'category', 'reviewed', applied_on)
+    list_display = ('id', 'uid', case, case_ci_project, 'category', 'reviewed', applied_on)
     list_filter = ('case__id', 'category', 'reviewed')
-    search_fields = ('case__id', 'case__title', 'category')
+    search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
     raw_id_fields = ('case',)
     autocomplete_lookup_fields = {
         'fk': ['case'],
@@ -246,12 +246,24 @@ class MigrationStepReportInline(admin.StackedInline):
     }
 
 
+def migration_uid(self):
+    """Get migration uid."""
+    return self.migration.uid
+migration_uid.admin_order_field = 'migration__uid'
+
+
+def migration_release_name(self):
+    """Get migration release name."""
+    return self.migration.case.release.name
+migration_release_name.admin_order_field = 'migration__case__release__name'
+
+
 class MigrationReportAdmin(admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
 
     form = MigrationReportForm
-    list_display = (migration_case, 'instance', 'status', 'datetime')
+    list_display = ('id', migration_uid, migration_case, migration_release_name, 'instance', 'status', 'datetime')
     list_filter = ('instance__name', 'status')
     search_fields = ('migration__uid', 'migration__case__id')
     raw_id_fields = ('migration', 'instance')
@@ -298,7 +310,7 @@ class DeploymentReportAdmin(admin.ModelAdmin):
     """DeploymentReport admin interface class."""
 
     form = DeploymentReportForm
-    list_display = ('release', 'instance', 'status', 'datetime')
+    list_display = ('id', 'release', 'instance', 'status', 'datetime')
     list_filter = ('release__name', 'instance__name', 'status')
     search_fields = ('release__name', 'instance__name')
     raw_id_fields = ('release', 'instance')

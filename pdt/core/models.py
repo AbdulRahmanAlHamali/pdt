@@ -67,7 +67,7 @@ class Instance(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.name}: {self.ci_project}'.format(self=self)
+        return '{self.ci_project}: {self.name}'.format(self=self)
 
 
 class CaseManager(models.Manager):
@@ -124,7 +124,7 @@ class Case(models.Model):
     project = models.CharField(max_length=255, blank=True)
     area = models.CharField(max_length=255, blank=True)
     ci_project = models.ForeignKey(CIProject, blank=False)
-    release = models.ForeignKey(Release, blank=False)
+    release = models.ForeignKey(Release, blank=True, null=True)
 
     class Meta:
         index_together = (("ci_project", "release"), ("id", "title"))

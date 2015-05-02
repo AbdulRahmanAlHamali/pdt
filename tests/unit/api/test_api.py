@@ -99,7 +99,19 @@ def test_migration_filter_instance(admin_client, migration_report_factory, insta
     data = admin_client.get(
         '/api/migrations/', dict(instance=instance.name)).data
     assert len(data) == 1
-    assert data[0]['id'] == mr1.id
+    assert data[0]['uid'] == mr1.migration.uid
+
+
+def test_migration_filter_release(admin_client, migration_report_factory, instance_factory):
+    """Test migration filter when instance parameter is used."""
+    mr1 = migration_report_factory(migration__case__release__name='1520')
+    mr2 = migration_report_factory(migration__case__release__name='1510')
+    migration_report_factory(migration__case__release=None)
+    migration_report_factory(migration__case__release__name='1530')
+    data = admin_client.get(
+        '/api/migrations/', dict(release=mr1.migration.case.release.name)).data
+    assert len(data) == 2
+    assert {data[0]['uid'], data[1]['uid']} == {mr1.migration.uid, mr2.migration.uid}
 
 
 def test_create_migration_no_case(mocked_fogbugz, admin_client):
