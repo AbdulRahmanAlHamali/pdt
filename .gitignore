@@ -6,7 +6,7 @@ settings_local_*.py
 /config.yaml
 /src/
 /.env/
-dev.db*
+*.db*
 *.orig
 .DS_Store
 .cache

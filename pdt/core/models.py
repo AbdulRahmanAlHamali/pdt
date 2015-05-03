@@ -74,44 +74,70 @@ class CaseManager(models.Manager):
 
     """Case manager to allow automatic fetch from Fogbugz."""
 
-    def get_or_create_from_fogbugz(self, case_id=None, **kwargs):
+    def get_case_info(self, case_id):
+        """Get case infor from the Fogbugz API.
+
+        :param case_id: Fogbugz case id
+        :type case_id: int
+        """
+        fb = fogbugz.FogBugz(
+            settings.AUTH_FOGBUGZ_SERVER,
+            settings.FOGBUGZ_TOKEN)
+        resp = fb.search(
+            q=case_id,
+            cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,dtLastUpdated,' +
+            settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
+            max=1
+        )
+        case = resp.cases.find('case')
+        if case is None:
+            raise ValidationError('Case with such id cannot be found', case_id)
+        if not case.sfixfor.string:
+            raise ValidationError('Case milestone is not set', case_id)
+        ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
+        release_datetime = parse_datetime(case.dtfixfor.string) if case.dtfixfor.string else None
+        release_number = case.sfixfor.string if case.sfixfor.string.isdigit() else None
+        if release_number:
+            try:
+                release = Release.objects.get(number=release_number)
+            except Release.DoesNotExist:
+                release = Release(number=case.sfixfor.string)
+            if release_datetime:
+                release.datetime = release_datetime
+            release.save()
+        else:
+            release = None
+        info = dict(
+            id=case_id,
+            release=release,
+            project=case.sproject.string,
+            area=case.sarea.string,
+            title=case.stitle.string,
+            description=case.soriginaltitle.string,
+            modified_date=parse_datetime(case.dtlastupdated.string)
+        )
+        if ci_project:
+            info['ci_project'] = CIProject.objects.get_or_create(name=ci_project)[0]
+        return info
+
+    def update_from_fogbugz(self, case_id):
+        """Update the case from the Fogbugz API.
+
+        :param id: Fogbugz case id
+        """
+        case_info = self.get_case_info(case_id)
+        self.filter(id=case_id).update(**case_info)
+
+    def get_or_create_from_fogbugz(self, case_id):
         """Get or create an object from the Fogbugz API.
 
         :param id: Fogbugz case id
         :type id: int
         """
         try:
-            return self.get(id=case_id, **kwargs), False
+            return self.get(id=case_id), False
         except self.model.DoesNotExist:
-            fb = fogbugz.FogBugz(
-                settings.AUTH_FOGBUGZ_SERVER,
-                settings.FOGBUGZ_TOKEN)
-            resp = fb.search(
-                q=case_id,
-                cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,' + settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
-                max=1
-            )
-            case = resp.cases.find('case')
-            if case is None:
-                raise ValidationError('Case with such id cannot be found', case_id)
-            if not case.sfixfor.string:
-                raise ValidationError('Case milestone is not set', case_id)
-            kwargs['title'] = case.stitle.string
-            kwargs['description'] = case.soriginaltitle.string
-            release_datetime = parse_datetime(case.dtfixfor.string) if case.dtfixfor.string else None
-            try:
-                release = Release.objects.get(number=case.sfixfor.string)
-            except Release.DoesNotExist:
-                release = Release(number=case.sfixfor.string)
-            if release_datetime:
-                release.datetime = release_datetime
-            release.save()
-            kwargs['release'] = release
-            ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
-            kwargs['ci_project'], _ = CIProject.objects.get_or_create(name=ci_project)
-            kwargs['project'] = case.sproject.string
-            kwargs['area'] = case.sarea.string
-            return super(CaseManager, self).get_or_create(id=case_id, **kwargs)
+            return self.get_or_create(id=case_id, **self.get_case_info(case_id))
 
 
 class Case(models.Model):
@@ -125,6 +151,7 @@ class Case(models.Model):
     area = models.CharField(max_length=255, blank=True)
     ci_project = models.ForeignKey(CIProject, blank=False)
     release = models.ForeignKey(Release, blank=True, null=True)
+    modified_date = models.DateTimeField(default=timezone.now)
 
     class Meta:
         index_together = (("ci_project", "release"), ("id", "title"))

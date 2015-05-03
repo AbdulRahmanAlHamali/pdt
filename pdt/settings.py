@@ -197,6 +197,23 @@ DATABASES = {
     }
 }
 
+celery_cfg = yam_config['celery']
+
+# Broker settings.
+BROKER_URL = celery_cfg['broker_url']
+
+# Using the database to store task state and results.
+CELERY_RESULT_BACKEND = celery_cfg['result_backend']
+
+CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
+BROKER_TRANSPORT_OPTIONS = {
+    'fanout_prefix': True,
+    'fanout_patterns': True,
+    'visibility_timeout': 43200
+}
+CELERY_REDIS_SCHEDULER_URL = celery_cfg['scheduler_url']
+CELERY_REDIS_SCHEDULER_KEY_PREFIX = 'tasks:meta:'
+CELERYD_LOG_COLOR = False
 # Token to use for fogbugz communication
 FOGBUGZ_TOKEN = yam_config['fogbugz']['token']
 FOGBUGZ_CI_PROJECT_FIELD_ID = yam_config['fogbugz']['ci_project_field_id']
