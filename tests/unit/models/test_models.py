@@ -8,8 +8,9 @@ from pdt.core.models import Case
 def test_get_or_create_case(mocked_fogbugz, release):
     """Test get_or_create_from_fogbugz Case method."""
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
-    mocked_case.sfixfor.string = release.number
+    mocked_case.sfixfor.string = str(release.number)
     mocked_case.dtfixfor.string = str(release.datetime)
+    mocked_case.dtlastupdated.string = str(release.datetime)
     mocked_case.stitle.string = 'Some title'
     mocked_case.soriginaltitle.string = 'Some original title'
     mocked_case.cixproject.string = 'ci-project'

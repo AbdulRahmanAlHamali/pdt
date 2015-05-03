@@ -114,7 +114,7 @@ class CaseManager(models.Manager):
             area=case.sarea.string,
             title=case.stitle.string,
             description=case.soriginaltitle.string,
-            modified_date=parse_datetime(case.dtlastupdated.string)
+            modified_date=parse_datetime(case.dtlastupdated.string) if case.dtlastupdated.string else None
         )
         if ci_project:
             info['ci_project'] = CIProject.objects.get_or_create(name=ci_project)[0]
@@ -137,7 +137,7 @@ class CaseManager(models.Manager):
         try:
             return self.get(id=case_id), False
         except self.model.DoesNotExist:
-            return self.get_or_create(id=case_id, **self.get_case_info(case_id))
+            return self.get_or_create(**self.get_case_info(case_id))
 
 
 class Case(models.Model):

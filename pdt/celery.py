@@ -8,7 +8,7 @@ from celery import Celery
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pdt.settings')
 
-from django.conf import settings
+from django.conf import settings  # NOQA
 
 app = Celery('pdt')
 

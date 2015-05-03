@@ -151,10 +151,10 @@ def test_create_migration(mocked_fogbugz, admin_client):
     case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     case.sfixfor.string = '1516'
     case.dtfixfor.string = '2015-01-18T23:00:00Z'
+    case.dtlastupdated.string = '2015-01-18T23:00:00Z'
     case.stitle.string = 'Some title'
     case.soriginaltitle.string = 'Some original title'
     case.cixproject.string = 'some-ci-project'
-    case.sproject.string = 'Some project'
     case.sproject.string = 'Some project'
     case.sarea.string = 'Some area'
     data = admin_client.post(
