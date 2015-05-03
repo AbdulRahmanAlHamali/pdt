@@ -56,7 +56,7 @@ coveralls:
 	coveralls
 
 clean:
-	git clean -f -d
+	git clean -f -d -x
 	-rm -rf ./$(ENV) ./build /tmp/pip_build_root
 
 build: env
