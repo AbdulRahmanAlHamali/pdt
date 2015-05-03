@@ -10,7 +10,8 @@ cov_report := html
 index_url := https://pypi.python.org/simple/
 extra_index_url := $(index_url)
 wheel_args := --use-wheel
-pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external
+no_wheel_pip_args := --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external
+pip_args := $(wheel_args) $(no_wheel_pip_args)
 DEPENDENCIES := $(shell grep -h -v "\#" DEPENDENCIES)
 BUILD_DEPENDENCIES := $(shell grep -h -v "\#" DEPENDENCIES*)
 DEB_LICENCE := MIT
@@ -64,7 +65,7 @@ build: env
 	mkdir -p ./build$(BUILD_PREFIX)
 	cp VERSION ./build/
 	pip install -r requirements-build.txt --target=./build$(BUILD_PREFIX) \
-		--install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(pip_args)
+		--install-option="--install-scripts=$(PWD)/build$(BUILD_PREFIX)/bin" $(no_wheel_pip_args) --no-use-wheel
 	cp -R pdt ./build$(BUILD_PREFIX)
 	cp config_build.yaml build$(BUILD_PREFIX)/config.yaml
 	cd build$(BUILD_PREFIX); PYTHONPATH=. django/bin/django-admin.py collectstatic --noinput \
