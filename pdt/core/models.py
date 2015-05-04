@@ -266,7 +266,7 @@ class MigrationReport(models.Model):
     migration = models.ForeignKey(Migration, blank=False, related_name='reports')
     instance = models.ForeignKey(Instance, blank=False)
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
-    datetime = models.DateTimeField(default=timezone.now, db_index=True)
+    datetime = models.DateTimeField(db_index=True, auto_now=True)
     log = models.TextField(blank=True)
 
     def __str__(self):
