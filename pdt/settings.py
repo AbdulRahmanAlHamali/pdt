@@ -251,7 +251,7 @@ LOGGING = {
         'syslog': {
             'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
-            'facility': 'pdt',
+            'facility': 'local7',
             'formatter': 'django',
         },
     },
