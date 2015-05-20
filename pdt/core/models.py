@@ -136,8 +136,64 @@ class CaseManager(models.Manager):
         del case_info['tags']
         self.filter(id=case_id).update(**case_info)
 
+    def update_to_fogbugz_migration_url(self, case, fb, case_info):
+        """Update the case with migration url.
+
+        :param case: case object
+        :type case: core.models.Case
+        :param fb: fogbugz api client object
+        :param case_info: case information dictionary
+        :type case_info: dict
+
+        :return: fogbugz api response object
+        """
+        response = fb.edit(
+            ixbug=case.id,
+            **{settings.FOGBUGZ_MIGRATION_URL_FIELD_ID: 'http://{0}{1}'.format(
+                settings.HOST_NAME,
+                reverse(
+                    'admin:core_migration_change',
+                    args=(case.migration.id,)))})
+        return response
+
+    def update_to_fogbugz_migration_reviewed(self, case, fb, case_info):
+        """Update the case when migration is reviewed.
+
+        :param case: case object
+        :type case: core.models.Case
+        :param fb: fogbugz api client object
+        :param case_info: case information dictionary
+        :type case_info: dict
+
+        :return: fogbugz api response object
+        """
+        if 'migration-reviewed' not in case_info['tags']:
+            response = fb.edit(
+                ixbug=case.id,
+                sEvent=__('Migration was marked as reviewed'),
+                sTags=','.join(case_info['tags'].union({'migration-reviewed'})))
+            return response
+
+    def update_to_fogbugz_migration_unreviewed(self, case, fb, case_info):
+        """Update the case when migration is unreviewed.
+
+        :param case: case object
+        :type case: core.models.Case
+        :param fb: fogbugz api client object
+        :param case_info: case information dictionary
+        :type case_info: dict
+
+        :return: fogbugz api response object
+        """
+        if 'migration-reviewed' in case_info['tags']:
+            response = fb.edit(
+                ixbug=case.id,
+                sEvent=__('Migration was unmarked as reviewed'),
+                sTags=','.join(case_info['tags'].difference({'migration-reviewed'})))
+            return response
+
     def update_to_fogbugz(self, case_id):
-        """Update the case info via the Fogbugz API.
+        """Update the case via the Fogbugz API.
 
         :param id: Fogbugz case id
         """
@@ -146,33 +202,17 @@ class CaseManager(models.Manager):
             settings.AUTH_FOGBUGZ_SERVER,
             settings.FOGBUGZ_TOKEN)
 
+        case_info = self.get_case_info(case_id, fb=fb)
         for edit in case.edits.all():
+            response = None
             if case.migration:
                 if edit.type == CaseEdit.TYPE_MIGRATION_URL:
-                    response = fb.edit(
-                        ixbug=case_id,
-                        **{settings.FOGBUGZ_MIGRATION_URL_FIELD_ID: 'http://{0}{1}'.format(
-                            settings.HOST_NAME,
-                            reverse(
-                                'admin:core_migration_change',
-                                args=(case.migration.id,)))})
-                    if not response.case:
-                        raise RuntimeError(response)
+                    response = self.update_to_fogbugz_migration_url(case, fb, case_info)
                 elif edit.type == CaseEdit.TYPE_MIGRATION_REVIEWED:
-                    case_info = self.get_case_info(case_id, fb=fb)
-                    if 'migration-reviewed' not in case_info['tags']:
-                        response = fb.edit(
-                            ixbug=case_id,
-                            sEvent=__('Migration was marked as reviewed'),
-                            sTags=','.join(case_info['tags'].union({'migration-reviewed'})))
+                    response = self.update_to_fogbugz_migration_reviewed(case, fb, case_info)
                 elif edit.type == CaseEdit.TYPE_MIGRATION_UNREVIEWED:
-                    case_info = self.get_case_info(case_id, fb=fb)
-                    if 'migration-reviewed' in case_info['tags']:
-                        response = fb.edit(
-                            ixbug=case_id,
-                            sEvent=__('Migration was unmarked as reviewed'),
-                            sTags=','.join(case_info['tags'].difference({'migration-reviewed'})))
-            if not response.case:
+                    response = self.update_to_fogbugz_migration_unreviewed(case, fb, case_info)
+            if response and not response.case:
                 raise RuntimeError(response)
             edit.delete()
 
