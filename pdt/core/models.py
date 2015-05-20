@@ -6,7 +6,11 @@ from django.db.models.signals import post_save
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
+
+from model_utils import FieldTracker
 
 import fogbugz
 
@@ -74,18 +78,20 @@ class CaseManager(models.Manager):
 
     """Case manager to allow automatic fetch from Fogbugz."""
 
-    def get_case_info(self, case_id):
+    def get_case_info(self, case_id, fb=None):
         """Get case infor from the Fogbugz API.
 
         :param case_id: Fogbugz case id
+        :param fb: optional fogbugz client instance
         :type case_id: int
         """
-        fb = fogbugz.FogBugz(
-            settings.AUTH_FOGBUGZ_SERVER,
-            settings.FOGBUGZ_TOKEN)
+        if fb is None:
+            fb = fogbugz.FogBugz(
+                settings.AUTH_FOGBUGZ_SERVER,
+                settings.FOGBUGZ_TOKEN)
         resp = fb.search(
             q=case_id,
-            cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,dtLastUpdated,' +
+            cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,dtLastUpdated,tags,' +
             settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
             max=1
         )
@@ -114,7 +120,8 @@ class CaseManager(models.Manager):
             area=case.sarea.string,
             title=case.stitle.string,
             description=case.soriginaltitle.string,
-            modified_date=parse_datetime(case.dtlastupdated.string) if case.dtlastupdated.string else None
+            modified_date=parse_datetime(case.dtlastupdated.string) if case.dtlastupdated.string else None,
+            tags=frozenset(tag.string for tag in case.tags.findAll('tag'))
         )
         if ci_project:
             info['ci_project'] = CIProject.objects.get_or_create(name=ci_project)[0]
@@ -126,7 +133,48 @@ class CaseManager(models.Manager):
         :param id: Fogbugz case id
         """
         case_info = self.get_case_info(case_id)
+        del case_info['tags']
         self.filter(id=case_id).update(**case_info)
+
+    def update_to_fogbugz(self, case_id):
+        """Update the case info via the Fogbugz API.
+
+        :param id: Fogbugz case id
+        """
+        case = self.get(id=case_id)
+        fb = fogbugz.FogBugz(
+            settings.AUTH_FOGBUGZ_SERVER,
+            settings.FOGBUGZ_TOKEN)
+
+        for edit in case.edits.all():
+            if case.migration:
+                if edit.type == CaseEdit.TYPE_MIGRATION_URL:
+                    response = fb.edit(
+                        ixbug=case_id,
+                        **{settings.FOGBUGZ_MIGRATION_URL_FIELD_ID: 'http://{0}{1}'.format(
+                            settings.HOST_NAME,
+                            reverse(
+                                'admin:core_migration_change',
+                                args=(case.migration.id,)))})
+                    if not response.case:
+                        raise RuntimeError(response)
+                elif edit.type == CaseEdit.TYPE_MIGRATION_REVIEWED:
+                    case_info = self.get_case_info(case_id, fb=fb)
+                    if 'migration-reviewed' not in case_info['tags']:
+                        response = fb.edit(
+                            ixbug=case_id,
+                            sEvent=__('Migration was marked as reviewed'),
+                            sTags=','.join(case_info['tags'].union({'migration-reviewed'})))
+                elif edit.type == CaseEdit.TYPE_MIGRATION_UNREVIEWED:
+                    case_info = self.get_case_info(case_id, fb=fb)
+                    if 'migration-reviewed' in case_info['tags']:
+                        response = fb.edit(
+                            ixbug=case_id,
+                            sEvent=__('Migration was unmarked as reviewed'),
+                            sTags=','.join(case_info['tags'].difference({'migration-reviewed'})))
+            if not response.case:
+                raise RuntimeError(response)
+            edit.delete()
 
     def get_or_create_from_fogbugz(self, case_id):
         """Get or create an object from the Fogbugz API.
@@ -137,7 +185,9 @@ class CaseManager(models.Manager):
         try:
             return self.get(id=case_id), False
         except self.model.DoesNotExist:
-            return self.get_or_create(**self.get_case_info(case_id))
+            case_info = self.get_case_info(case_id)
+            del case_info['tags']
+            return self.get_or_create(**case_info)
 
 
 class Case(models.Model):
@@ -168,6 +218,25 @@ class Case(models.Model):
         return '{self.id}: {self.title}'.format(self=self)
 
 
+class CaseEdit(models.Model):
+
+    """Bug tracking system case edit."""
+
+    case = models.ForeignKey(Case, blank=False, related_name='edits')
+
+    TYPE_MIGRATION_URL = 'migration-url'
+    TYPE_MIGRATION_REVIEWED = 'migration-reviewed'
+    TYPE_MIGRATION_UNREVIEWED = 'migration-unreviewed'
+
+    TYPE_CHOICES = (
+        (TYPE_MIGRATION_URL, _('Migration URL')),
+        (TYPE_MIGRATION_REVIEWED, _('Migration reviewed')),
+        (TYPE_MIGRATION_UNREVIEWED, _('Migration unreviewed')),
+    )
+
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES, blank=False)
+
+
 class Migration(models.Model):
 
     """Migration."""
@@ -181,6 +250,8 @@ class Migration(models.Model):
     case = models.OneToOneField(Case, blank=False, unique=True)
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl', db_index=True)
     reviewed = models.BooleanField(blank=False, default=False, db_index=True)
+
+    tracker = FieldTracker()
 
     class Meta:
         index_together = (("id", "uid", "case"), ("category", "reviewed"))
@@ -197,6 +268,22 @@ class Migration(models.Model):
     def get_steps(self):
         """Get all migration steps."""
         return chain(self.pre_deploy_steps.all(), self.post_deploy_steps.all())
+
+
+def migration_changes(sender, instance, **kwargs):
+    """Update migration link in the fogbugz case."""
+    created = kwargs['created']
+    if created:
+        CaseEdit.objects.get_or_create(case=instance.case, type=CaseEdit.TYPE_MIGRATION_URL)
+    changed = instance.tracker.changed()
+    if instance.reviewed and instance.reviewed != changed.get('reviewed', instance.reviewed):
+        CaseEdit.objects.get_or_create(case=instance.case, type=CaseEdit.TYPE_MIGRATION_REVIEWED)
+    if not instance.reviewed and instance.reviewed != changed.get('reviewed', instance.reviewed):
+        CaseEdit.objects.get_or_create(case=instance.case, type=CaseEdit.TYPE_MIGRATION_UNREVIEWED)
+    from .tasks import update_case_to_fogbugz
+    update_case_to_fogbugz.apply_async(kwargs=dict(case_id=instance.case.id))
+
+post_save.connect(migration_changes, sender=Migration)
 
 
 class MigrationStep(models.Model):

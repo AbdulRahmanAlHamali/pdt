@@ -17,6 +17,7 @@ from .models import (
     MigrationReport,
     MigrationStepReport,
     Case,
+    CaseEdit,
     DeploymentReport,
 )
 
@@ -291,6 +292,21 @@ class CaseAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Case, CaseAdmin)
+
+
+class CaseEditAdmin(admin.ModelAdmin):
+
+    """Case edit admin interface class."""
+
+    list_display = ('id', 'case', 'type')
+    list_filter = ('case__id', 'type')
+    raw_id_fields = ('case',)
+    autocomplete_lookup_fields = {
+        'fk': ['case'],
+    }
+
+
+admin.site.register(CaseEdit, CaseEditAdmin)
 
 
 class DeploymentReportForm(forms.ModelForm):

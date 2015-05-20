@@ -15,6 +15,7 @@ pdt:
         token: some-fogbugz-token
         url: http://fogbugz.example.com
         ci_project_field_id: cixproject
+        migration_url_field_id: dbxmigration
     hostname: localhost
     debug: false
     celery:
