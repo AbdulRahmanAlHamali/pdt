@@ -543,11 +543,11 @@ class DeploymentReport(models.Model):
 
     """Deployment report."""
 
-    STATUS_APPLIED = 'apl'
+    STATUS_DEPLOYED = 'dpl'
     STATUS_ERROR = 'err'
 
     STATUS_CHOICES = (
-        (STATUS_APPLIED, 'Applied'),
+        (STATUS_DEPLOYED, 'Deployed'),
         (STATUS_ERROR, 'Error'),
     )
 

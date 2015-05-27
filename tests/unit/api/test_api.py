@@ -349,8 +349,8 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
             "release": {
                 "number": release.number
             },
-            "status": "dpl",
+            "status": DeploymentReport.STATUS_DEPLOYED,
             "log": "some log"
         }), content_type='application/json').data
-    assert data['status'] == "dpl"
+    assert data['status'] == DeploymentReport.STATUS_DEPLOYED
     assert DeploymentReport.objects.get(id=data['id'])
