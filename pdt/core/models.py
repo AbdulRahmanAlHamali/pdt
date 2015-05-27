@@ -1,7 +1,8 @@
 """PDT core models."""
 from itertools import chain
 
-from django.db import models
+from django.db import transaction
+from django.db import models, DatabaseError
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
@@ -192,6 +193,7 @@ class CaseManager(models.Manager):
                 sTags=','.join(case_info['tags'].difference({'migration-reviewed'})))
             return response
 
+    @transaction.atomic
     def update_to_fogbugz(self, case_id):
         """Update the case via the Fogbugz API.
 
@@ -203,7 +205,12 @@ class CaseManager(models.Manager):
             settings.FOGBUGZ_TOKEN)
 
         case_info = self.get_case_info(case_id, fb=fb)
-        for edit in case.edits.all():
+        try:
+            edits = case.edits.select_for_update()
+        except DatabaseError:
+            # concurrent update is running
+            return
+        for edit in edits:
             response = None
             if case.migration:
                 if edit.type == CaseEdit.TYPE_MIGRATION_URL:
