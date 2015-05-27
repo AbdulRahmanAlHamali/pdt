@@ -490,17 +490,10 @@ class MigrationReport(models.Model):
 def migration_report_changes(sender, instance, **kwargs):
     """Send case updates about migration application status."""
     changed = instance.tracker.changed()
-    if instance.status != changed.get('status', instance.status):
+    if instance.log != changed.get('log', instance.log):
         params = dict(instance=instance.instance.id)
-        if instance.status == MigrationReport.STATUS_APPLIED:
-            CaseEdit.objects.get_or_create(
-                case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_APPLIED, params=params)
-        elif instance.status == MigrationReport.STATUS_ERROR:
-            CaseEdit.objects.get_or_create(
-                case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_ERROR, params=params)
-        elif instance.status == MigrationReport.STATUS_APPLIED_PARTIALLY:
-            CaseEdit.objects.get_or_create(
-                case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_APPLIED_PARTIALLY, params=params)
+        CaseEdit.objects.get_or_create(
+            case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_REPORT, params=params)
     from .tasks import update_case_to_fogbugz
     update_case_to_fogbugz.apply_async(kwargs=dict(case_id=instance.migration.case.id))
 
