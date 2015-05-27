@@ -1,5 +1,6 @@
 """PDT core models."""
 from itertools import chain
+import logging
 
 from django.db import transaction
 from django.db import models, DatabaseError
@@ -16,6 +17,9 @@ from jsonfield import JSONField
 from model_utils import FieldTracker
 
 import fogbugz
+
+
+logger = logging.getLogger(__name__)
 
 
 class Release(models.Model):
@@ -85,8 +89,8 @@ class CaseManager(models.Manager):
         """Get case infor from the Fogbugz API.
 
         :param case_id: Fogbugz case id
-        :param fb: optional fogbugz client instance
         :type case_id: int
+        :param fb: optional fogbugz client instance
         """
         if fb is None:
             fb = fogbugz.FogBugz(
@@ -101,6 +105,17 @@ class CaseManager(models.Manager):
         case = resp.cases.find('case')
         if case is None:
             raise ValidationError('Case with such id cannot be found', case_id)
+        return self.parse_case_info(case)
+
+    def parse_case_info(self, case):
+        """Parse case info given the case xml.
+
+        :param case: beautifulsoup object represing the case xml node
+
+        :return: case info dictionary
+        :rtype: dict
+        """
+        case_id = int(case.attrs['ixbug'])
         if not case.sfixfor.string:
             raise ValidationError('Case milestone is not set', case_id)
         ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
@@ -108,13 +123,13 @@ class CaseManager(models.Manager):
         release_number = case.sfixfor.string if case.sfixfor.string.isdigit() else None
         if release_number:
             release, _ = Release.objects.get_or_create(number=release_number)
-            if release_datetime:
+            if release_datetime and release.datetime != release_datetime:
                 release.datetime = release_datetime
-            release.save()
+                release.save()
         else:
             release = None
         info = dict(
-            id=case_id,
+            id=int(case_id),
             release=release,
             project=case.sproject.string,
             area=case.sarea.string,
@@ -132,9 +147,11 @@ class CaseManager(models.Manager):
 
         :param id: Fogbugz case id
         """
-        case_info = self.get_case_info(case_id)
-        del case_info['tags']
-        self.filter(id=case_id).update(**case_info)
+        _, created = self.get_or_create_from_fogbugz(case_id)
+        if not created:
+            case_info = self.get_case_info(case_id)
+            del case_info['tags']
+            self.filter(id=case_id).update(**case_info)
 
     def update_to_fogbugz_migration_url(self, case, fb, case_info, params):
         """Update the case with migration url.

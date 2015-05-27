@@ -194,6 +194,9 @@ DATABASES = {
         'PASSWORD': dbcfg['password'],
         'HOST': dbcfg['host'],
         'PORT': dbcfg['port'],
+        'OPTIONS': {
+            'timeout': 60
+        }
     }
 }
 

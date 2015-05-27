@@ -149,6 +149,7 @@ def test_create_migration_case_no_milestone(mocked_fogbugz, admin_client):
 def test_create_migration(mocked_fogbugz, admin_client):
     """Test create migration."""
     case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
+    case.attrs = dict(ixbug='33322')
     case.sfixfor.string = '1516'
     case.dtfixfor.string = '2015-01-18T23:00:00Z'
     case.dtlastupdated.string = '2015-01-18T23:00:00Z'
