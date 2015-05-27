@@ -107,10 +107,7 @@ class CaseManager(models.Manager):
         release_datetime = parse_datetime(case.dtfixfor.string) if case.dtfixfor.string else None
         release_number = case.sfixfor.string if case.sfixfor.string.isdigit() else None
         if release_number:
-            try:
-                release = Release.objects.get(number=release_number)
-            except Release.DoesNotExist:
-                release = Release(number=case.sfixfor.string)
+            release, _ = Release.objects.get_or_create(number=release_number)
             if release_datetime:
                 release.datetime = release_datetime
             release.save()
@@ -216,11 +213,15 @@ class CaseManager(models.Manager):
         """
         instance = Instance.objects.get(id=params['instance'])
         messages = {
-            MigrationReport.STATUS_APPLIED: __('Migration was applied on {instance} successfully with log:\n{log}'),
-            MigrationReport.STATUS_ERROR: __('Migration has failed to apply on {instance} with log:\n{log}'),
+            MigrationReport.STATUS_APPLIED: __(
+                'Migration was applied on {instance} successfully with log:\n{log}'
+                '\nSee the detailed migration report here: {report_url}.'),
+            MigrationReport.STATUS_ERROR: __(
+                'Migration has failed to apply on {instance} with log:\n{log}'
+                '\nSee the detailed migration report here: {report_url}.'),
             MigrationReport.STATUS_APPLIED_PARTIALLY: __(
-                'Migration was applied partially on {instance} with log:\n{log}'),
-
+                'Migration was applied partially on {instance} with log:\n{log}'
+                '\nSee the detailed migration report here: {report_url}.'),
         }
         report = MigrationReport.objects.get(instance=instance, migration=case.migration)
         kwargs = {}
@@ -230,6 +231,48 @@ class CaseManager(models.Manager):
             ixbug=case.id,
             sEvent=messages[report.status].format(
                 instance=instance.name,
+                report_url='http://{0}{1}'.format(
+                    settings.HOST_NAME,
+                    reverse(
+                        'admin:core_migrationreport_change',
+                        args=(report.id,))),
+                log=report.log),
+            **kwargs
+        )
+        return response
+
+    def update_to_fogbugz_deployment_report(self, case, fb, case_info, params):
+        """Update the case about the deployment.
+
+        :param case: case object
+        :type case: core.models.Case
+        :param fb: fogbugz api client object
+        :param case_info: case information dictionary
+        :type case_info: dict
+        :param params: optional case edit params
+        :type params: dict
+
+        :return: fogbugz api response object
+        """
+        report = DeploymentReport.objects.get(id=params['report'])
+        messages = {
+            DeploymentReport.STATUS_DEPLOYED: __(
+                'Deployed on {instance} successfully.\nSee the detailed deployment report here: {report_url}.'),
+            DeploymentReport.STATUS_ERROR: __(
+                'Deployment has failed on {instance}.\nSee the detailed deployment report here: {report_url}.'),
+        }
+        kwargs = {}
+        if report.status == DeploymentReport.STATUS_DEPLOYED:
+            kwargs['sTags'] = ','.join(case_info['tags'].union({'deployed-{0}'.format(report.instance.name)}))
+        response = fb.edit(
+            ixbug=case.id,
+            sEvent=messages[report.status].format(
+                instance=report.instance.name,
+                report_url='http://{0}{1}'.format(
+                    settings.HOST_NAME,
+                    reverse(
+                        'admin:core_deploymentreport_change',
+                        args=(report.id,))),
                 log=report.log),
             **kwargs
         )
@@ -252,17 +295,18 @@ class CaseManager(models.Manager):
         except DatabaseError:
             # concurrent update is running
             return
+        handlers = {
+            CaseEdit.TYPE_MIGRATION_URL: self.update_to_fogbugz_migration_url,
+            CaseEdit.TYPE_MIGRATION_REVIEWED: self.update_to_fogbugz_migration_reviewed,
+            CaseEdit.TYPE_MIGRATION_UNREVIEWED: self.update_to_fogbugz_migration_unreviewed,
+            CaseEdit.TYPE_MIGRATION_REPORT: self.update_to_fogbugz_migration_report,
+            CaseEdit.TYPE_DEPLOYMENT_REPORT: self.update_to_fogbugz_deployment_report,
+        }
         for edit in edits:
             response = None
-            if case.migration:
-                if edit.type == CaseEdit.TYPE_MIGRATION_URL:
-                    response = self.update_to_fogbugz_migration_url(case, fb, case_info, edit.params)
-                elif edit.type == CaseEdit.TYPE_MIGRATION_REVIEWED:
-                    response = self.update_to_fogbugz_migration_reviewed(case, fb, case_info, edit.params)
-                elif edit.type == CaseEdit.TYPE_MIGRATION_UNREVIEWED:
-                    response = self.update_to_fogbugz_migration_unreviewed(case, fb, case_info, edit.params)
-                elif edit.type == CaseEdit.TYPE_MIGRATION_REPORT:
-                    response = self.update_to_fogbugz_migration_report(case, fb, case_info, edit.params)
+            handler = handlers.get(edit.type)
+            if handler:
+                response = handler(case, fb, case_info, edit.params)
             if response and not response.case:
                 raise RuntimeError(response)
             edit.delete()
@@ -291,7 +335,7 @@ class Case(models.Model):
     project = models.CharField(max_length=255, blank=True)
     area = models.CharField(max_length=255, blank=True)
     ci_project = models.ForeignKey(CIProject, blank=False)
-    release = models.ForeignKey(Release, blank=True, null=True)
+    release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -319,12 +363,14 @@ class CaseEdit(models.Model):
     TYPE_MIGRATION_REVIEWED = 'migration-reviewed'
     TYPE_MIGRATION_UNREVIEWED = 'migration-unreviewed'
     TYPE_MIGRATION_REPORT = 'migration-report'
+    TYPE_DEPLOYMENT_REPORT = 'deployment-report'
 
     TYPE_CHOICES = (
         (TYPE_MIGRATION_URL, _('Migration URL')),
         (TYPE_MIGRATION_REVIEWED, _('Migration reviewed')),
         (TYPE_MIGRATION_UNREVIEWED, _('Migration unreviewed')),
         (TYPE_MIGRATION_REPORT, _('Migration report')),
+        (TYPE_DEPLOYMENT_REPORT, _('Deployment report')),
     )
 
     type = models.CharField(max_length=50, choices=TYPE_CHOICES, blank=False)
@@ -561,7 +607,24 @@ class DeploymentReport(models.Model):
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
 
+    tracker = FieldTracker()
+
     def __str__(self):
         """String representation."""
         return '{self.release}: {self.instance}: {self.datetime}: {status}'.format(
             self=self, status=self.get_status_display())
+
+
+def deployment_report_changes(sender, instance, **kwargs):
+    """Send case updates about the deployment status."""
+    changed = instance.tracker.changed()
+    if instance.log != changed.get('log', instance.log):
+        from .tasks import update_case_to_fogbugz
+        for case in instance.release.cases.all():
+            params = dict(report=instance.id)
+            CaseEdit.objects.get_or_create(
+                case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)
+            update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
+
+
+post_save.connect(deployment_report_changes, sender=DeploymentReport)
