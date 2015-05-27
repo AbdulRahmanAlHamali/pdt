@@ -3,7 +3,7 @@ from django.contrib import admin
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
-
+from django.utils.translation import ugettext_lazy as _
 from django_ace import AceWidget
 
 from .models import (
@@ -255,7 +255,7 @@ migration_uid.admin_order_field = 'migration__uid'
 
 def migration_release_number(self):
     """Get migration release number."""
-    return self.migration.case.release.number
+    return self.migration.case.release.number if self.migration.case.release else _('n/a')
 migration_release_number.admin_order_field = 'migration__case__release__number'
 
 
@@ -271,7 +271,7 @@ class MigrationReportAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['migration', 'instance'],
     }
-    readonly_fields = ('datetime', 'status')
+    # readonly_fields = ('datetime', 'status')
     inlines = [MigrationStepReportInline]
 
 
@@ -298,7 +298,7 @@ class CaseEditAdmin(admin.ModelAdmin):
 
     """Case edit admin interface class."""
 
-    list_display = ('id', 'case', 'type')
+    list_display = ('id', 'case', 'type', 'params')
     list_filter = ('case__id', 'type')
     raw_id_fields = ('case',)
     autocomplete_lookup_fields = {

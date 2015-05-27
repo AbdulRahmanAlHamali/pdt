@@ -11,6 +11,8 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 
+from jsonfield import JSONField
+
 from model_utils import FieldTracker
 
 import fogbugz
@@ -137,7 +139,7 @@ class CaseManager(models.Manager):
         del case_info['tags']
         self.filter(id=case_id).update(**case_info)
 
-    def update_to_fogbugz_migration_url(self, case, fb, case_info):
+    def update_to_fogbugz_migration_url(self, case, fb, case_info, params):
         """Update the case with migration url.
 
         :param case: case object
@@ -145,6 +147,8 @@ class CaseManager(models.Manager):
         :param fb: fogbugz api client object
         :param case_info: case information dictionary
         :type case_info: dict
+        :param params: optional case edit params
+        :type params: dict
 
         :return: fogbugz api response object
         """
@@ -157,7 +161,7 @@ class CaseManager(models.Manager):
                     args=(case.migration.id,)))})
         return response
 
-    def update_to_fogbugz_migration_reviewed(self, case, fb, case_info):
+    def update_to_fogbugz_migration_reviewed(self, case, fb, case_info, params):
         """Update the case when migration is reviewed.
 
         :param case: case object
@@ -165,6 +169,8 @@ class CaseManager(models.Manager):
         :param fb: fogbugz api client object
         :param case_info: case information dictionary
         :type case_info: dict
+        :param params: optional case edit params
+        :type params: dict
 
         :return: fogbugz api response object
         """
@@ -175,7 +181,7 @@ class CaseManager(models.Manager):
                 sTags=','.join(case_info['tags'].union({'migration-reviewed'})))
             return response
 
-    def update_to_fogbugz_migration_unreviewed(self, case, fb, case_info):
+    def update_to_fogbugz_migration_unreviewed(self, case, fb, case_info, params):
         """Update the case when migration is unreviewed.
 
         :param case: case object
@@ -183,6 +189,8 @@ class CaseManager(models.Manager):
         :param fb: fogbugz api client object
         :param case_info: case information dictionary
         :type case_info: dict
+        :param params: optional case edit params
+        :type params: dict
 
         :return: fogbugz api response object
         """
@@ -192,6 +200,40 @@ class CaseManager(models.Manager):
                 sEvent=__('Migration was unmarked as reviewed'),
                 sTags=','.join(case_info['tags'].difference({'migration-reviewed'})))
             return response
+
+    def update_to_fogbugz_migration_report(self, case, fb, case_info, params):
+        """Update the case about the migration application.
+
+        :param case: case object
+        :type case: core.models.Case
+        :param fb: fogbugz api client object
+        :param case_info: case information dictionary
+        :type case_info: dict
+        :param params: optional case edit params
+        :type params: dict
+
+        :return: fogbugz api response object
+        """
+        instance = Instance.objects.get(id=params['instance'])
+        messages = {
+            MigrationReport.STATUS_APPLIED: __('Migration was applied on {instance} successfully with log:\n{log}'),
+            MigrationReport.STATUS_ERROR: __('Migration has failed to apply on {instance} with log:\n{log}'),
+            MigrationReport.STATUS_APPLIED_PARTIALLY: __(
+                'Migration was applied partially on {instance} with log:\n{log}'),
+
+        }
+        report = MigrationReport.objects.get(instance=instance, migration=case.migration)
+        kwargs = {}
+        if report.status == MigrationReport.STATUS_APPLIED:
+            kwargs['sTags'] = ','.join(case_info['tags'].union({'migration-applied-{0}'.format(instance.name)}))
+        response = fb.edit(
+            ixbug=case.id,
+            sEvent=messages[report.status].format(
+                instance=instance.name,
+                log=report.log),
+            **kwargs
+        )
+        return response
 
     @transaction.atomic
     def update_to_fogbugz(self, case_id):
@@ -214,11 +256,13 @@ class CaseManager(models.Manager):
             response = None
             if case.migration:
                 if edit.type == CaseEdit.TYPE_MIGRATION_URL:
-                    response = self.update_to_fogbugz_migration_url(case, fb, case_info)
+                    response = self.update_to_fogbugz_migration_url(case, fb, case_info, edit.params)
                 elif edit.type == CaseEdit.TYPE_MIGRATION_REVIEWED:
-                    response = self.update_to_fogbugz_migration_reviewed(case, fb, case_info)
+                    response = self.update_to_fogbugz_migration_reviewed(case, fb, case_info, edit.params)
                 elif edit.type == CaseEdit.TYPE_MIGRATION_UNREVIEWED:
-                    response = self.update_to_fogbugz_migration_unreviewed(case, fb, case_info)
+                    response = self.update_to_fogbugz_migration_unreviewed(case, fb, case_info, edit.params)
+                elif edit.type == CaseEdit.TYPE_MIGRATION_REPORT:
+                    response = self.update_to_fogbugz_migration_report(case, fb, case_info, edit.params)
             if response and not response.case:
                 raise RuntimeError(response)
             edit.delete()
@@ -274,14 +318,17 @@ class CaseEdit(models.Model):
     TYPE_MIGRATION_URL = 'migration-url'
     TYPE_MIGRATION_REVIEWED = 'migration-reviewed'
     TYPE_MIGRATION_UNREVIEWED = 'migration-unreviewed'
+    TYPE_MIGRATION_REPORT = 'migration-report'
 
     TYPE_CHOICES = (
         (TYPE_MIGRATION_URL, _('Migration URL')),
         (TYPE_MIGRATION_REVIEWED, _('Migration reviewed')),
         (TYPE_MIGRATION_UNREVIEWED, _('Migration unreviewed')),
+        (TYPE_MIGRATION_REPORT, _('Migration report')),
     )
 
     type = models.CharField(max_length=50, choices=TYPE_CHOICES, blank=False)
+    params = JSONField(default=None)
 
 
 class Migration(models.Model):
@@ -386,10 +433,14 @@ class MigrationReport(models.Model):
 
     """Migration report."""
 
+    STATUS_APPLIED = 'apl'
+    STATUS_ERROR = 'err'
+    STATUS_APPLIED_PARTIALLY = 'prt'
+
     STATUS_CHOICES = (
-        ('apl', 'Applied'),
-        ('prt', 'Applied partially'),
-        ('err', 'Error'),
+        (STATUS_APPLIED, 'Applied'),
+        (STATUS_APPLIED_PARTIALLY, 'Applied partially'),
+        (STATUS_ERROR, 'Error'),
     )
 
     class Meta:
@@ -402,6 +453,8 @@ class MigrationReport(models.Model):
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
     datetime = models.DateTimeField(db_index=True, auto_now=True)
     log = models.TextField(blank=True)
+
+    tracker = FieldTracker()
 
     def __str__(self):
         """String representation."""
@@ -416,14 +469,16 @@ class MigrationReport(models.Model):
     def calculate_status(self):
         """Calculate report status based on step reports."""
         migration_steps = frozenset(step.id for step in self.migration.get_steps())
-        apl_report_steps = frozenset(report.step.id for report in self.step_reports.all() if report.status == 'apl')
-        err_report_steps = frozenset(report.step.id for report in self.step_reports.all() if report.status != 'apl')
+        apl_report_steps = frozenset(
+            report.step.id for report in self.step_reports.all() if report.status == self.STATUS_APPLIED)
+        err_report_steps = frozenset(
+            report.step.id for report in self.step_reports.all() if report.status != self.STATUS_APPLIED)
         if apl_report_steps == migration_steps:
-            self.status = 'apl'
+            self.status = self.STATUS_APPLIED
         elif err_report_steps and apl_report_steps:
-            self.status = 'prt'
+            self.status = self.STATUS_APPLIED_PARTIALLY
         else:
-            self.status = 'err'
+            self.status = self.STATUS_ERROR
         self.save()
 
     def calculate_log(self):
@@ -432,13 +487,37 @@ class MigrationReport(models.Model):
         self.save()
 
 
+def migration_report_changes(sender, instance, **kwargs):
+    """Send case updates about migration application status."""
+    changed = instance.tracker.changed()
+    if instance.status != changed.get('status', instance.status):
+        params = dict(instance=instance.instance.id)
+        if instance.status == MigrationReport.STATUS_APPLIED:
+            CaseEdit.objects.get_or_create(
+                case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_APPLIED, params=params)
+        elif instance.status == MigrationReport.STATUS_ERROR:
+            CaseEdit.objects.get_or_create(
+                case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_ERROR, params=params)
+        elif instance.status == MigrationReport.STATUS_APPLIED_PARTIALLY:
+            CaseEdit.objects.get_or_create(
+                case=instance.migration.case, type=CaseEdit.TYPE_MIGRATION_APPLIED_PARTIALLY, params=params)
+    from .tasks import update_case_to_fogbugz
+    update_case_to_fogbugz.apply_async(kwargs=dict(case_id=instance.migration.case.id))
+
+
+post_save.connect(migration_report_changes, sender=MigrationReport)
+
+
 class MigrationStepReport(models.Model):
 
     """Migration step report."""
 
+    STATUS_APPLIED = 'apl'
+    STATUS_ERROR = 'err'
+
     STATUS_CHOICES = (
-        ('apl', 'Applied'),
-        ('err', 'Error'),
+        (STATUS_APPLIED, 'Applied'),
+        (STATUS_ERROR, 'Error'),
     )
 
     class Meta:
@@ -471,9 +550,12 @@ class DeploymentReport(models.Model):
 
     """Deployment report."""
 
+    STATUS_APPLIED = 'apl'
+    STATUS_ERROR = 'err'
+
     STATUS_CHOICES = (
-        ('dpl', 'Deployed'),
-        ('err', 'Error'),
+        (STATUS_APPLIED, 'Applied'),
+        (STATUS_ERROR, 'Error'),
     )
 
     class Meta:
