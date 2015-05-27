@@ -198,7 +198,7 @@ DATABASES = {
         'PORT': dbcfg['port'],
         'OPTIONS': {
             'timeout': 60
-        }
+        } if 'sqlite3' in dbcfg['engine'] else {}
     }
 }
 
