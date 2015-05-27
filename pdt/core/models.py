@@ -150,7 +150,6 @@ class CaseManager(models.Manager):
         _, created = self.get_or_create_from_fogbugz(case_id)
         if not created:
             case_info = self.get_case_info(case_id)
-            del case_info['tags']
             self.filter(id=case_id).update(**case_info)
 
     def update_to_fogbugz_migration_url(self, case, fb, case_info, params):
@@ -338,7 +337,6 @@ class CaseManager(models.Manager):
             return self.get(id=case_id), False
         except self.model.DoesNotExist:
             case_info = self.get_case_info(case_id)
-            del case_info['tags']
             return self.get_or_create(**case_info)
 
 
@@ -354,6 +352,7 @@ class Case(models.Model):
     ci_project = models.ForeignKey(CIProject, blank=False)
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
+    tags = JSONField(blank=True, null=True)
 
     class Meta:
         index_together = (("ci_project", "release"), ("id", "title"))

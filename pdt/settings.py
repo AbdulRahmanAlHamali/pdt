@@ -27,7 +27,7 @@ SECRET_KEY = '&4qvlp7z%qqka*-_3@zk733xenawadi@1+4%7=l%dg@0ma(sr8'
 INSTALLED_APPS = (
     'grappelli.dashboard',
     'grappelli',
-    'django.contrib.admin',
+    'django.contrib.admin.apps.SimpleAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -39,6 +39,8 @@ INSTALLED_APPS = (
     'pdt.core',
     'pdt.api',
     'django_ace',
+    'django_object_actions',
+    'adminplus',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,0 +1,20 @@
+<html>
+<head>
+    <title>Release notes {{release.number}}</title>
+</head>
+<body>
+{% for category in categories %}
+    <strong>{{ category.title }}:</strong>
+        <br />
+        {% for case in category.cases %}
+            {% if case.unmerged %}<span style="text-decoration: line-through">{% endif %}
+            {% if case.late %}<u>{% endif %}
+            <a href="https://case.paylogic.eu/fogbugz/?{number}">Case {{ case.id }}</a> - {{ case.title }}
+            {% if case.late %}</u>{% endif %}
+            {% if case.unmerged %}</span>{% endif %}
+            <br />
+        {% endfor %}
+    <br />
+{% endfor %}
+</body>
+</html>

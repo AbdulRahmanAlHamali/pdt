@@ -1,10 +1,17 @@
 """PDT core admin interface."""
+import collections
+import logging
+import pprint
+
 from django.contrib import admin
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.shortcuts import redirect, render, get_object_or_404
+
 from django_ace import AceWidget
+from django_object_actions import DjangoObjectActions
 
 from .models import (
     Release,
@@ -23,8 +30,10 @@ from .models import (
 
 ACE_WIDGET_PARAMS = dict(showprintmargin=False, width='100%')
 
+logger = logging.getLogger(__name__)
 
-class ReleaseAdmin(admin.ModelAdmin):
+
+class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     """Release admin interface class."""
 
@@ -32,7 +41,89 @@ class ReleaseAdmin(admin.ModelAdmin):
     list_filter = ('datetime',)
     search_fields = ('id', 'number', 'datetime')
 
+    def generate_release_notes(self, request, obj):
+        """Redirect to a page with release notes for this release."""
+        return redirect('release-notes', release_number=obj.number)
+    generate_release_notes.label = _("Generate release notes")
+    generate_release_notes.short_description = _("Redirect to the rendered release notes")
+
+    objectactions = ['generate_release_notes']
+
+
 admin.site.register(Release, ReleaseAdmin)
+
+# Nasty string matching.
+STAGING_REGRESSIONS_PROJECT = 'Paylogic Staging Regression'
+STAGING_REGRESSION_KEY = 'regression'
+TAG_FOR_UNMERGED_CASES = 'removed'
+
+# Known categories in the release notes management process.
+DEFAULT_CATEGORY_KEY = 'uncategorized'
+KNOWN_CATEGORIES = (
+    dict(key='major', title="Major improvements", hidden=False),
+    dict(key='minor', title="Minor improvements", hidden=False),
+    dict(key='api', title="API improvements", hidden=False),
+    dict(key='internal', title="Internal improvements", hidden=False),
+    dict(key='bugs', title="Bug fixes", hidden=False),
+    dict(key='irrelevant', title="Irrelevant cases", hidden=True),
+    dict(key=STAGING_REGRESSION_KEY, title="Staging regressions", hidden=True),
+    dict(key=DEFAULT_CATEGORY_KEY, title="Uncategorized cases", hidden=False),
+)
+
+
+def normalize_case_title(case_title):
+    """Normalize case title."""
+    # I'm sick of people adding redundant whitespace to case titles :-)
+    case_title = ' '.join(case_title.split())
+    # I'm sick of people ending case titles with a dot :-)
+    case_title = case_title.rstrip('.')
+    return case_title
+
+
+def find_case_category(case):
+    """Find case category."""
+    for tag in case.get('tags', ()):
+        for category in KNOWN_CATEGORIES:
+            if tag == category['key']:
+                return tag
+    return DEFAULT_CATEGORY_KEY
+
+
+def generate_release_notes(request, release_number, **kwargs):
+    """Generate release notes."""
+    release = get_object_or_404(Release.objects.filter(number=release_number))
+
+    cases = []
+    # Post-process case titles and tags.
+    for case_object in release.cases.all():
+        case = dict(tags=case_object.tags or [], id=case_object.id)
+        # Normalize case titles.
+        case['title'] = normalize_case_title(case_object.title)
+        # Automatically (un)tag staging regressions.
+        has_project = (case_object.project == STAGING_REGRESSIONS_PROJECT)
+        has_title = ('staging issue' in case_object.title.lower())
+        if has_project or has_title:
+            case['tags'].append(STAGING_REGRESSION_KEY)
+        elif STAGING_REGRESSION_KEY in case['tags']:
+            case['tags'].remove(STAGING_REGRESSION_KEY)
+        if TAG_FOR_UNMERGED_CASES in case['tags']:
+            case['unmerged'] = True
+        # Remove duplicate tags and provide stable sorting.
+        case['tags'] = sorted(set(case['tags']))
+        cases.append(case)
+    # Build up a mapping of (category => [case, ...]) pairs.
+    categorized_cases = collections.defaultdict(list)
+    for case in cases:
+        key = find_case_category(case)
+        categorized_cases[key].append(case)
+    logger.debug("Categorized cases:\n%s", pprint.pformat(dict(categorized_cases)))
+    categories = []
+    for category in KNOWN_CATEGORIES:
+        if category['key'] in categorized_cases and not category['hidden']:
+            category['cases'] = [case for case in sorted(categorized_cases[category['key']], key=lambda c: c['id'])]
+        categories.append(category)
+    return render(request, 'admin/release_notes.html', dict(
+        release=release, categorized_cases=categorized_cases, categories=categories))
 
 
 class CIProjectAdmin(admin.ModelAdmin):
@@ -156,13 +247,13 @@ admin.site.register(MigrationStep, MigrationStepAdmin)
 def mark_migrations_reviewed(modeladmin, request, queryset):
     """Mark migrations reviewed."""
     queryset.update(reviewed=True)
-mark_migrations_reviewed.short_description = "Mark selected migrations as reviewed"
+mark_migrations_reviewed.short_description = _("Mark selected migrations as reviewed")
 
 
 def mark_migrations_not_reviewed(modeladmin, request, queryset):
     """Mark migrations as not reviewed."""
     queryset.update(reviewed=False)
-mark_migrations_not_reviewed.short_description = "Mark selected migrations as not reviewed"
+mark_migrations_not_reviewed.short_description = _("Mark selected migrations as not reviewed")
 
 
 def applied_on(migration):
@@ -282,7 +373,7 @@ class CaseAdmin(admin.ModelAdmin):
 
     """Case admin interface class."""
 
-    list_display = ('id', 'title', 'ci_project', 'release', 'project', 'area')
+    list_display = ('id', 'title', 'ci_project', 'release', 'project', 'area', 'tags')
     list_filter = ('ci_project__name', 'release', 'project', 'area')
     search_fields = ('id', 'title')
     raw_id_fields = ('ci_project', 'release')
