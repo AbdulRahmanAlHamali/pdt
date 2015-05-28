@@ -97,7 +97,7 @@ def generate_release_notes(request, release_number, **kwargs):
     cases = []
     # Post-process case titles and tags.
     for case_object in release.cases.all():
-        case = dict(tags=case_object.tags or [], id=case_object.id)
+        case = dict(tags=[tag.name for tag in case_object.tags.all()], id=case_object.id)
         # Normalize case titles.
         case['title'] = normalize_case_title(case_object.title)
         # Automatically (un)tag staging regressions.
