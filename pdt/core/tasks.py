@@ -1,9 +1,9 @@
 """Celery tasks."""
 from __future__ import absolute_import
 
-from celery.task.schedules import crontab  # pylint: disable=E0611
-from celery.decorators import periodic_task  # pylint: disable=E0611
 from celery.utils.log import get_task_logger
+
+from celery_once import QueueOnce
 
 from django.conf import settings
 
@@ -15,7 +15,7 @@ from pdt.core.models import Case, Release
 logger = get_task_logger(__name__)
 
 
-@app.task
+@app.task(base=QueueOnce, once=dict(keys=('case_id',)))
 def update_case_from_fogbugz(case_id):
     """Update case info from fogbugz."""
     logger.info("Start updating case %s", case_id)
@@ -23,7 +23,7 @@ def update_case_from_fogbugz(case_id):
     logger.info("Task finished")
 
 
-@app.task
+@app.task(base=QueueOnce, once=dict(keys=('case_id',)))
 def update_case_to_fogbugz(case_id):
     """Update case info to fogbugz."""
     logger.info("Start updating case %s", case_id)
@@ -31,34 +31,41 @@ def update_case_to_fogbugz(case_id):
     logger.info("Task finished")
 
 
-@periodic_task(run_every=(crontab(hour="*", minute="*", day_of_week="*")))
+@app.task(base=QueueOnce)
 def fetch_cases():
     """Fetch missing and update existing cases from fogbugz for all known releases."""
     logger.info("Start fetching cases")
     fb = fogbugz.FogBugz(
         settings.AUTH_FOGBUGZ_SERVER,
         settings.FOGBUGZ_TOKEN)
-    release_query = ' OR '.join('milestone: {0}'.format(release.number) for release in Release.objects.all())
+    release_query = ' OR '.join('milestone:"{0}"'.format(release.number) for release in Release.objects.all())
     resp = fb.search(
-        q=release_query,
+        q='({0}) AND ({ciproject}:"*")'.format(release_query, ciproject=settings.FOGBUGZ_CI_PROJECT_FIELD_ID),
         cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,dtLastUpdated,tags,' +
         settings.FOGBUGZ_CI_PROJECT_FIELD_ID
     )
-    for case_xml in resp.findAll('case'):
-        case_id = int(case_xml.attrs['ixbug'])
-        logger.debug('Fetched case %s to update', case_id)
-        update_case_from_fogbugz.apply_async(kwargs=dict(case_id=case_id))
+    cases = resp.findAll('case')
+    logger.info('Found %s cases to fetch from fogbugz', len(cases))
+    for case_xml in cases:
+        update_case_from_fogbugz.apply_async(kwargs=dict(case_id=int(case_xml.attrs['ixbug'])))
     logger.info("Task finished")
 
 
-@periodic_task(run_every=(crontab(hour="*", minute="*", day_of_week="*")))
-def update_cases():
-    """Update cases info from and to fogbugz."""
-    logger.info("Start updating cases")
+@app.task(base=QueueOnce)
+def update_cases_from_fogbugz():
+    """Update cases info from fogbugz."""
+    logger.info("Start updating cases from fogbugz")
     cases = Case.objects.filter(release__isnull=True)
     logger.info("Found %s cases to update from fogbugz", len(cases))
     for case in cases:
         update_case_from_fogbugz.apply_async(kwargs=dict(case_id=case.id))
+    logger.info("Task finished")
+
+
+@app.task(base=QueueOnce)
+def update_cases_to_fogbugz():
+    """Update cases info to fogbugz."""
+    logger.info("Start updating cases to fogbugz")
     cases = Case.objects.all()
     logger.info("Found %s cases to update to fogbugz", len(cases))
     for case in cases:

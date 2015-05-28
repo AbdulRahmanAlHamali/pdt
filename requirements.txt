@@ -2,6 +2,7 @@ git+https://github.com/paylogic/fogbugz@python3#egg=fogbugz
 git+https://github.com/bubenkoff/django-auth-fogbugz.git@patch-1#egg=django-auth-fogbugz
 # django-auth-fogbugz==1.2.0
 celery==3.1.18
+celery_once==0.1.2
 celerybeat-redis==0.0.7
 django-ace==1.0.2
 django-adminplus==0.3
@@ -10,6 +11,7 @@ django-grappelli==2.6.4
 django-model-utils==2.2
 django-object-actions==0.5.1
 django-settings-context-processor==0.2
+django-taggit==0.14.0
 django==1.8.0
 djangorestframework==3.1.1
 jsonfield==1.0.3

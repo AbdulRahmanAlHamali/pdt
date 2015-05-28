@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/dev/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
+from datetime import timedelta
 from YamJam import yamjam
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -41,6 +42,7 @@ INSTALLED_APPS = (
     'django_ace',
     'django_object_actions',
     'adminplus',
+    'taggit',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -209,7 +211,7 @@ BROKER_URL = celery_cfg['broker_url']
 
 # Using the database to store task state and results.
 CELERY_RESULT_BACKEND = celery_cfg['result_backend']
-
+ZOOKEEPER_HOSTS = celery_cfg['zookeeper_hosts']
 CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
 BROKER_TRANSPORT_OPTIONS = {
     'fanout_prefix': True,
@@ -217,8 +219,28 @@ BROKER_TRANSPORT_OPTIONS = {
     'visibility_timeout': 43200
 }
 CELERY_REDIS_SCHEDULER_URL = celery_cfg['scheduler_url']
+ONCE_REDIS_URL = celery_cfg['scheduler_url']
+ONCE_DEFAULT_TIMEOUT = 60 * 60
 CELERY_REDIS_SCHEDULER_KEY_PREFIX = 'tasks:meta:'
 CELERYD_LOG_COLOR = False
+CELERYBEAT_SCHEDULE = {
+    'fetch_cases': {
+        'task': 'pdt.core.tasks.fetch_cases',
+        'schedule': timedelta(minutes=1),
+        'args': ()
+    },
+    'update_cases_from_fogbugz': {
+        'task': 'pdt.core.tasks.update_cases_from_fogbugz',
+        'schedule': timedelta(minutes=1),
+        'args': ()
+    },
+    'update_cases_to_fogbugz': {
+        'task': 'pdt.core.tasks.update_cases_to_fogbugz',
+        'schedule': timedelta(minutes=1),
+        'args': ()
+    },
+}
+CELERY_TIMEZONE = 'UTC'
 # Token to use for fogbugz communication
 FOGBUGZ_TOKEN = yam_config['fogbugz']['token']
 FOGBUGZ_CI_PROJECT_FIELD_ID = yam_config['fogbugz']['ci_project_field_id']

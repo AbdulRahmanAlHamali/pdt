@@ -25,6 +25,7 @@ from .models import (
     MigrationStepReport,
     Case,
     CaseEdit,
+    CaseCategory,
     DeploymentReport,
 )
 
@@ -369,11 +370,16 @@ class MigrationReportAdmin(admin.ModelAdmin):
 admin.site.register(MigrationReport, MigrationReportAdmin)
 
 
+def tags(obj):
+    """Tags."""
+    return ', '.join(tag.name for tag in obj.tags.all())
+
+
 class CaseAdmin(admin.ModelAdmin):
 
     """Case admin interface class."""
 
-    list_display = ('id', 'title', 'ci_project', 'release', 'project', 'area', 'tags')
+    list_display = ('id', 'title', 'ci_project', 'release', 'project', 'area', tags)
     list_filter = ('ci_project__name', 'release', 'project', 'area')
     search_fields = ('id', 'title')
     raw_id_fields = ('ci_project', 'release')
@@ -398,6 +404,17 @@ class CaseEditAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CaseEdit, CaseEditAdmin)
+
+
+class CaseCategoryAdmin(admin.ModelAdmin):
+
+    """Case category admin interface class."""
+
+    list_display = ('id', 'position', 'title', tags)
+    sortable_field_name = "position"
+
+
+admin.site.register(CaseCategory, CaseCategoryAdmin)
 
 
 class DeploymentReportForm(forms.ModelForm):

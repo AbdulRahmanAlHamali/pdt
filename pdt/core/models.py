@@ -12,6 +12,8 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 
+from taggit.managers import TaggableManager
+
 from jsonfield import JSONField
 
 from model_utils import FieldTracker
@@ -136,7 +138,7 @@ class CaseManager(models.Manager):
             title=case.stitle.string,
             description=case.soriginaltitle.string,
             modified_date=parse_datetime(case.dtlastupdated.string) if case.dtlastupdated.string else None,
-            tags=frozenset(tag.string for tag in case.tags.findAll('tag'))
+            tags=frozenset(tag.string.strip() for tag in case.tags.findAll('tag'))
         )
         if ci_project:
             info['ci_project'] = CIProject.objects.get_or_create(name=ci_project)[0]
@@ -147,10 +149,14 @@ class CaseManager(models.Manager):
 
         :param id: Fogbugz case id
         """
-        _, created = self.get_or_create_from_fogbugz(case_id)
+        case, created = self.get_or_create_from_fogbugz(case_id)
         if not created:
             case_info = self.get_case_info(case_id)
+            tags = case_info.pop('tags')
             self.filter(id=case_id).update(**case_info)
+            if tags:
+                case.tags.set(*set(tags))
+                case.save()
 
     def update_to_fogbugz_migration_url(self, case, fb, case_info, params):
         """Update the case with migration url.
@@ -337,7 +343,11 @@ class CaseManager(models.Manager):
             return self.get(id=case_id), False
         except self.model.DoesNotExist:
             case_info = self.get_case_info(case_id)
-            return self.get_or_create(**case_info)
+            tags = case_info.pop('tags')
+            case, created = self.get_or_create(**case_info)
+            case.tags.set(*set(tags))
+            case.save()
+            return case, created
 
 
 class Case(models.Model):
@@ -352,7 +362,7 @@ class Case(models.Model):
     ci_project = models.ForeignKey(CIProject, blank=False)
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
-    tags = JSONField(blank=True, null=True)
+    tags = TaggableManager(blank=True)
 
     class Meta:
         index_together = (("ci_project", "release"), ("id", "title"))
@@ -391,6 +401,21 @@ class CaseEdit(models.Model):
 
     type = models.CharField(max_length=50, choices=TYPE_CHOICES, blank=False)
     params = JSONField(default=None)
+
+
+class CaseCategory(models.Model):
+
+    """Case category."""
+
+    class Meta:
+        index_together = (("id", "position"),)
+        ordering = ['position']
+        verbose_name_plural = "Case categories"
+
+    position = models.PositiveSmallIntegerField(db_index=True)
+    title = models.CharField(max_length=255, blank=False, db_index=True)
+
+    tags = TaggableManager(blank=True)
 
 
 class Migration(models.Model):
