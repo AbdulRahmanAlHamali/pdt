@@ -211,7 +211,6 @@ BROKER_URL = celery_cfg['broker_url']
 
 # Using the database to store task state and results.
 CELERY_RESULT_BACKEND = celery_cfg['result_backend']
-ZOOKEEPER_HOSTS = celery_cfg['zookeeper_hosts']
 CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
 BROKER_TRANSPORT_OPTIONS = {
     'fanout_prefix': True,

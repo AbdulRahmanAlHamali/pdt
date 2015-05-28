@@ -15,7 +15,7 @@ from pdt.core.models import Case, Release
 logger = get_task_logger(__name__)
 
 
-@app.task(base=QueueOnce, once=dict(keys=('case_id',)))
+@app.task(base=QueueOnce, once=dict(keys=('case_id',), graceful=True))
 def update_case_from_fogbugz(case_id):
     """Update case info from fogbugz."""
     logger.info("Start updating case %s", case_id)
@@ -23,7 +23,7 @@ def update_case_from_fogbugz(case_id):
     logger.info("Task finished")
 
 
-@app.task(base=QueueOnce, once=dict(keys=('case_id',)))
+@app.task(base=QueueOnce, once=dict(keys=('case_id',), graceful=True))
 def update_case_to_fogbugz(case_id):
     """Update case info to fogbugz."""
     logger.info("Start updating case %s", case_id)
@@ -51,7 +51,7 @@ def fetch_cases():
     logger.info("Task finished")
 
 
-@app.task(base=QueueOnce)
+@app.task(base=QueueOnce, once=dict(graceful=True))
 def update_cases_from_fogbugz():
     """Update cases info from fogbugz."""
     logger.info("Start updating cases from fogbugz")
@@ -62,7 +62,7 @@ def update_cases_from_fogbugz():
     logger.info("Task finished")
 
 
-@app.task(base=QueueOnce)
+@app.task(base=QueueOnce, once=dict(graceful=True))
 def update_cases_to_fogbugz():
     """Update cases info to fogbugz."""
     logger.info("Start updating cases to fogbugz")
