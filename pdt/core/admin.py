@@ -3,12 +3,14 @@ import collections
 import logging
 import pprint
 
+from django.template import Template, RequestContext
 from django.contrib import admin
+from django.http import HttpResponse
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 
 from constance import config
 
@@ -87,10 +89,8 @@ def find_case_category(case, case_categories):
     return default_category['key'] if default_category else None
 
 
-def generate_release_notes(request, release_number, **kwargs):
-    """Generate release notes."""
-    release = get_object_or_404(Release.objects.filter(number=release_number))
-
+def get_release_notes(request, release):
+    """Get release notes as a string for given release."""
     cases = []
     unmerged_tags = frozenset(tag.strip() for tag in config.TAGS_FOR_UNMERGED_CASES.split(','))
     # Post-process case titles and tags.
@@ -122,8 +122,26 @@ def generate_release_notes(request, release_number, **kwargs):
         if category['key'] in categorized_cases and not category['hidden']:
             category['cases'] = [case for case in sorted(categorized_cases[category['key']], key=lambda c: c['id'])]
         categories.append(category)
-    return render(request, 'admin/release_notes.html', dict(
-        release=release, categorized_cases=categorized_cases, categories=categories))
+
+    return Template(config.RELEASE_NOTES_TEMPLATE).render(RequestContext(request, dict(
+        release=release, categorized_cases=categorized_cases, categories=categories)))
+
+
+def release_notes(request, release_number, **kwargs):
+    """Release notes view."""
+    release = get_object_or_404(Release.objects.filter(number=release_number))
+    return HttpResponse(get_release_notes(request, release))
+
+
+def release_notes_overview(request):
+    """Release notes overview view."""
+    notes = []
+    for release in Release.objects.all().order_by('-number'):
+        notes.append(get_release_notes(request, release))
+    return HttpResponse(
+        Template(config.RELEASE_NOTES_OVERVIEW_TEMPLATE).render(RequestContext(request, dict(
+            categories=CaseCategory.objects.filter(is_default=False, is_hidden=False),
+            notes=notes))))
 
 
 class CIProjectAdmin(TinyMCEMixin, admin.ModelAdmin):

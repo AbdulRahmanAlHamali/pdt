@@ -2,6 +2,7 @@
 
 from django.utils.translation import ugettext_lazy as _
 from grappelli.dashboard import modules, Dashboard
+from django.core.urlresolvers import reverse
 
 
 class CustomIndexDashboard(Dashboard):
@@ -12,18 +13,26 @@ class CustomIndexDashboard(Dashboard):
         """Add dashboard items."""
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
-            _('AppList: Applications'),
+            _('Applications'),
             collapsible=False,
             column=1,
-            exclude=('django.contrib.*',),
+            exclude=('django.contrib.*', 'constance.*', 'taggit.*'),
         ))
 
         # append an app list module for "Administration"
         self.children.append(modules.ModelList(
-            _('ModelList: Administration'),
+            _('Administration'),
             column=1,
             collapsible=False,
             models=('django.contrib.*',),
+        ))
+
+        # append an app list module for "Configuration"
+        self.children.append(modules.ModelList(
+            _('Configuration'),
+            column=1,
+            collapsible=False,
+            models=('constance.*',),
         ))
 
         # append another link list module for "support".
@@ -34,6 +43,11 @@ class CustomIndexDashboard(Dashboard):
                 {
                     'title': _('Browsable API'),
                     'url': '/api',
+                    'external': False,
+                },
+                {
+                    'title': _('Release notes'),
+                    'url': reverse('release-notes-overview'),
                     'external': False,
                 },
             ]
