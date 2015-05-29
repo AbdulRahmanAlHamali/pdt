@@ -53,23 +53,7 @@ class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
 
 admin.site.register(Release, ReleaseAdmin)
 
-# Nasty string matching.
-STAGING_REGRESSIONS_PROJECT = 'Paylogic Staging Regression'
-STAGING_REGRESSION_KEY = 'regression'
-TAG_FOR_UNMERGED_CASES = 'removed'
-
-# Known categories in the release notes management process.
-DEFAULT_CATEGORY_KEY = 'uncategorized'
-KNOWN_CATEGORIES = (
-    dict(key='major', title="Major improvements", hidden=False),
-    dict(key='minor', title="Minor improvements", hidden=False),
-    dict(key='api', title="API improvements", hidden=False),
-    dict(key='internal', title="Internal improvements", hidden=False),
-    dict(key='bugs', title="Bug fixes", hidden=False),
-    dict(key='irrelevant', title="Irrelevant cases", hidden=True),
-    dict(key=STAGING_REGRESSION_KEY, title="Staging regressions", hidden=True),
-    dict(key=DEFAULT_CATEGORY_KEY, title="Uncategorized cases", hidden=False),
-)
+TAGS_FOR_UNMERGED_CASES = {'unmerged', 'removed'}
 
 
 def normalize_case_title(case_title):
@@ -81,13 +65,15 @@ def normalize_case_title(case_title):
     return case_title
 
 
-def find_case_category(case):
+def find_case_category(case, case_categories):
     """Find case category."""
-    for tag in case.get('tags', ()):
-        for category in KNOWN_CATEGORIES:
-            if tag == category['key']:
-                return tag
-    return DEFAULT_CATEGORY_KEY
+    default_category = None
+    for category in case_categories:
+        if set(case['tags']).intersection(frozenset(category['tags'])):
+            return category['key']
+        if category['default']:
+            default_category = category
+    return default_category['key'] if default_category else None
 
 
 def generate_release_notes(request, release_number, **kwargs):
@@ -97,29 +83,30 @@ def generate_release_notes(request, release_number, **kwargs):
     cases = []
     # Post-process case titles and tags.
     for case_object in release.cases.all():
-        case = dict(tags=[tag.name for tag in case_object.tags.all()], id=case_object.id)
+        case = dict(tags=frozenset(case_object.tags.names()), id=case_object.id)
         # Normalize case titles.
         case['title'] = normalize_case_title(case_object.title)
-        # Automatically (un)tag staging regressions.
-        has_project = (case_object.project == STAGING_REGRESSIONS_PROJECT)
-        has_title = ('staging issue' in case_object.title.lower())
-        if has_project or has_title:
-            case['tags'].append(STAGING_REGRESSION_KEY)
-        elif STAGING_REGRESSION_KEY in case['tags']:
-            case['tags'].remove(STAGING_REGRESSION_KEY)
-        if TAG_FOR_UNMERGED_CASES in case['tags']:
+        if TAGS_FOR_UNMERGED_CASES.intersection(frozenset(case['tags'])):
             case['unmerged'] = True
         # Remove duplicate tags and provide stable sorting.
         case['tags'] = sorted(set(case['tags']))
         cases.append(case)
     # Build up a mapping of (category => [case, ...]) pairs.
     categorized_cases = collections.defaultdict(list)
+    case_categories = [
+        dict(
+            key=category.id,
+            hidden=category.is_hidden,
+            title=category.title,
+            default=category.is_default,
+            tags=category.tags.names(),
+        ) for category in CaseCategory.objects.all()]
     for case in cases:
-        key = find_case_category(case)
+        key = find_case_category(case, case_categories)
         categorized_cases[key].append(case)
     logger.debug("Categorized cases:\n%s", pprint.pformat(dict(categorized_cases)))
     categories = []
-    for category in KNOWN_CATEGORIES:
+    for category in case_categories:
         if category['key'] in categorized_cases and not category['hidden']:
             category['cases'] = [case for case in sorted(categorized_cases[category['key']], key=lambda c: c['id'])]
         categories.append(category)

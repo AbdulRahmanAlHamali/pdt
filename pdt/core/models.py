@@ -414,8 +414,16 @@ class CaseCategory(models.Model):
 
     position = models.PositiveSmallIntegerField(db_index=True)
     title = models.CharField(max_length=255, blank=False, db_index=True)
-
+    is_hidden = models.BooleanField(default=False)
+    is_default = models.BooleanField(default=False)
     tags = TaggableManager(blank=True)
+
+    def save(self, *args, **kwargs):
+        """Make sure is_default is unique."""
+        if self.is_default:
+            CaseCategory.objects.filter(
+                is_default=True).update(is_default=False)
+        super(CaseCategory, self).save(*args, **kwargs)
 
 
 class Migration(models.Model):
