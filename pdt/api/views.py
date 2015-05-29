@@ -363,9 +363,9 @@ class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
         """Validate instance complex type."""
         name = value['name']
         try:
-            value, _ = Instance.objects.get_or_create(name=name, ci_project=value['ci_project'])
+            value = Instance.objects.get(name=name, ci_project=value['ci_project'])
         except Exception as e:  # pragma: no cover
-            logger.exception('Failed to get or create instance')
+            logger.exception('Failed to get an instance')
             raise serializers.ValidationError(e)
         return value
 
@@ -560,9 +560,9 @@ class ReleaseFieldMixin(serializers.HyperlinkedModelSerializer):
         """Validate release complex type."""
         number = value['number']
         try:
-            value, _ = Release.objects.get_or_create(number=number)
+            value = Release.objects.get(number=number)
         except Exception as e:  # pragma: no cover
-            logger.exception('Failed to get or create the release')
+            logger.exception('Failed to get the release')
             raise serializers.ValidationError(e)
         return value
 
