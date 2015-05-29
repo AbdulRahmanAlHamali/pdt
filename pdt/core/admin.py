@@ -397,7 +397,7 @@ class CaseCategoryAdmin(admin.ModelAdmin):
 
     """Case category admin interface class."""
 
-    list_display = ('id', 'position', 'title', tags)
+    list_display = ('id', 'position', 'title', tags, 'is_hidden', 'is_default')
     sortable_field_name = "position"
 
 
