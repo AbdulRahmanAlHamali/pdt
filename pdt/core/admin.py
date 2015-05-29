@@ -10,6 +10,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import redirect, render, get_object_or_404
 
+from constance import config
+
 from django_ace import AceWidget
 from django_object_actions import DjangoObjectActions
 
@@ -34,7 +36,18 @@ ACE_WIDGET_PARAMS = dict(showprintmargin=False, width='100%')
 logger = logging.getLogger(__name__)
 
 
-class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
+class TinyMCEMixin(object):
+
+    """Mixin to add tinymce editor."""
+
+    class Media:
+        js = [
+            '/static/grappelli/tinymce/jscripts/tiny_mce/tiny_mce.js',
+            '/static/grappelli/tinymce_setup/tinymce_setup.js',
+        ]
+
+
+class ReleaseAdmin(TinyMCEMixin, DjangoObjectActions, admin.ModelAdmin):
 
     """Release admin interface class."""
 
@@ -52,8 +65,6 @@ class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
 
 
 admin.site.register(Release, ReleaseAdmin)
-
-TAGS_FOR_UNMERGED_CASES = {'unmerged', 'removed'}
 
 
 def normalize_case_title(case_title):
@@ -81,12 +92,13 @@ def generate_release_notes(request, release_number, **kwargs):
     release = get_object_or_404(Release.objects.filter(number=release_number))
 
     cases = []
+    unmerged_tags = frozenset(tag.strip() for tag in config.TAGS_FOR_UNMERGED_CASES.split(','))
     # Post-process case titles and tags.
     for case_object in release.cases.all():
         case = dict(tags=frozenset(case_object.tags.names()), id=case_object.id)
         # Normalize case titles.
         case['title'] = normalize_case_title(case_object.title)
-        if TAGS_FOR_UNMERGED_CASES.intersection(frozenset(case['tags'])):
+        if unmerged_tags.intersection(frozenset(case['tags'])):
             case['unmerged'] = True
         # Remove duplicate tags and provide stable sorting.
         case['tags'] = sorted(set(case['tags']))
@@ -114,7 +126,7 @@ def generate_release_notes(request, release_number, **kwargs):
         release=release, categorized_cases=categorized_cases, categories=categories))
 
 
-class CIProjectAdmin(admin.ModelAdmin):
+class CIProjectAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """CI Project admin interface class."""
 
@@ -131,7 +143,7 @@ def ci_project(self):
 ci_project.admin_order_field = 'ci_project__name'
 
 
-class InstanceAdmin(admin.ModelAdmin):
+class InstanceAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """Instance admin interface class."""
 
@@ -362,7 +374,7 @@ def tags(obj):
     return ', '.join(tag.name for tag in obj.tags.all())
 
 
-class CaseAdmin(admin.ModelAdmin):
+class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """Case admin interface class."""
 

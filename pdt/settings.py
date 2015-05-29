@@ -43,6 +43,8 @@ INSTALLED_APPS = (
     'django_object_actions',
     'adminplus',
     'taggit',
+    'constance',
+    'constance.backends.database',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -252,6 +254,8 @@ ALLOWED_HOSTS = ['.{0}'.format(yam_config['hostname'])] if yam_config['hostname'
 
 HOST_NAME = yam_config['hostname']
 
+cache_redis_config = yam_config['cache']['redis']
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -302,3 +306,27 @@ LOGGING = {
         },
     },
 }
+
+CONSTANCE_CONFIG = {
+    'TAGS_FOR_UNMERGED_CASES': ('unmerged, removed', 'Tags for unmerged cases'),
+}
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': '{0}:{1}'.format(cache_redis_config['host'], cache_redis_config['port']),
+        'OPTIONS': {
+            'DB': cache_redis_config['db'],
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+            'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+            'CONNECTION_POOL_CLASS_KWARGS': {
+                    'max_connections': 50,
+                    'timeout': 20,
+            }
+        },
+    },
+}
+
+CONSTANCE_DATABASE_CACHE_BACKEND = 'default'

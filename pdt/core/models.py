@@ -30,6 +30,7 @@ class Release(models.Model):
 
     number = models.PositiveIntegerField(blank=False, unique=True, db_index=True)
     datetime = models.DateTimeField(blank=False, default=timezone.now)
+    description = models.TextField(blank=True)
 
     @staticmethod
     def autocomplete_search_fields():
@@ -46,7 +47,7 @@ class CIProject(models.Model):
     """Continuous integration project."""
 
     name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
-    description = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
 
     @staticmethod
     def autocomplete_search_fields():
@@ -67,7 +68,7 @@ class Instance(models.Model):
 
     name = models.CharField(max_length=255, blank=False, db_index=True)
     ci_project = models.ForeignKey(CIProject, blank=False, related_name="instances")
-    description = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
 
     class Meta:
         unique_together = (("name", "ci_project"),)
