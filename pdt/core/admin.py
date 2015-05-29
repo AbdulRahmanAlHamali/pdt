@@ -248,20 +248,6 @@ class PostDeployMigrationStepInline(admin.StackedInline):
     inline_classes = ('grp-collapse grp-open',)
 
 
-class MigrationStepAdmin(admin.ModelAdmin):
-
-    """MigrationStep admin interface class."""
-
-    list_display = ('id', 'type')
-    list_filter = ('type',)
-    search_fields = ('id', 'type', 'script')
-    autocomplete_lookup_fields = {
-        'fk': ['migration'],
-    }
-
-admin.site.register(MigrationStep, MigrationStepAdmin)
-
-
 def mark_migrations_reviewed(modeladmin, request, queryset):
     """Mark migrations reviewed."""
     queryset.update(reviewed=True)
@@ -306,6 +292,32 @@ class MigrationAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('core/js/admin/migration_inline.js',)
+
+    def save_model(self, request, obj, form, change):
+        """Only allow to edit is_reviewed flag."""
+        if change:
+            obj.refresh_from_db()
+            obj.reviewed = form.cleaned_data['reviewed']
+        return super(MigrationAdmin, self).save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        """Disable change of related objects."""
+        if change:
+            for st in formsets:
+                st.new_objects = st.changed_objects = st.deleted_objects = []
+            return
+        return super(MigrationAdmin, self).save_related(request, form, formsets, change)
+
+    def delete_model(self, request, obj):
+        """Disable deletion."""
+        return
+
+    def get_actions(self, request):
+        """Disable delete action."""
+        actions = super(MigrationAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
 
 admin.site.register(Migration, MigrationAdmin)
