@@ -86,7 +86,7 @@ def release_column(getter=lambda obj: obj.release):
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
                 url=reverse("admin:core_release_change", args=(release.id,)),
-                name=release)) if release else _('n/a')
+                name=release)) if release else ''
     release.admin_order_field = 'release__name'
     return release
 
@@ -193,7 +193,17 @@ class InstanceAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """Instance admin interface class."""
 
-    list_display = ('id', 'name', 'description', ci_project_column())
+    def last_deployed_release(self):
+        """Last deployed release."""
+        report = self.deployment_reports.filter(status=DeploymentReport.STATUS_DEPLOYED).order_by('-datetime').first()
+        return mark_safe(
+            '<a href="{url}">{number}: {datetime}</a>'.format(
+                url=reverse("admin:core_release_change", args=(report.id,)),
+                number=report.release.number,
+                datetime=report.datetime, status=report.get_status_display()
+            )) if report else ''
+
+    list_display = ('id', 'name', 'description', ci_project_column(), last_deployed_release)
     list_filter = ('ci_project__name',)
     search_fields = ('id', 'name', 'description')
     raw_id_fields = ('ci_project',)
