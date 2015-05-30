@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/dev/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
-import codecs
 from datetime import timedelta
 from YamJam import yamjam
 
@@ -308,18 +307,8 @@ LOGGING = {
     },
 }
 
-with codecs.open(os.path.join(BASE_DIR, 'templates', 'admin', 'release_notes.html'), encoding='utf-8') as fd:
-    RELEASE_NOTES_TEMPLATE = fd.read()
-
-with codecs.open(os.path.join(BASE_DIR, 'templates', 'admin', 'release_notes_overview.html'), encoding='utf-8') as fd:
-    RELEASE_NOTES_OVERVIEW_TEMPLATE = fd.read()
-
 CONSTANCE_CONFIG = {
     'TAGS_FOR_UNMERGED_CASES': ('unmerged, removed', 'Tags for unmerged cases'),
-    'RELEASE_NOTES_TEMPLATE': (RELEASE_NOTES_TEMPLATE, 'Release notes template (single release)'),
-    'RELEASE_NOTES_OVERVIEW_TEMPLATE': (
-        RELEASE_NOTES_OVERVIEW_TEMPLATE,
-        'Release notes overview template (all releases)'),
 }
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
