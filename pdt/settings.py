@@ -227,17 +227,17 @@ CELERYD_LOG_COLOR = False
 CELERYBEAT_SCHEDULE = {
     'fetch_cases': {
         'task': 'pdt.core.tasks.fetch_cases',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(hours=1, minutes=1),
         'args': ()
     },
     'update_cases_from_fogbugz': {
         'task': 'pdt.core.tasks.update_cases_from_fogbugz',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(hours=1, minutes=10),
         'args': ()
     },
     'update_cases_to_fogbugz': {
         'task': 'pdt.core.tasks.update_cases_to_fogbugz',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(hours=1, minutes=20),
         'args': ()
     },
 }

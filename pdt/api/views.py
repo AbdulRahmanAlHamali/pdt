@@ -6,6 +6,9 @@ from django.utils import timezone
 
 import django_filters
 from rest_framework import serializers, viewsets
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
 from pdt.core.models import (
     Case,
@@ -21,6 +24,7 @@ from pdt.core.models import (
     Release,
 )
 
+from pdt.core.tasks import update_case_from_fogbugz
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +203,12 @@ class CaseViewSet(viewsets.ModelViewSet):
     filter_fields = ('id', 'title', 'project', 'release', 'ci_project')
     ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')
     ordering = ('id',)
+
+    @detail_route(methods=['post'], permission_classes=[AllowAny])
+    def trigger_sync(self, request, pk=None):
+        """Trigger case sync with the issue tracking system."""
+        update_case_from_fogbugz.delay(case_id=pk)
+        return Response({'status': 'sync is triggered successfully'})
 
 
 class CaseFieldMixin(serializers.HyperlinkedModelSerializer):
