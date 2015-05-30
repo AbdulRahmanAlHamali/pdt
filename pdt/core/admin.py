@@ -200,7 +200,7 @@ class InstanceAdmin(TinyMCEMixin, admin.ModelAdmin):
             '<a href="{url}">{number}: {datetime}</a>'.format(
                 url=reverse("admin:core_release_change", args=(report.id,)),
                 number=report.release.number,
-                datetime=report.datetime, status=report.get_status_display()
+                datetime=report.datetime,
             )) if report else ''
 
     list_display = ('id', 'name', 'description', ci_project_column(), last_deployed_release)
