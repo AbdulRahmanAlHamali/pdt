@@ -12,7 +12,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.utils.safestring import mark_safe
 
 from taggit.managers import TaggableManager
 
