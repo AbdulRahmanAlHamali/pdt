@@ -12,11 +12,11 @@ class CustomIndexDashboard(Dashboard):
     def init_with_context(self, context):
         """Add dashboard items."""
         # append an app list module for "Applications"
-        self.children.append(modules.AppList(
-            _('Applications'),
+        self.children.append(modules.ModelList(
+            _('Deployment and migration data'),
             collapsible=False,
             column=1,
-            exclude=('django.contrib.*', 'constance.*', 'taggit.*'),
+            models=('pdt.core.*',),
         ))
 
         # append an app list module for "Administration"

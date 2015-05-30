@@ -1,10 +1,13 @@
 """PDT url configuration."""
+from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import include, url
 from django.contrib import admin
 from adminplus.sites import AdminSitePlus
 
 admin.site = AdminSitePlus()
 admin.autodiscover()
+
+admin.site.index_title = _('Dashboard')
 
 urlpatterns = [
     url(r'^api/', include('pdt.api.urls')),

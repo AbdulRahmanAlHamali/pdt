@@ -6,11 +6,13 @@ from django.db import transaction
 from django.db import models, DatabaseError
 from django.db.models.signals import post_save
 from django.conf import settings
+from django.utils.functional import cached_property
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 
 from taggit.managers import TaggableManager
 
@@ -379,6 +381,11 @@ class Case(models.Model):
         """String representation."""
         return '{self.id}: {self.title}'.format(self=self)
 
+    @cached_property
+    def url(self):
+        """Case external link (on the tracking system)."""
+        return '{url}/default.asp?{self.id}'.format(url=settings.FOGBUGZ_URL, self=self)
+
 
 class CaseEdit(models.Model):
 
@@ -651,8 +658,8 @@ class DeploymentReport(models.Model):
         index_together = (("release", "instance", "datetime", "id"),)
         ordering = ['release', 'instance', 'datetime', "id"]
 
-    release = models.ForeignKey(Release, blank=False)
-    instance = models.ForeignKey(Instance, blank=False)
+    release = models.ForeignKey(Release, blank=False, related_name='deployment_reports')
+    instance = models.ForeignKey(Instance, blank=False, related_name='deployment_reports')
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)

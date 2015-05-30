@@ -54,7 +54,15 @@ class ReleaseAdmin(TinyMCEMixin, DjangoObjectActions, admin.ModelAdmin):
 
     """Release admin interface class."""
 
-    list_display = ('id', 'number', 'datetime')
+    def deployed_on(self):
+        """Deployed on."""
+        return mark_safe(
+            '<ul>{0}</ul>'.format("".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
+                url=reverse("admin:core_deploymentreport_change", args=(report.id,)),
+                name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
+            ) for report in self.deployment_reports.all())))
+
+    list_display = ('id', 'number', 'datetime', deployed_on)
     list_filter = ('datetime',)
     search_fields = ('id', 'number', 'datetime')
 
@@ -68,6 +76,19 @@ class ReleaseAdmin(TinyMCEMixin, DjangoObjectActions, admin.ModelAdmin):
 
 
 admin.site.register(Release, ReleaseAdmin)
+
+
+def release_column(getter=lambda obj: obj.release):
+    """Return release column function."""
+    def release(self):
+        """Get release name."""
+        release = getter(self)
+        return mark_safe(
+            '<a href="{url}">{name}</a>'.format(
+                url=reverse("admin:core_release_change", args=(release.id,)),
+                name=release)) if release else _('n/a')
+    release.admin_order_field = 'release__name'
+    return release
 
 
 def normalize_case_title(case_title):
@@ -156,17 +177,23 @@ class CIProjectAdmin(TinyMCEMixin, admin.ModelAdmin):
 admin.site.register(CIProject, CIProjectAdmin)
 
 
-def ci_project(self):
-    """Get CI project name."""
-    return self.ci_project.name
-ci_project.admin_order_field = 'ci_project__name'
+def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name'):
+    """Get ci project column function."""
+    def ci_project(self):
+        ci_project = getter(self)
+        return mark_safe(
+            '<a href="{url}">{name}</a>'.format(
+                url=reverse("admin:core_ciproject_change", args=(ci_project.id,)),
+                name=ci_project.name))
+    ci_project.admin_order_field = order
+    return ci_project
 
 
 class InstanceAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """Instance admin interface class."""
 
-    list_display = ('id', 'name', 'description', ci_project)
+    list_display = ('id', 'name', 'description', ci_project_column())
     list_filter = ('ci_project__name',)
     search_fields = ('id', 'name', 'description')
     raw_id_fields = ('ci_project',)
@@ -177,10 +204,84 @@ class InstanceAdmin(TinyMCEMixin, admin.ModelAdmin):
 admin.site.register(Instance, InstanceAdmin)
 
 
-def case(self):
-    """Get case id."""
-    return self.case.id
-case.admin_order_field = 'case__id'
+def instance(self):
+    """Get instance link column."""
+    return mark_safe(
+        '<a href="{url}">{name}</a>'.format(
+            url=reverse("admin:core_instance_change", args=(self.instance.id,)),
+            name=self.instance))
+instance.admin_order_field = 'instance__name'
+
+
+def tags(obj):
+    """Tags."""
+    return ', '.join(tag.name for tag in obj.tags.all())
+
+
+class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
+
+    """Case admin interface class."""
+
+    def title(self):
+        """Get case title link."""
+        return mark_safe(
+            '<a href="{url}" target="_blank">{title}</a>'.format(
+                url=self.url,
+                title=self.title)
+        )
+
+    list_display = ('id', title, ci_project_column(), release_column(), 'project', 'area', tags)
+    list_filter = ('ci_project__name', 'release', 'project', 'area')
+    search_fields = ('id', 'title')
+    raw_id_fields = ('ci_project', 'release')
+    autocomplete_lookup_fields = {
+        'fk': ['ci_project', 'release'],
+    }
+
+
+admin.site.register(Case, CaseAdmin)
+
+
+def case_column(getter=lambda obj: obj.case, order='case__id'):
+    """Get case column function."""
+    def case(self):
+        """Get case link."""
+        case = getter(self)
+        return mark_safe(
+            '<a href="{local_url}">{id}</a>: <a href="{external_url}" target="_blank">{title}</a>'.format(
+                external_url=case.url,
+                local_url=reverse("admin:core_case_change", args=(case.id,)),
+                id=case.id,
+                title=case.title)
+        )
+    case.admin_order_field = order
+    return case
+
+
+class CaseEditAdmin(admin.ModelAdmin):
+
+    """Case edit admin interface class."""
+
+    list_display = ('id', case_column(), 'type', 'params')
+    list_filter = ('case__id', 'type')
+    raw_id_fields = ('case',)
+    autocomplete_lookup_fields = {
+        'fk': ['case'],
+    }
+
+
+admin.site.register(CaseEdit, CaseEditAdmin)
+
+
+class CaseCategoryAdmin(admin.ModelAdmin):
+
+    """Case category admin interface class."""
+
+    list_display = ('id', 'position', 'title', tags, 'is_hidden', 'is_default')
+    sortable_field_name = "position"
+
+
+admin.site.register(CaseCategory, CaseCategoryAdmin)
 
 
 class MigrationStepForm(forms.ModelForm):
@@ -261,27 +362,21 @@ def mark_migrations_not_reviewed(modeladmin, request, queryset):
 mark_migrations_not_reviewed.short_description = _("Mark selected migrations as not reviewed")
 
 
-def applied_on(migration):
-    """Migration applied on."""
-    return mark_safe(
-        ", ".join('<a href="{url}">{name}: {datetime}: {status}</a>'.format(
-            url=reverse("admin:core_migrationreport_change", args=(report.id,)),
-            name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
-        ) for report in migration.reports.all()))
-applied_on.short_description = "Applied on"
-
-
-def case_ci_project(self):
-    """Get case ci project."""
-    return self.case.ci_project.name
-case_ci_project.admin_order_field = 'case__ci_project__name'
-
-
 class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
 
-    list_display = ('id', 'uid', case, case_ci_project, 'category', 'reviewed', applied_on)
+    def applied_on(self):
+        """Migration applied on."""
+        return mark_safe(
+            '<ul>{0}</ul>'.format("".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
+                url=reverse("admin:core_deploymentreport_change", args=(report.id,)),
+                name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
+            ) for report in self.reports.all())))
+
+    list_display = (
+        'id', 'uid', case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
+        'category', 'reviewed', applied_on)
     list_filter = ('case__id', 'category', 'reviewed')
     search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
     raw_id_fields = ('case',)
@@ -324,12 +419,6 @@ class MigrationAdmin(admin.ModelAdmin):
 admin.site.register(Migration, MigrationAdmin)
 
 
-def migration_case(self):
-    """Get migration case id."""
-    return self.migration.case.id
-migration_case.admin_order_field = 'migration__case__id'
-
-
 class MigrationReportForm(forms.ModelForm):
 
     """Migration report form."""
@@ -369,24 +458,22 @@ class MigrationStepReportInline(admin.StackedInline):
     }
 
 
-def migration_uid(self):
-    """Get migration uid."""
-    return self.migration.uid
-migration_uid.admin_order_field = 'migration__uid'
-
-
-def migration_release_number(self):
-    """Get migration release number."""
-    return self.migration.case.release.number if self.migration.case.release else _('n/a')
-migration_release_number.admin_order_field = 'migration__case__release__number'
-
-
 class MigrationReportAdmin(admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
 
+    def migration(self):
+        """Migration applied on."""
+        return mark_safe('<a href="{url}">{uid}</a>'.format(
+            url=reverse("admin:core_migration_change", args=(self.migration.id,)),
+            uid=self.migration.uid))
+    migration.admin_order_field = 'migration__uid'
+
     form = MigrationReportForm
-    list_display = ('id', migration_uid, migration_case, migration_release_number, 'instance', 'status', 'datetime')
+    list_display = (
+        'id', migration, case_column(lambda obj: obj.migration.case, 'migration__case__number'),
+        release_column(lambda obj: obj.migration.case.release),
+        instance, 'status', 'datetime')
     list_filter = ('instance__name', 'status')
     search_fields = ('migration__uid', 'migration__case__id')
     raw_id_fields = ('migration', 'instance')
@@ -398,53 +485,6 @@ class MigrationReportAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MigrationReport, MigrationReportAdmin)
-
-
-def tags(obj):
-    """Tags."""
-    return ', '.join(tag.name for tag in obj.tags.all())
-
-
-class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
-
-    """Case admin interface class."""
-
-    list_display = ('id', 'title', 'ci_project', 'release', 'project', 'area', tags)
-    list_filter = ('ci_project__name', 'release', 'project', 'area')
-    search_fields = ('id', 'title')
-    raw_id_fields = ('ci_project', 'release')
-    autocomplete_lookup_fields = {
-        'fk': ['ci_project', 'release'],
-    }
-
-
-admin.site.register(Case, CaseAdmin)
-
-
-class CaseEditAdmin(admin.ModelAdmin):
-
-    """Case edit admin interface class."""
-
-    list_display = ('id', 'case', 'type', 'params')
-    list_filter = ('case__id', 'type')
-    raw_id_fields = ('case',)
-    autocomplete_lookup_fields = {
-        'fk': ['case'],
-    }
-
-
-admin.site.register(CaseEdit, CaseEditAdmin)
-
-
-class CaseCategoryAdmin(admin.ModelAdmin):
-
-    """Case category admin interface class."""
-
-    list_display = ('id', 'position', 'title', tags, 'is_hidden', 'is_default')
-    sortable_field_name = "position"
-
-
-admin.site.register(CaseCategory, CaseCategoryAdmin)
 
 
 class DeploymentReportForm(forms.ModelForm):
@@ -464,7 +504,7 @@ class DeploymentReportAdmin(admin.ModelAdmin):
     """DeploymentReport admin interface class."""
 
     form = DeploymentReportForm
-    list_display = ('id', 'release', 'instance', 'status', 'datetime')
+    list_display = ('id', release_column(), instance, 'status', 'datetime')
     list_filter = ('release__number', 'instance__name', 'status')
     search_fields = ('release__number', 'instance__name')
     raw_id_fields = ('release', 'instance')
