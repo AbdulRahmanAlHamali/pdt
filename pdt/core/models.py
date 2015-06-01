@@ -157,6 +157,7 @@ class CaseManager(models.Manager):
             tags = case_info.pop('tags')
             self.filter(id=case_id).update(**case_info)
             if tags:
+                case.refresh_from_db()
                 case.tags.set(*set(tags))
                 case.save()
 
