@@ -204,7 +204,7 @@ class CaseViewSet(viewsets.ModelViewSet):
     ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')
     ordering = ('id',)
 
-    @detail_route(methods=['post'], permission_classes=[AllowAny])
+    @detail_route(methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def trigger_sync(self, request, pk=None):
         """Trigger case sync with the issue tracking system."""
         update_case_from_fogbugz.delay(case_id=pk)
