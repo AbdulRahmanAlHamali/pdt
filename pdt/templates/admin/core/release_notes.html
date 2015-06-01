@@ -4,10 +4,10 @@
 </head>
 <body>
     <h1>Release notes {{ release.number }}</h1>
-    <div style="font-style: italic">
-        Release {{ release.number }} is expected to go live on {{ release.datetime|date:"M d Y" }}.
+    <p style="font-style: italic">
+        Release {{ release.number }} is expected to go live on {{ release.datetime|date:"M d, Y" }}.
         {{ release.description | safe }}
-    </div>
+    </p>
 {% for category in categories %}
     {% if category.cases %}
     <strong>{{ category.title }}:</strong>
