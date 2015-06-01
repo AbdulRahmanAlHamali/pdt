@@ -287,21 +287,23 @@ class CaseManager(models.Manager):
                 'Deployment has failed on {instance}.\nSee the detailed deployment report here: {report_url}.'),
         }
         kwargs = {}
-        if report.status == DeploymentReport.STATUS_DEPLOYED:
-            kwargs['sTags'] = ','.join(case_info['tags'].union({'deployed-{0}'.format(report.instance.name)}))
-        response = fb.edit(
-            ixbug=case.id,
-            sEvent=messages[report.status].format(
-                instance=report.instance.name,
-                report_url='http://{0}{1}'.format(
-                    settings.HOST_NAME,
-                    reverse(
-                        'admin:core_deploymentreport_change',
-                        args=(report.id,))),
-                log=report.log),
-            **kwargs
-        )
-        return response
+        tags = {'deployed-{0}'.format(report.instance.name)}
+        if tags not in case_info['tags']:
+            if report.status == DeploymentReport.STATUS_DEPLOYED:
+                kwargs['sTags'] = ','.join(case_info['tags'].union(tags))
+            response = fb.edit(
+                ixbug=case.id,
+                sEvent=messages[report.status].format(
+                    instance=report.instance.name,
+                    report_url='http://{0}{1}'.format(
+                        settings.HOST_NAME,
+                        reverse(
+                            'admin:core_deploymentreport_change',
+                            args=(report.id,))),
+                    log=report.log),
+                **kwargs
+            )
+            return response
 
     @transaction.atomic
     def update_to_fogbugz(self, case_id):

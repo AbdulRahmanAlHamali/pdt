@@ -33,6 +33,7 @@ from .models import (
     CaseCategory,
     DeploymentReport,
 )
+from .tasks import update_case_to_fogbugz
 
 ACE_WIDGET_PARAMS = dict(showprintmargin=False, width='100%')
 
@@ -248,6 +249,13 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         'fk': ['ci_project', 'release'],
     }
 
+    def trigger_sync(self, request, queryset):
+        """Trigger sync with issue tracking system."""
+        for case in queryset:
+            update_case_to_fogbugz.delay(case_id=case.id)
+    trigger_sync.short_description = _("Trigger the sync of the selected cases")
+
+    actions = [trigger_sync]
 
 admin.site.register(Case, CaseAdmin)
 
