@@ -16,9 +16,9 @@
             {% if case.unmerged %}<span style="text-decoration: line-through">{% endif %}
             <a target="_blank" href="https://case.paylogic.eu/fogbugz/?{{ case.id }}">Case {{ case.id }}</a> - {{ case.title }}
             {% if case.unmerged %}</span>{% endif %}
-            <br />
+            <br>
         {% endfor %}
-    <br />
+    <br>
     {% endif %}
 {% endfor %}
 </body>
