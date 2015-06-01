@@ -4,23 +4,21 @@
 </head>
 <body>
     <h1>Release notes {{ release.number }}</h1>
-    <div style="font-style: italic">
-        Release {{ release.number }} is expected to go live on {{ release.datetime|date:"M d Y" }}.
+    <p style="font-style: italic">
+        Release {{ release.number }} is expected to go live on {{ release.datetime|date:"M d, Y" }}.
         {{ release.description | safe }}
-    </div>
+    </p>
 {% for category in categories %}
     {% if category.cases %}
     <strong>{{ category.title }}:</strong>
         <br />
         {% for case in category.cases %}
             {% if case.unmerged %}<span style="text-decoration: line-through">{% endif %}
-            <a target="_blank" href="https://case.paylogic.eu/fogbugz/default.asp?{{ case.id }}">
-                Case {{ case.id }}
-            </a> - {{ case.title }}
+            <a target="_blank" href="https://case.paylogic.eu/fogbugz/?{{ case.id }}">Case {{ case.id }}</a> - {{ case.title }}
             {% if case.unmerged %}</span>{% endif %}
-            <br />
+            <br>
         {% endfor %}
-    <br />
+    <br>
     {% endif %}
 {% endfor %}
 </body>
