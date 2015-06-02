@@ -12,6 +12,10 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import redirect, get_object_or_404, render
 
+import embedded_media as emb
+
+from ansi2html import Ansi2HTMLConverter
+from ansi2html.style import get_styles
 from constance import config
 
 from django_ace import AceWidget
@@ -515,10 +519,15 @@ class DeploymentReportForm(forms.ModelForm):
 
     class Meta:
         model = DeploymentReport
-        fields = '__all__'
+        exclude = ('log',)
         widgets = {
-            "log": AceWidget(mode="sh", **ACE_WIDGET_PARAMS),
+            "log": AceWidget(mode="html", **ACE_WIDGET_PARAMS),
         }
+
+    @property
+    def media(self):
+        """Add inline styling for rendered."""
+        return forms.Media(css={'all': (emb.CSS("\n".join(str(style) for style in get_styles(dark_bg=False))), )})
 
 
 class DeploymentReportAdmin(admin.ModelAdmin):
@@ -533,6 +542,14 @@ class DeploymentReportAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['release', 'instance'],
     }
+
+    readonly_fields = ('rendered_log',)
+
+    def rendered_log(self, instance):
+        """Render ansi colors as html."""
+        return Ansi2HTMLConverter(dark_bg=False).convert(instance.log, full=True)
+
+    rendered_log.allow_tags = True
 
 
 admin.site.register(DeploymentReport, DeploymentReportAdmin)
