@@ -1,13 +1,7 @@
-<html>
-<head>
-    <title>Release notes {{ release.number }}</title>
-</head>
-<body>
-    <h1>Release notes {{ release.number }}</h1>
-    <p style="font-style: italic">
-        Release {{ release.number }} is expected to go live on {{ release.datetime|date:"M d, Y" }}.
-        {{ release.description | safe }}
-    </p>
+<p style="font-style: italic">
+    Release {{ release.number }} is expected to go live on {{ release.datetime|date:"M d, Y" }}.
+    {{ release.description | safe }}
+</p>
 {% for category in categories %}
     {% if category.cases %}
     <strong>{{ category.title }}:</strong>
@@ -21,5 +15,3 @@
     <br>
     {% endif %}
 {% endfor %}
-</body>
-</html>

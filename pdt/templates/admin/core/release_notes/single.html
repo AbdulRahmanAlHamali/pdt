@@ -1,0 +1,15 @@
+{% extends "admin/core/release_notes/base.html" %}
+{% load i18n %}
+{% block breadcrumbs %}
+    <ul>
+        <li><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+        <li><a href="{% url 'release-notes-overview' %}">{% trans 'Release notes' %}</a></li>
+        {% if title %}
+            <li>{{ title }}</li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block content %}
+    {{ notes | safe }}
+{% endblock %}

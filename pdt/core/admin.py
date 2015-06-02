@@ -6,7 +6,6 @@ import pprint
 from django.template.loader import render_to_string
 from django.template import RequestContext
 from django.contrib import admin
-from django.http import HttpResponse
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
@@ -146,25 +145,30 @@ def get_release_notes(request, release):
             category['cases'] = [case for case in sorted(categorized_cases[category['key']], key=lambda c: c['id'])]
         categories.append(category)
 
-    return render_to_string('admin/core/release_notes.html', dict(
+    return render_to_string('admin/core/release_notes/_single.html', dict(
         release=release, categorized_cases=categorized_cases, categories=categories), RequestContext(request))
 
 
 def release_notes(request, release_number, **kwargs):
     """Release notes view."""
     release = get_object_or_404(Release.objects.filter(number=release_number))
-    return HttpResponse(get_release_notes(request, release))
+    return render(request, 'admin/core/release_notes/single.html', dict(
+        release=release,
+        notes=get_release_notes(request, release),
+        title=_('Release {number}').format(number=release.number)
+    ))
 
 
 def release_notes_overview(request):
     """Release notes overview view."""
     notes = []
     for release in Release.objects.all().order_by('-number'):
-        notes.append(get_release_notes(request, release))
+        notes.append((release, get_release_notes(request, release)))
     return render(
-        request, 'admin/core/release_notes_overview.html', dict(
+        request, 'admin/core/release_notes/overview.html', dict(
             categories=CaseCategory.objects.filter(is_default=False, is_hidden=False),
-            notes=notes))
+            notes=notes,
+            title=_('Release notes overview')))
 
 
 class CIProjectAdmin(TinyMCEMixin, admin.ModelAdmin):
