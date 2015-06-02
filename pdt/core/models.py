@@ -13,6 +13,8 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 
+from colorama import Fore
+
 from taggit.managers import TaggableManager
 
 from jsonfield import JSONField
@@ -588,7 +590,13 @@ class MigrationReport(models.Model):
 
     def calculate_log(self):
         """Calculate report log based on step reports."""
-        self.log = "\n\n".join(report.log for report in self.step_reports.all())
+        self.log = "\n\n".join(
+            "{YELLOW}-- Applying migration step: id={report.step.id}, position={report.step.position}\n"
+            "{RESET}{report.log}".format(
+                report=report,
+                YELLOW=Fore.YELLOW,
+                RESET=Fore.RESET)
+            for report in self.step_reports.all())
         self.save()
 
 

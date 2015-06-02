@@ -6,6 +6,7 @@ ansi2html==1.1.0
 celery==3.1.18
 celery_once==0.1.2
 celerybeat-redis==0.0.7
+colorama==0.3.3
 django-ace==1.0.2
 django-adminplus==0.3
 django-embedded-media==0.1.0
@@ -26,3 +27,4 @@ pytz==2015.2
 raven==3.6.0
 redis==2.10.3
 yamjam==0.1.7
+

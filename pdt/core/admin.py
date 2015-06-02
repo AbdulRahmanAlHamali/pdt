@@ -82,7 +82,7 @@ class ReleaseAdmin(TinyMCEMixin, DjangoObjectActions, admin.ModelAdmin):
 admin.site.register(Release, ReleaseAdmin)
 
 
-def release_column(getter=lambda obj: obj.release):
+def release_column(getter=lambda obj: obj.release, order='release__name'):
     """Return release column function."""
     def release(self):
         """Get release name."""
@@ -91,7 +91,7 @@ def release_column(getter=lambda obj: obj.release):
             '<a href="{url}">{name}</a>'.format(
                 url=reverse("admin:core_release_change", args=(release.id,)),
                 name=release)) if release else ''
-    release.admin_order_field = 'release__name'
+    release.admin_order_field = order
     return release
 
 
@@ -402,6 +402,7 @@ class MigrationAdmin(admin.ModelAdmin):
 
     list_display = (
         'id', 'uid', case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
+        release_column(lambda obj: obj.case.release, 'case__release__number'),
         'category', 'reviewed', applied_on)
     list_filter = ('case__id', 'category', 'reviewed')
     search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
@@ -445,6 +446,47 @@ class MigrationAdmin(admin.ModelAdmin):
 admin.site.register(Migration, MigrationAdmin)
 
 
+class LogAdminMixin(object):
+
+    """Mixin for adding rendered log field."""
+
+    def __init__(self, *args, **kwargs):
+        """Assign excluded fields list so it's instance attribute."""
+        self.exclude = self.exclude
+        super(LogAdminMixin, self).__init__(*args, **kwargs)
+
+    @property
+    def media(self):
+        """Add inline styling for rendered."""
+        return super(LogAdminMixin, self).media + forms.Media(css={'all': (
+            emb.CSS("\n".join(str(style) for style in get_styles(dark_bg=False))),
+            emb.CSS("""
+                .grp-readonly .ansi2html-content {
+                    white-space: pre-wrap !important;
+                    word-wrap: break-word;
+                    font-family: monospace;
+                }
+                .ansi2html-container {
+                    max-height: 500px;
+                    overflow: auto;
+                }
+            """))})
+
+    def get_readonly_fields(self, request, obj):
+        """Make log field readonly if it's an edit form."""
+        self.exclude = ('log',) if obj and obj.id else ('rendered_log', )
+        return ('rendered_log', ) if obj and obj.id else ()
+
+    def rendered_log(self, instance):
+        """Render ansi colors as html."""
+        converted = Ansi2HTMLConverter(dark_bg=False).convert(instance.log, full=False)
+        return '<div class="ansi2html-container"><pre class="ansi2html-content">{0}</pre><div>'.format(
+            converted.replace('/span> <span', '/span>&nbsp;<span')
+        )
+    rendered_log.short_description = _('Log')
+    rendered_log.allow_tags = True
+
+
 class MigrationReportForm(forms.ModelForm):
 
     """Migration report form."""
@@ -469,7 +511,7 @@ class MigrationStepReportForm(forms.ModelForm):
         }
 
 
-class MigrationStepReportInline(admin.StackedInline):
+class MigrationStepReportInline(LogAdminMixin, admin.StackedInline):
 
     """Migration step inline."""
 
@@ -484,7 +526,7 @@ class MigrationStepReportInline(admin.StackedInline):
     }
 
 
-class MigrationReportAdmin(admin.ModelAdmin):
+class MigrationReportAdmin(LogAdminMixin, admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
 
@@ -519,18 +561,13 @@ class DeploymentReportForm(forms.ModelForm):
 
     class Meta:
         model = DeploymentReport
-        exclude = ('log',)
+        fields = '__all__'
         widgets = {
-            "log": AceWidget(mode="html", **ACE_WIDGET_PARAMS),
+            "log": AceWidget(mode="sh", **ACE_WIDGET_PARAMS),
         }
 
-    @property
-    def media(self):
-        """Add inline styling for rendered."""
-        return forms.Media(css={'all': (emb.CSS("\n".join(str(style) for style in get_styles(dark_bg=False))), )})
 
-
-class DeploymentReportAdmin(admin.ModelAdmin):
+class DeploymentReportAdmin(LogAdminMixin, admin.ModelAdmin):
 
     """DeploymentReport admin interface class."""
 
@@ -542,14 +579,6 @@ class DeploymentReportAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['release', 'instance'],
     }
-
-    readonly_fields = ('rendered_log',)
-
-    def rendered_log(self, instance):
-        """Render ansi colors as html."""
-        return Ansi2HTMLConverter(dark_bg=False).convert(instance.log, full=True)
-
-    rendered_log.allow_tags = True
 
 
 admin.site.register(DeploymentReport, DeploymentReportAdmin)
