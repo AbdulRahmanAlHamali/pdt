@@ -14,10 +14,11 @@ from pdt.core.models import (
     Case,
     CIProject,
     DeploymentReport,
+    FinalMigrationStep,
     Instance,
     Migration,
-    MigrationStep,
     MigrationReport,
+    MigrationStep,
     MigrationStepReport,
     PostDeployMigrationStep,
     PreDeployMigrationStep,
@@ -150,6 +151,14 @@ class PostDeployMigrationStepSerializer(MigrationStepSerializer):
         model = PostDeployMigrationStep
 
 
+class FinalMigrationStepSerializer(MigrationStepSerializer):
+
+    """Final phase migration step serializer."""
+
+    class Meta(MigrationStepSerializer.Meta):
+        model = FinalMigrationStep
+
+
 class CIProjectViewSet(viewsets.ModelViewSet):
 
     """Return a list of all continuos integration projects in the system.
@@ -256,30 +265,49 @@ class MigrationSerializer(CaseFieldMixin):
 
     pre_deploy_steps = PreDeployMigrationStepSerializer(many=True)
     post_deploy_steps = PostDeployMigrationStepSerializer(many=True)
+    final_steps = FinalMigrationStepSerializer(many=True)
     reports = MigrationReportSerializer(read_only=True, many=True)
+    parent = serializers.CharField(source='parent.uid', allow_null=True)
 
     class Meta:
         model = Migration
         fields = (
-            'id', 'uid', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'reports', 'reviewed')
+            'id', 'uid', 'parent', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'final_steps',
+            'reports', 'reviewed')
         extra_kwargs = {
             'uid': {'validators': []},
             'category': {'read_only': True},
             'reviewed': {'read_only': True},
         }
 
+    def validate_parent(self, value):
+        """Validate parent field."""
+        if value:
+            try:
+                value = Migration.objects.get(uid=value)
+            except Migration.DoesNotExist:  # pragma: no cover
+                message = 'Failed to get the parent migration'
+                logger.exception(message)
+                raise serializers.ValidationError(message)
+        return value
+
     def create(self, validated_data):
         """Create or update the instance due to unique key on case."""
         pre_deploy_steps = validated_data.pop('pre_deploy_steps')
         post_deploy_steps = validated_data.pop('post_deploy_steps')
+        final_steps = validated_data.pop('final_steps')
+        parent = validated_data.pop('parent')['uid']
         try:
             instance = Migration.objects.get(
                 case=validated_data['case'])
             migration = self.update(instance, validated_data)
             migration.pre_deploy_steps.get_queryset().delete()
             migration.post_deploy_steps.get_queryset().delete()
+            migration.final_steps.get_queryset().delete()
         except Migration.DoesNotExist:
             migration = super(MigrationSerializer, self).create(validated_data)
+        migration.parent = parent
+        migration.save()
         pre_deploy_steps = [
             PreDeployMigrationStep.objects.create(**dict(step_data, migration=migration, position=index))
             for index, step_data in enumerate(pre_deploy_steps)
@@ -287,6 +315,10 @@ class MigrationSerializer(CaseFieldMixin):
         post_deploy_steps = [
             PostDeployMigrationStep.objects.create(**dict(step_data, migration=migration, position=index))
             for index, step_data in enumerate(post_deploy_steps)
+        ]
+        final_steps = [
+            FinalMigrationStep.objects.create(**dict(step_data, migration=migration, position=index))
+            for index, step_data in enumerate(final_steps)
         ]
         return migration
 
@@ -346,6 +378,13 @@ class MigrationViewSet(viewsets.ModelViewSet):
     ordering_fields = ('case', 'category')
     ordering = ('case', 'id')
     filter_class = MigrationFilter
+    pagination_class = None
+
+    def list(self, request, *args, **kwargs):
+        """Perform topological sort on returned migrations."""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(Migration.objects.sort(queryset), many=True)
+        return Response(serializer.data)
 
 
 class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):

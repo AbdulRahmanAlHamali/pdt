@@ -237,6 +237,19 @@ def tags(obj):
     return ', '.join(tag.name for tag in obj.tags.all())
 
 
+def migration_column(getter=lambda obj: obj.migration, order='migration__uid', short_description=_('Migration')):
+    """Get ci project column function."""
+    def column(self):
+        migration = getter(self)
+        return mark_safe(
+            '<a href="{url}">{name}</a>'.format(
+                url=reverse("admin:core_migration_change", args=(migration.id,)),
+                name=migration.uid)) if migration else ''
+    column.admin_order_field = order
+    column.short_description = short_description
+    return column
+
+
 class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """Case admin interface class."""
@@ -249,7 +262,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
                 title=self.title)
         )
 
-    list_display = ('id', title, ci_project_column(), release_column(), 'project', 'area', tags)
+    list_display = ('id', title, ci_project_column(), release_column(), migration_column(), 'project', 'area', tags)
     list_filter = ('ci_project__name', 'release', 'project', 'area')
     search_fields = ('id', 'title')
     raw_id_fields = ('ci_project', 'release')
@@ -401,14 +414,15 @@ class MigrationAdmin(admin.ModelAdmin):
             ) for report in self.reports.all())))
 
     list_display = (
-        'id', 'uid', case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
+        'id', 'uid', migration_column(lambda obj: obj.parent, order='parent__uid', short_description=_('Parent')),
+        case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
         release_column(lambda obj: obj.case.release, 'case__release__number'),
         'category', 'reviewed', applied_on)
     list_filter = ('case__id', 'category', 'reviewed')
     search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
-    raw_id_fields = ('case',)
+    raw_id_fields = ('case', 'parent')
     autocomplete_lookup_fields = {
-        'fk': ['case'],
+        'fk': ['case', 'parent'],
     }
     inlines = [PreDeployMigrationStepInline, PostDeployMigrationStepInline]
     actions = [mark_migrations_reviewed, mark_migrations_not_reviewed]

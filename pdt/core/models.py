@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 
 from colorama import Fore
+from toposort import toposort_flatten
 
 from taggit.managers import TaggableManager
 
@@ -438,6 +439,22 @@ class CaseCategory(models.Model):
         super(CaseCategory, self).save(*args, **kwargs)
 
 
+class MigrationManager(models.Manager):
+
+    """Migration manager to allow topological migration sorting."""
+
+    def sort(self, queryset):
+        """Sort given the queryset in a topological order.
+
+        :param queryset: django queryset
+        :return: sorted list of `Migration` objects
+        """
+        uids = {migration.uid: migration for migration in queryset}
+        mapping = {
+            migration.uid: {migration.parent.uid} if migration.parent else set() for migration in queryset}
+        return [uids[uid] for uid in toposort_flatten(mapping)]
+
+
 class Migration(models.Model):
 
     """Migration."""
@@ -448,11 +465,14 @@ class Migration(models.Model):
     )
 
     uid = models.CharField(max_length=255, blank=False, unique=True)
+    parent = models.ForeignKey("self", null=True, blank=True)
     case = models.OneToOneField(Case, blank=False, unique=True)
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl', db_index=True)
     reviewed = models.BooleanField(blank=False, default=False, db_index=True)
 
     tracker = FieldTracker()
+
+    objects = MigrationManager()
 
     class Meta:
         index_together = (("id", "uid", "case"), ("category", "reviewed"))
@@ -468,7 +488,7 @@ class Migration(models.Model):
 
     def get_steps(self):
         """Get all migration steps."""
-        return chain(self.pre_deploy_steps.all(), self.post_deploy_steps.all())
+        return chain(self.pre_deploy_steps.all(), self.post_deploy_steps.all(), self.final_steps.all())
 
 
 def migration_changes(sender, instance, **kwargs):
@@ -534,6 +554,13 @@ class PostDeployMigrationStep(MigrationStep):
     """Post-deploy phase migration step."""
 
     migration = models.ForeignKey(Migration, blank=False, related_name="post_deploy_steps")
+
+
+class FinalMigrationStep(MigrationStep):
+
+    """Final phase migration step."""
+
+    migration = models.ForeignKey(Migration, blank=False, related_name="final_steps")
 
 
 class MigrationReport(models.Model):

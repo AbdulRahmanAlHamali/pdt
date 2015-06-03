@@ -21,6 +21,7 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
     assert data[0] == {
         'id': migration.id,
         'uid': migration.uid,
+        'parent': migration.parent,
         'case': {
             'id': migration.case.id,
             'title': migration.case.title,
@@ -33,6 +34,9 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
         'post_deploy_steps': [
             {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
             for step in migration.post_deploy_steps.all()],
+        'final_steps': [
+            {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
+            for step in migration.final_steps.all()],
         'category': migration.category,
         'reviewed': False,
         'reports': [{
@@ -120,12 +124,14 @@ def test_create_migration_no_case(mocked_fogbugz, admin_client):
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
+            "parent": None,
             "case": {
                 "id": "33322"
             },
             "category": "onl",
             "pre_deploy_steps": [],
-            "post_deploy_steps": []
+            "post_deploy_steps": [],
+            "final_steps": []
         }), content_type='application/json').data
     assert data == {'case': ["['Case with such id cannot be found']"]}
 
@@ -136,12 +142,14 @@ def test_create_migration_case_no_milestone(mocked_fogbugz, admin_client):
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
+            "parent": None,
             "case": {
                 "id": "33322"
             },
             "category": "onl",
             "pre_deploy_steps": [],
-            "post_deploy_steps": []
+            "post_deploy_steps": [],
+            "final_steps": []
         }), content_type='application/json').data
     assert data == {'case': ["['Case milestone is not set']"]}
 
@@ -161,6 +169,7 @@ def test_create_migration(mocked_fogbugz, admin_client):
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",
+            "parent": None,
             "case": {
                 "id": "33322"
             },
@@ -170,6 +179,9 @@ def test_create_migration(mocked_fogbugz, admin_client):
             ],
             "post_deploy_steps": [
                 {"type": "python", "code": "import some", "position": 1},
+            ],
+            "final_steps": [
+                {"type": "pgsql", "code": "alter table some add column one int", "position": 1},
             ]
         }), content_type='application/json').data
     assert data['uid'] == "234234234234234"
@@ -192,6 +204,7 @@ def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case,
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": migration.uid,
+            "parent": migration.parent,
             "case": {
                 "id": case__id
             },
@@ -201,6 +214,9 @@ def test_update_migration(migration_factory, mocked_fogbugz, admin_client, case,
             ],
             "post_deploy_steps": [
                 {"type": "python", "code": "import some", "position": 1},
+            ],
+            "final_steps": [
+                {"type": "pgsql", "code": "alter table some add column one int", "position": 1},
             ]
         }), content_type='application/json').data
     assert data['uid'] == migration.uid
