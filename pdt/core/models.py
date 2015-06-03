@@ -452,7 +452,7 @@ class MigrationManager(models.Manager):
         uids = {migration.uid: migration for migration in queryset}
         mapping = {
             migration.uid: {migration.parent.uid} if migration.parent else set() for migration in queryset}
-        return [uids[uid] for uid in toposort_flatten(mapping)]
+        return [uids[uid] for uid in toposort_flatten(mapping) if uid in uids]
 
 
 class Migration(models.Model):
