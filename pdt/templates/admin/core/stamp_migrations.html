@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+<!-- BREADCRUMBS -->
+{% block breadcrumbs %}
+    <ul class="grp-horizontal-list">
+        <li><a href="{% url 'admin:index' %}">{% trans "Home" %}</a></li>
+        <li>{% trans 'Stamp' %}</li>
+    </ul>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+
+<p>{% trans "Select stamping parameters:" %}</p>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <p>{% trans "The migrations to be stamped:" %}</p>
+
+    <ul>{{ migrations|unordered_list }}</ul>
+
+    <input type="hidden" name="action" value="stamp_migrations" />
+    <input type="submit" name="apply" value="{% trans "Stamp" %}" />
+</form>
+
+{% endblock %}

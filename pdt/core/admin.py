@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.template import RequestContext
 from django.contrib import admin
 from django import forms
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -389,18 +390,6 @@ class PostDeployMigrationStepInline(admin.StackedInline):
     inline_classes = ('grp-collapse grp-open',)
 
 
-def mark_migrations_reviewed(modeladmin, request, queryset):
-    """Mark migrations reviewed."""
-    queryset.update(reviewed=True)
-mark_migrations_reviewed.short_description = _("Mark selected migrations as reviewed")
-
-
-def mark_migrations_not_reviewed(modeladmin, request, queryset):
-    """Mark migrations as not reviewed."""
-    queryset.update(reviewed=False)
-mark_migrations_not_reviewed.short_description = _("Mark selected migrations as not reviewed")
-
-
 class MigrationAdmin(admin.ModelAdmin):
 
     """Migration admin interface class."""
@@ -425,7 +414,7 @@ class MigrationAdmin(admin.ModelAdmin):
         'fk': ['case', 'parent'],
     }
     inlines = [PreDeployMigrationStepInline, PostDeployMigrationStepInline]
-    actions = [mark_migrations_reviewed, mark_migrations_not_reviewed]
+    actions = ['mark_migrations_reviewed', 'mark_migrations_not_reviewed', 'stamp_migrations']
 
     class Media:
         js = ('core/js/admin/migration_inline.js',)
@@ -456,6 +445,49 @@ class MigrationAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+    def mark_migrations_reviewed(self, request, queryset):
+        """Mark migrations reviewed."""
+        queryset.update(reviewed=True)
+    mark_migrations_reviewed.short_description = _("Mark selected migrations as reviewed")
+
+    def mark_migrations_not_reviewed(self, request, queryset):
+        """Mark migrations as not reviewed."""
+        queryset.update(reviewed=False)
+    mark_migrations_not_reviewed.short_description = _("Mark selected migrations as not reviewed")
+
+    class StampForm(forms.Form):
+        _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+        instance = forms.ModelChoiceField(Instance.objects)
+        log = forms.CharField(widget=AceWidget(mode="sh", **ACE_WIDGET_PARAMS))
+
+    def stamp_migrations(self, request, queryset):
+        """Stamp selected migrations as applied."""
+        form = None
+        form = self.StampForm(
+            initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)},
+            data=request.POST or None)
+
+        if 'apply' in request.POST:
+
+            if form.is_valid():
+                instance = form.cleaned_data['instance']
+                log = form.cleaned_data['log']
+
+                count = 0
+                for migration in queryset:
+                    report = MigrationReport.objects.get_or_create(migration=migration, instance=instance)[0]
+                    report.log = log
+                    report.status = MigrationReport.STATUS_APPLIED
+                    report.save()
+                    count += 1
+                self.message_user(request, _("Successfully stamped {count} migration(s).").format(count=count))
+                return HttpResponseRedirect(request.get_full_path())
+
+        return render(request, 'admin/core/stamp_migrations.html', {
+            'migrations': queryset,
+            'form': form,
+        })
+    stamp_migrations.short_description = _("Stamp selected migrations as applied")
 
 admin.site.register(Migration, MigrationAdmin)
 
