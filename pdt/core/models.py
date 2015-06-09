@@ -449,10 +449,13 @@ class MigrationManager(models.Manager):
         :param queryset: django queryset
         :return: sorted list of `Migration` objects
         """
-        uids = {migration.uid: migration for migration in queryset}
+        first_migration = queryset.first()
+        uids = {migration.uid: migration for migration in (self.filter(
+            case__ci_project=first_migration.case.ci_project,
+        ) if first_migration else self.all())}
         mapping = {
             migration.uid: {migration.parent.uid} if migration.parent else set() for migration in queryset}
-        return [uids[uid] for uid in toposort_flatten(mapping) if uid in uids]
+        return [uids[uid] for uid in toposort_flatten(mapping)]
 
 
 class Migration(models.Model):

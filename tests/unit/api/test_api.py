@@ -106,10 +106,10 @@ def test_migration_filter_instance(admin_client, migration_report_factory, insta
     assert data[0]['uid'] == mr1.migration.uid
 
 
-def test_migration_filter_release(admin_client, migration_report_factory, instance_factory):
+def test_migration_filter_release(admin_client, migration_report_factory, instance_factory, ci_project):
     """Test migration filter when instance parameter is used."""
-    mr1 = migration_report_factory(migration__case__release__number='1520')
-    mr2 = migration_report_factory(migration__case__release__number='1510')
+    mr1 = migration_report_factory(migration__case__release__number='1520', migration__case__ci_project=ci_project)
+    mr2 = migration_report_factory(migration__case__release__number='1510', migration__case__ci_project=ci_project)
     migration_report_factory(migration__case__release=None)
     migration_report_factory(migration__case__release__number='1530')
     data = admin_client.get(

@@ -154,9 +154,6 @@ TEMPLATES = [
     }
 ]
 
-GRAPPELLI_ADMIN_TITLE = 'Paylogic deployment tool'
-GRAPPELLI_INDEX_DASHBOARD = 'pdt.dashboard.CustomIndexDashboard'
-
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader'
@@ -330,3 +327,6 @@ CACHES = {
 }
 
 CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
+
+GRAPPELLI_ADMIN_TITLE = 'Paylogic deployment tool v {version}'.format(version=VERSION)
+GRAPPELLI_INDEX_DASHBOARD = 'pdt.dashboard.CustomIndexDashboard'
