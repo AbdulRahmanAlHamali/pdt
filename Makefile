@@ -17,7 +17,7 @@ BUILD_DEPENDENCIES := $(shell grep -h -v "\#" DEPENDENCIES*)
 DEB_LICENCE := MIT
 DEB_VENDOR := Paylogic
 DEB_CATEGORY := deployment
-DEB_MAINTAINER := Paylogic developers <develpoers@paylogic.eu>
+DEB_MAINTAINER := Paylogic developers <developers@paylogic.eu>
 DEB_DESCRIPTION := Paylogic deployment tool
 DEB_URI := https://github.com/paylogic/pdt
 DEB_USER := pdt
@@ -25,6 +25,8 @@ DEB_GROUP := pdt
 DEB_DIST := $(shell lsb_release -cs)
 VERSION := $(shell cat VERSION)
 DEB_FILE_NAME := pdt_$(VERSION)_amd64.deb
+DEB_REPO_HOST := reprepro@apt.deployment.paylogic.eu
+DEB_REPO_PATH := /data/debian/incoming
 
 env:
 ifndef local_env
@@ -103,11 +105,11 @@ deb: build
 		`grep -v "\#" ../DEPENDENCIES | xargs -I {} echo "--depends="{}` .
 
 upload-deb: deb
-	scp build/$(DEB_FILE_NAME) reprepro@apt.deployment.paylogic.eu:/data/debian/incoming
-	ssh reprepro@apt.deployment.paylogic.eu '\
-		reprepro includedeb $(DEB_DIST) /data/debian/incoming/$(DEB_FILE_NAME) \
+	scp build/$(DEB_FILE_NAME) $(DEB_REPO_HOST):$(DEB_REPO_PATH)
+	ssh $(DEB_REPO_HOST) '\
+		reprepro includedeb $(DEB_DIST) $(DEB_REPO_PATH)/$(DEB_FILE_NAME) \
 		&& reprepro deleteunreferenced \
-		&& rm /data/debian/incoming/$(DEB_FILE_NAME) \
+		&& rm $(DEB_REPO_PATH)/$(DEB_FILE_NAME) \
 		'
 
 dependencies:
