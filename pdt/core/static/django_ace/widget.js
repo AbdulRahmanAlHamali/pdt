@@ -1,4 +1,5 @@
 (function($) {
+    "use strict";
     function getDocHeight() {
         var D = document;
         return Math.max(

@@ -1,4 +1,5 @@
 (function($) {
+    "use strict";
     setTimeout(function() {
         $('.migration_step_type').change(function() {
             var Mode = require("ace/mode/" + $(this).val()).Mode;

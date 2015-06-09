@@ -20,7 +20,6 @@
         (function($) {
             $(document).ready(function() {
                 grappelli.initDateAndTimePicker();
-                // HACK: get rid of currently/change with URL–fields. F**K!!!
                 $('p.url').each(function() {
                     $(this).find("a").remove();
                     var text = $(this).html();

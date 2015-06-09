@@ -20,9 +20,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '&4qvlp7z%qqka*-_3@zk733xenawadi@1+4%7=l%dg@0ma(sr8'
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -59,22 +56,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'pdt.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = 'pdt.wsgi.application'
 
@@ -131,6 +112,16 @@ REST_FRAMEWORK = {
 
 ATOMIC_REQUESTS = True
 
+_TEMPLATE_LOADERS = [
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+]
+
+cfg = yamjam('/etc/pdt/config.yaml;./config.yaml')
+yam_config = cfg['pdt']
+
+DEBUG = yam_config['debug']
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -149,15 +140,14 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 'settings_context_processor.context_processors.settings',
                 "django.core.context_processors.request",
-            )
+            ),
+            'loaders': [
+                ('django.template.loaders.cached.Loader', _TEMPLATE_LOADERS),
+            ] if not DEBUG else _TEMPLATE_LOADERS,
+            'debug': DEBUG
         }
     }
 ]
-
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader'
-)
 
 TEMPLATE_VISIBLE_SETTINGS = (
     'VERSION',
@@ -172,11 +162,9 @@ except ImportError:
     pass
 
 
-cfg = yamjam('/etc/pdt/config.yaml;./config.yaml')
-
 yam_config = cfg['pdt']
 
-DJANGO_SECRET_KEY = yam_config['django_secret_key']
+SECRET_KEY = yam_config['django_secret_key']
 
 RAVEN_CONFIG = {
     'dsn': yam_config['raven']['dsn']
@@ -244,8 +232,6 @@ FOGBUGZ_TOKEN = yam_config['fogbugz']['token']
 FOGBUGZ_CI_PROJECT_FIELD_ID = yam_config['fogbugz']['ci_project_field_id']
 FOGBUGZ_MIGRATION_URL_FIELD_ID = yam_config['fogbugz']['migration_url_field_id']
 AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = yam_config['fogbugz']['url']
-
-TEMPLATE_DEBUG = DEBUG = yam_config['debug']
 
 ALLOWED_HOSTS = ['.{0}'.format(yam_config['hostname'])] if yam_config['hostname'] else []
 

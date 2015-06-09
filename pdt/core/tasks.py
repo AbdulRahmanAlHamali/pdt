@@ -1,6 +1,4 @@
 """Celery tasks."""
-from __future__ import absolute_import
-
 from celery.utils.log import get_task_logger
 
 from celery_once import QueueOnce
