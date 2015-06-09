@@ -161,8 +161,6 @@ except ImportError:
     pass
 
 
-yam_config = cfg['pdt']
-
 SECRET_KEY = yam_config['django_secret_key']
 
 RAVEN_CONFIG = {
