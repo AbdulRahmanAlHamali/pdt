@@ -1,0 +1,321 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-06-09 22:21+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: pdt/core/admin/case.py:48
+msgid "Trigger the sync of the selected cases"
+msgstr ""
+
+#: pdt/core/admin/columns.py:80 pdt/core/models.py:498
+msgid "Migration"
+msgstr ""
+
+#: pdt/core/admin/columns.py:100 pdt/core/models.py:86
+msgid "Instance"
+msgstr ""
+
+#: pdt/core/admin/migration.py:111
+msgid "Parent"
+msgstr ""
+
+#: pdt/core/admin/migration.py:160
+msgid "Mark selected migrations as reviewed"
+msgstr ""
+
+#: pdt/core/admin/migration.py:169
+msgid "Mark selected migrations as not reviewed"
+msgstr ""
+
+#: pdt/core/admin/migration.py:200
+#, python-brace-format
+msgid "Successfully stamped {count} migration(s)."
+msgstr ""
+
+#: pdt/core/admin/migration.py:207
+msgid "Stamp selected migrations as applied"
+msgstr ""
+
+#: pdt/core/admin/mixins.py:62
+msgid "Log"
+msgstr ""
+
+#: pdt/core/admin/release.py:36
+msgid "Generate release notes"
+msgstr ""
+
+#: pdt/core/admin/release.py:37
+msgid "Redirect to the rendered release notes"
+msgstr ""
+
+#: pdt/core/models.py:36
+msgid "Release"
+msgstr ""
+
+#: pdt/core/models.py:37
+msgid "Releases"
+msgstr ""
+
+#: pdt/core/models.py:58
+msgid "CI project"
+msgstr ""
+
+#: pdt/core/models.py:59
+msgid "CI projects"
+msgstr ""
+
+#: pdt/core/models.py:87
+msgid "Instances"
+msgstr ""
+
+#: pdt/core/models.py:386
+#: pdt/templates/admin/core/release_notes/_single.html:12
+msgid "Case"
+msgstr ""
+
+#: pdt/core/models.py:387
+msgid "Cases"
+msgstr ""
+
+#: pdt/core/models.py:412
+msgid "Case edit"
+msgstr ""
+
+#: pdt/core/models.py:413
+msgid "Case edits"
+msgstr ""
+
+#: pdt/core/models.py:424
+msgid "Migration URL"
+msgstr ""
+
+#: pdt/core/models.py:425
+msgid "Migration reviewed"
+msgstr ""
+
+#: pdt/core/models.py:426
+msgid "Migration unreviewed"
+msgstr ""
+
+#: pdt/core/models.py:427 pdt/core/models.py:617
+msgid "Migration report"
+msgstr ""
+
+#: pdt/core/models.py:428 pdt/core/models.py:735
+msgid "Deployment report"
+msgstr ""
+
+#: pdt/core/models.py:442
+msgid "Case category"
+msgstr ""
+
+#: pdt/core/models.py:443
+msgid "Case categories"
+msgstr ""
+
+#: pdt/core/models.py:499
+msgid "Migrations"
+msgstr ""
+
+#: pdt/core/models.py:537
+msgid "Migration step"
+msgstr ""
+
+#: pdt/core/models.py:538
+msgid "Migration steps"
+msgstr ""
+
+#: pdt/core/models.py:574
+msgid "Pre-deploy migration step"
+msgstr ""
+
+#: pdt/core/models.py:575
+msgid "Pre-deploy migration steps"
+msgstr ""
+
+#: pdt/core/models.py:585
+msgid "Post-deploy migration step"
+msgstr ""
+
+#: pdt/core/models.py:586
+msgid "Post-deploy migration steps"
+msgstr ""
+
+#: pdt/core/models.py:596
+msgid "Final migration step"
+msgstr ""
+
+#: pdt/core/models.py:597
+msgid "Final migration steps"
+msgstr ""
+
+#: pdt/core/models.py:618
+msgid "Migration reports"
+msgstr ""
+
+#: pdt/core/models.py:695
+msgid "Migration step report"
+msgstr ""
+
+#: pdt/core/models.py:696
+msgid "Migration step reports"
+msgstr ""
+
+#: pdt/core/models.py:736
+msgid "Deployment reports"
+msgstr ""
+
+#: pdt/core/views.py:100
+#, python-brace-format
+msgid "Release {number}"
+msgstr ""
+
+#: pdt/core/views.py:113
+msgid "Release notes overview"
+msgstr ""
+
+#: pdt/dashboard.py:16
+msgid "Deployment and migration data"
+msgstr ""
+
+#: pdt/dashboard.py:24
+msgid "Administration"
+msgstr ""
+
+#: pdt/dashboard.py:32
+msgid "Configuration"
+msgstr ""
+
+#: pdt/dashboard.py:40
+msgid "Links"
+msgstr ""
+
+#: pdt/dashboard.py:44
+msgid "Browsable API"
+msgstr ""
+
+#: pdt/dashboard.py:49 pdt/templates/admin/core/release_notes/single.html:6
+msgid "Release notes"
+msgstr ""
+
+#: pdt/dashboard.py:58
+msgid "Recent Actions"
+msgstr ""
+
+#: pdt/templates/admin/constance/change_list.html:43
+#: pdt/templates/admin/core/release_notes/base.html:8
+#: pdt/templates/admin/core/release_notes/single.html:5
+#: pdt/templates/admin/core/stamp_migrations.html:7
+msgid "Home"
+msgstr ""
+
+#: pdt/templates/admin/constance/change_list.html:71
+msgid "Name"
+msgstr ""
+
+#: pdt/templates/admin/constance/change_list.html:76
+msgid "Default"
+msgstr ""
+
+#: pdt/templates/admin/constance/change_list.html:81
+msgid "Value"
+msgstr ""
+
+#: pdt/templates/admin/constance/change_list.html:86
+msgid "Is modified"
+msgstr ""
+
+#: pdt/templates/admin/constance/change_list.html:120
+msgid "Save"
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/_single.html:3
+#, python-format
+msgid "Release %(release_number)s is expected to go live on %(release_date)s."
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:4
+msgid "Paylogic Platform"
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:6
+msgid "How to read this document"
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:7
+msgid "Here are some hints about how to read this document:"
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:9
+msgid "Every release has a note about when it’s expected to go live."
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:11
+msgid ""
+"Cases are spread out over categories, these should be fairly self "
+"explanatory:"
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:19
+msgid ""
+"Changes that are made after the release notes were initially written and "
+"communicated are marked as such to avoid confusion:"
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:22
+msgid ""
+"If a case is marked underlined it was added to the release (after the "
+"release initially went to staging)."
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:24
+msgid ""
+"If a case is marked strike through it has been removed from the release."
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:27
+msgid ""
+"The release notes are maintained by the Operational IT team, so if you have "
+"comments or suggestions feel free to <a href=\"mailto:operational-"
+"it@paylogic.com\">contact them</a>."
+msgstr ""
+
+#: pdt/templates/admin/core/release_notes/overview.html:32
+#, python-format
+msgid "Release %(release.number)s"
+msgstr ""
+
+#: pdt/templates/admin/core/stamp_migrations.html:8
+#: pdt/templates/admin/core/stamp_migrations.html:30
+msgid "Stamp"
+msgstr ""
+
+#: pdt/templates/admin/core/stamp_migrations.html:19
+msgid "Select stamping parameters:"
+msgstr ""
+
+#: pdt/templates/admin/core/stamp_migrations.html:25
+msgid "The migrations to be stamped:"
+msgstr ""
+
+#: pdt/templates/rest_framework/api.html:20
+msgid "Admin interface"
+msgstr ""
+
+#: pdt/urls.py:10
+msgid "Dashboard"
+msgstr ""
