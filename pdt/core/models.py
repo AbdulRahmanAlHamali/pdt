@@ -32,6 +32,10 @@ class Release(models.Model):
 
     """Release."""
 
+    class Meta:
+        verbose_name = _("Release")
+        verbose_name_plural = _("Releases")
+
     number = models.PositiveIntegerField(blank=False, unique=True, db_index=True)
     datetime = models.DateTimeField(blank=False, default=timezone.now)
     description = models.TextField(blank=True)
@@ -49,6 +53,10 @@ class Release(models.Model):
 class CIProject(models.Model):
 
     """Continuous integration project."""
+
+    class Meta:
+        verbose_name = _("CI project")
+        verbose_name_plural = _("CI projects")
 
     name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
     description = models.TextField(blank=True)
@@ -75,6 +83,8 @@ class Instance(models.Model):
     description = models.TextField(blank=True)
 
     class Meta:
+        verbose_name = _("Instance")
+        verbose_name_plural = _("Instances")
         unique_together = (("name", "ci_project"),)
         index_together = (("id", "name"),)
 
@@ -373,6 +383,8 @@ class Case(models.Model):
     tags = TaggableManager(blank=True)
 
     class Meta:
+        verbose_name = _("Case")
+        verbose_name_plural = _("Cases")
         index_together = (("ci_project", "release"), ("id", "title"))
 
     objects = CaseManager()
@@ -395,6 +407,10 @@ class Case(models.Model):
 class CaseEdit(models.Model):
 
     """Bug tracking system case edit."""
+
+    class Meta:
+        verbose_name = _("Case edit")
+        verbose_name_plural = _("Case edits")
 
     case = models.ForeignKey(Case, blank=False, related_name='edits')
 
@@ -423,7 +439,8 @@ class CaseCategory(models.Model):
     class Meta:
         index_together = (("id", "position"),)
         ordering = ['position']
-        verbose_name_plural = "Case categories"
+        verbose_name = _("Case category")
+        verbose_name_plural = _("Case categories")
 
     position = models.PositiveSmallIntegerField(db_index=True)
     title = models.CharField(max_length=255, blank=False, db_index=True)
@@ -478,6 +495,8 @@ class Migration(models.Model):
     objects = MigrationManager()
 
     class Meta:
+        verbose_name = _("Migration")
+        verbose_name_plural = _("Migrations")
         index_together = (("id", "uid", "case"), ("category", "reviewed"))
 
     @staticmethod
@@ -515,6 +534,8 @@ class MigrationStep(models.Model):
     """Migration step."""
 
     class Meta:
+        verbose_name = _("Migration step")
+        verbose_name_plural = _("Migration steps")
         index_together = (("id", "position"),)
         ordering = ['position']
 
@@ -549,6 +570,10 @@ class PreDeployMigrationStep(MigrationStep):
 
     """Pre-deploy phase migration step."""
 
+    class Meta:
+        verbose_name = _("Pre-deploy migration step")
+        verbose_name_plural = _("Pre-deploy migration steps")
+
     migration = models.ForeignKey(Migration, blank=False, related_name="pre_deploy_steps")
 
 
@@ -556,12 +581,20 @@ class PostDeployMigrationStep(MigrationStep):
 
     """Post-deploy phase migration step."""
 
+    class Meta:
+        verbose_name = _("Post-deploy migration step")
+        verbose_name_plural = _("Post-deploy migration steps")
+
     migration = models.ForeignKey(Migration, blank=False, related_name="post_deploy_steps")
 
 
 class FinalMigrationStep(MigrationStep):
 
     """Final phase migration step."""
+
+    class Meta:
+        verbose_name = _("Final migration step")
+        verbose_name_plural = _("Final migration steps")
 
     migration = models.ForeignKey(Migration, blank=False, related_name="final_steps")
 
@@ -581,6 +614,8 @@ class MigrationReport(models.Model):
     )
 
     class Meta:
+        verbose_name = _("Migration report")
+        verbose_name_plural = _("Migration reports")
         unique_together = (("migration", "instance"),)
         index_together = (("id", "migration"), ("migration", "instance", "datetime", "id"))
         ordering = ['migration', 'instance', 'datetime', 'id']
@@ -657,6 +692,8 @@ class MigrationStepReport(models.Model):
     )
 
     class Meta:
+        verbose_name = _("Migration step report")
+        verbose_name_plural = _("Migration step reports")
         unique_together = (("report", "step"),)
         index_together = (("report", "step", "status"), ("report", "step", "datetime", "id"))
         ordering = ["report", "step", "datetime", "id"]
@@ -695,6 +732,8 @@ class DeploymentReport(models.Model):
     )
 
     class Meta:
+        verbose_name = _("Deployment report")
+        verbose_name_plural = _("Deployment reports")
         index_together = (("release", "instance", "datetime", "id"),)
         ordering = ['release', 'instance', 'datetime', "id"]
 

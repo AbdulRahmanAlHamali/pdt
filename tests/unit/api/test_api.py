@@ -71,7 +71,7 @@ def test_migration_filter_status(admin_client, migration_report_factory):
 
 
 def test_migration_filter_ci_project(admin_client, migration_factory):
-    """Test migration filter when ci project parameter is used."""
+    """Test migration filter when CI project parameter is used."""
     migration_factory(case__ci_project__name='some-other-project')
     migration_factory(case__ci_project__name='some-project')
     data = admin_client.get(
@@ -236,7 +236,7 @@ def test_create_instance(admin_client, ci_project):
 
 
 def test_create_instance_no_ci_project(admin_client):
-    """Test create instance with wrong ci project passed."""
+    """Test create instance with wrong CI project passed."""
     data = admin_client.post(
         '/api/instances/', data=json.dumps({
             "name": "Some instance name",
