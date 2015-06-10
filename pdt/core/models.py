@@ -377,7 +377,7 @@ class Case(models.Model):
     description = models.TextField(blank=True)
     project = models.CharField(max_length=255, blank=True)
     area = models.CharField(max_length=255, blank=True)
-    ci_project = models.ForeignKey(CIProject, blank=False)
+    ci_project = models.ForeignKey(CIProject, blank=False, related_name='cases')
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
     tags = TaggableManager(blank=True)
@@ -430,6 +430,10 @@ class CaseEdit(models.Model):
 
     type = models.CharField(max_length=50, choices=TYPE_CHOICES, blank=False)
     params = JSONField(default=None)
+
+    def __str__(self):
+        """String representation."""
+        return '{self.case}: {self.type}: {self.params}'.format(self=self)
 
 
 class CaseCategory(models.Model):
@@ -747,7 +751,7 @@ class DeploymentReport(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.release}: {self.instance}: {self.datetime}: {status}'.format(
+        return '{self.id}: {self.release}: {self.instance}: {self.datetime}: {status}'.format(
             self=self, status=self.get_status_display())
 
 

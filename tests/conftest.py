@@ -85,6 +85,12 @@ class CaseFactory(factory.django.DjangoModelFactory):
     release = factory.SubFactory(ReleaseFactory)
     ci_project = factory.SubFactory(CIProjectFactory)
 
+    @factory.post_generation
+    def tags(obj, create, extracted, **kwargs):
+        """Set case tags."""
+        if extracted:
+            obj.tags.set(*extracted)
+
 
 class MigrationStepFactory(factory.django.DjangoModelFactory):
 
