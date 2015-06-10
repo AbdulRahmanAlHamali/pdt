@@ -23,8 +23,8 @@ def update_case_from_fogbugz(case_id):
     """Update case info from fogbugz."""
     logger.info("Start updating case %s", case_id)
     Case.objects.update_from_fogbugz(case_id)
-    notify_deployed_case(case_id)
-    notify_migrated_case(case_id)
+    notify_deployed_case.apply_async(kwargs=dict(case_id=case_id))
+    notify_migrated_case.apply_async(kwargs=dict(case_id=case_id))
     logger.info("Task finished")
 
 
