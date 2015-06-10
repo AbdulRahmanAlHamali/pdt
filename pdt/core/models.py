@@ -389,6 +389,8 @@ class Case(models.Model):
 
     objects = CaseManager()
 
+    tracker = FieldTracker()
+
     @staticmethod
     def autocomplete_search_fields():
         """Auto complete search fields."""
@@ -751,8 +753,8 @@ class DeploymentReport(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.id}: {self.release}: {self.instance}: {self.datetime}: {status}'.format(
-            self=self, status=self.get_status_display())
+        return '{id}: {self.release}: {self.instance}: {self.datetime}: {status}'.format(
+            id=self.id, self=self, status=self.get_status_display())
 
 
 def deployment_report_changes(sender, instance, **kwargs):

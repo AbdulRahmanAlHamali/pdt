@@ -41,5 +41,5 @@ def test_migration_step_report_unicode(migration_report_factory):
 @pytest.mark.django_db
 def test_deployment_report_unicode(deployment_report):
     """Test deployment report unicode."""
-    assert str(deployment_report) == '{self.release}: {self.instance}: {self.datetime}: {status}'.format(
+    assert str(deployment_report) == '{self.id}: {self.release}: {self.instance}: {self.datetime}: {status}'.format(
         self=deployment_report, status=deployment_report.get_status_display())
