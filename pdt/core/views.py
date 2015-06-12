@@ -1,8 +1,10 @@
 """PDT core views."""
 import collections
+import functools
 import logging
 import pprint
 
+from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
@@ -18,6 +20,8 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
+login_required = functools.partial(login_required, login_url='admin:login')
 
 
 def release_column(getter=lambda obj: obj.release, order='release__name'):
@@ -91,6 +95,7 @@ def get_release_notes(request, release):
         release=release, categorized_cases=categorized_cases, categories=categories), RequestContext(request))
 
 
+@login_required(login_url='admin:login')
 def release_notes(request, release_number, **kwargs):
     """Release notes view."""
     release = get_object_or_404(Release.objects.filter(number=release_number))
@@ -101,6 +106,7 @@ def release_notes(request, release_number, **kwargs):
     ))
 
 
+@login_required(login_url='admin:login')
 def release_notes_overview(request):
     """Release notes overview view."""
     notes = []

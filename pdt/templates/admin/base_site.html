@@ -17,3 +17,33 @@
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
+
+
+{% block user-tools %}
+    {% if user.is_authenticated %}
+        <ul id="grp-user-tools">
+            <!-- Userlinks -->
+            {% block userlinks %}
+                <!-- Username -->
+                <li class="grp-user-options-container grp-collapse grp-closed {% if request.session.original_user %}grp-switch-user-is-target{% endif %}">
+                    <a href="javascript://" class="user-options-handler grp-collapse-handler {% if request.session.original_user %}grp-switch-user-is-target{% else %}grp-switch-user-is-original{% endif %}">{% firstof user.get_short_name user.get_username %}</a>
+                    <ul class="grp-user-options">
+                        <!-- Change Password -->
+                        {% if user.has_usable_password %}
+                            <li><a href="{% url 'admin:password_change' %}" class="grp-change-password">{% trans 'Change password' %}</a></li>
+                        {% endif %}
+                        <!-- Logout -->
+                        <li><a href="{% url 'admin:logout' %}" class="grp-logout">{% trans 'Log out' %}</a></li>
+                        <!-- Switch -->
+                        {% switch_user_dropdown %}
+                    </ul>
+                </li>
+                <!-- Documentation -->
+                {% url 'django-admindocs-docroot' as docsroot %}
+                {% if docsroot %}
+                    <li><a href="{{ docsroot }}">{% trans 'Documentation' %}</a></li>
+                {% endif %}
+            {% endblock %}
+        </ul>
+    {% endif %}
+{% endblock %}

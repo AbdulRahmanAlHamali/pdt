@@ -2,9 +2,10 @@
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import include, url
 from django.contrib import admin
-from adminplus.sites import AdminSitePlus
 
-admin.site = AdminSitePlus()
+from .admin import UserAdmin
+
+admin.site = UserAdmin()
 admin.autodiscover()
 
 admin.site.index_title = _('Dashboard')
