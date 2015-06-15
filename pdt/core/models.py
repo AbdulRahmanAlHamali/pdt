@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 
+
 from colorama import Fore
 from toposort import toposort_flatten
 
@@ -81,7 +82,7 @@ class Instance(models.Model):
     """
 
     name = models.CharField(max_length=255, blank=False, db_index=True)
-    ci_project = models.ForeignKey(CIProject, blank=False, related_name="instances")
+    ci_project = models.ForeignKey(CIProject, blank=False, related_name="instances", verbose_name=_('CI project'))
     description = models.TextField(blank=True)
 
     class Meta:
@@ -385,7 +386,7 @@ class Case(models.Model):
     description = models.TextField(blank=True)
     project = models.CharField(max_length=255, blank=True)
     area = models.CharField(max_length=255, blank=True)
-    ci_project = models.ForeignKey(CIProject, blank=False, related_name='cases')
+    ci_project = models.ForeignKey(CIProject, blank=False, related_name='cases', verbose_name=_('CI project'))
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
     tags = TaggableManager(blank=True)

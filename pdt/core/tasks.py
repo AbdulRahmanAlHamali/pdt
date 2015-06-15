@@ -4,6 +4,7 @@ from celery.utils.log import get_task_logger
 from celery_once import QueueOnce
 
 from django.conf import settings
+from django.db import IntegrityError
 
 import fogbugz
 
@@ -23,9 +24,14 @@ logger = get_task_logger(__name__)
 def update_case_from_fogbugz(case_id):
     """Update case info from fogbugz."""
     logger.info("Start updating case %s", case_id)
-    Case.objects.update_from_fogbugz(case_id)
-    notify_deployed_case.apply_async(kwargs=dict(case_id=case_id))
-    notify_migrated_case.apply_async(kwargs=dict(case_id=case_id))
+    try:
+        Case.objects.update_from_fogbugz(case_id)
+    except IntegrityError:
+        # can be the case without ci project assigned
+        pass
+    else:
+        notify_deployed_case.apply_async(kwargs=dict(case_id=case_id))
+        notify_migrated_case.apply_async(kwargs=dict(case_id=case_id))
     logger.info("Task finished")
 
 
