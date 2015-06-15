@@ -15,7 +15,7 @@ def tags(obj):
     return ', '.join(tag.name for tag in obj.tags.all())
 
 
-def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name'):
+def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name', short_description=_('CI project')):
     """Get CI project column function.
 
     :param getter: function to get the CI project object for given context object
@@ -24,17 +24,18 @@ def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name
     :return: column function
     :rtype: callable
     """
-    def ci_project(self):
+    def column(self):
         ci_project = getter(self)
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
                 url=reverse("admin:core_ciproject_change", args=(ci_project.id,)),
                 name=ci_project.name))
-    ci_project.admin_order_field = order
-    return ci_project
+    column.admin_order_field = order
+    column.short_description = short_description
+    return column
 
 
-def case_column(getter=lambda obj: obj.case, order='case__id'):
+def case_column(getter=lambda obj: obj.case, order='case__id', short_description=_('Case')):
     """Get case column function.
 
     :param getter: function to get the Case object for given context object
@@ -43,7 +44,7 @@ def case_column(getter=lambda obj: obj.case, order='case__id'):
     :return: column function
     :rtype: callable
     """
-    def case(self):
+    def column(self):
         """Get case link."""
         case = getter(self)
         return mark_safe(
@@ -53,11 +54,12 @@ def case_column(getter=lambda obj: obj.case, order='case__id'):
                 id=case.id,
                 title=case.title)
         )
-    case.admin_order_field = order
-    return case
+    column.admin_order_field = order
+    column.short_description = short_description
+    return column
 
 
-def release_column(getter=lambda obj: obj.release, order='release__name'):
+def release_column(getter=lambda obj: obj.release, order='release__name', short_description=_('Release')):
     """Return release column function.
 
     :param getter: function to get the Release object for given context object
@@ -66,15 +68,16 @@ def release_column(getter=lambda obj: obj.release, order='release__name'):
     :return: column function
     :rtype: callable
     """
-    def release(self):
+    def column(self):
         """Get release name."""
         release = getter(self)
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
                 url=reverse("admin:core_release_change", args=(release.id,)),
                 name=release)) if release else ''
-    release.admin_order_field = order
-    return release
+    column.admin_order_field = order
+    column.short_description = short_description
+    return column
 
 
 def migration_column(getter=lambda obj: obj.migration, order='migration__uid', short_description=_('Migration')):
