@@ -38,11 +38,13 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         return mark_safe(
             '<ul>{0}</ul>'.format(
                 "".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
-                    url=reverse("admin:core_deploymentreport_change", args=(report.id,)),
-                    name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
-                ) for report in (
-                    self.release.deployment_reports.filter(
-                        instance__ci_project=self.ci_project, status=DeploymentReport.STATUS_DEPLOYED)
+                    url=reverse("admin:core_deploymentreport_change", args=(instance.deployment_reports.last().id,)),
+                    name=instance.name, datetime=instance.deployment_reports.last().datetime,
+                    status=instance.deployment_reports.last().get_status_display()
+                ) for instance in (
+                    self.ci_project.instances.filter(
+                        deployment_reports__release=self.release,
+                        deployment_reports__status=DeploymentReport.STATUS_DEPLOYED).distinct()
                     if self.release else []))
             )
         )
