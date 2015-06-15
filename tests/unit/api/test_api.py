@@ -9,11 +9,11 @@ from pdt.core.models import Case, MigrationReport, DeploymentReport
 
 def test_migration_filter_exclude_status(admin_client, migration_report_factory, equals_any):
     """Test migration filter when exclude status parameter is used."""
-    mr1 = migration_report_factory(status='apl')
+    mr1 = migration_report_factory(status='apl', instance__name='1')
     mr1.status = 'apl'
     mr1.save()
     mr2 = migration_report_factory(
-        status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project)
+        status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project, instance__name='2')
     data = admin_client.get(
         '/api/migrations/', dict(exclude_status='apl', ci_project=mr1.instance.ci_project.name)).data
     assert len(data) == 1
