@@ -632,7 +632,7 @@ class MigrationReport(models.Model):
         ordering = ['migration', 'instance', 'datetime', 'id']
 
     migration = models.ForeignKey(Migration, blank=False, related_name='reports')
-    instance = models.ForeignKey(Instance, blank=False)
+    instance = models.ForeignKey(Instance, blank=False, related_name='migration_reports')
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
     datetime = models.DateTimeField(db_index=True, auto_now=True)
     log = models.TextField(blank=True)
