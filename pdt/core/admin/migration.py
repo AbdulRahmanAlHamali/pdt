@@ -103,7 +103,7 @@ class MigrationAdmin(admin.ModelAdmin):
         """Migration 'applied on' column."""
         return mark_safe(
             '<ul>{0}</ul>'.format("".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
-                url=reverse("admin:core_deploymentreport_change", args=(report.id,)),
+                url=reverse("admin:core_migrationreport_change", args=(report.id,)),
                 name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
             ) for report in self.reports.all())))
 
