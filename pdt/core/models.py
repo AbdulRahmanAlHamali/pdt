@@ -261,23 +261,28 @@ class CaseManager(models.Manager):
                 'Migration was applied partially on {instance} with log:\n{log}'
                 '\nSee the detailed migration report here: {report_url}.'),
         }
-        report = MigrationReport.objects.get(instance=instance, migration=case.migration)
-        kwargs = {}
-        if report.status == MigrationReport.STATUS_APPLIED:
-            kwargs['sTags'] = ','.join(case_info['tags'].union({'migration-applied-{0}'.format(instance.name)}))
-        response = fb.edit(
-            ixbug=case.id,
-            sEvent=messages[report.status].format(
-                instance=instance.name,
-                report_url='http://{0}{1}'.format(
-                    settings.HOST_NAME,
-                    reverse(
-                        'admin:core_migrationreport_change',
-                        args=(report.id,))),
-                log=report.log),
-            **kwargs
-        )
-        return response
+        try:
+            migration = case.migration
+        except Migration.DoesNotExist:
+            pass
+        else:
+            report = MigrationReport.objects.get(instance=instance, migration=migration)
+            kwargs = {}
+            if report.status == MigrationReport.STATUS_APPLIED:
+                kwargs['sTags'] = ','.join(case_info['tags'].union({'migration-applied-{0}'.format(instance.name)}))
+            response = fb.edit(
+                ixbug=case.id,
+                sEvent=messages[report.status].format(
+                    instance=instance.name,
+                    report_url='http://{0}{1}'.format(
+                        settings.HOST_NAME,
+                        reverse(
+                            'admin:core_migrationreport_change',
+                            args=(report.id,))),
+                    log=report.log),
+                **kwargs
+            )
+            return response
 
     def update_to_fogbugz_deployment_report(self, case, fb, case_info, params):
         """Update the case about the deployment.

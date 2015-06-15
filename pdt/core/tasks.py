@@ -82,17 +82,18 @@ def update_cases_to_fogbugz():
 def notify_deployed_case(case_id):
     """Notify previously not notified case which was deployed."""
     logger.info("Start notifying deployed but not notified case")
-    schedule_update = False
-    case = Case.objects.get(id=case_id)
-    tags = set(case.tags.names())
-    for instance in case.ci_project.instances.all():
-        if 'deployed-{0}'.format(instance.name) not in tags:
-            CaseEdit.objects.get_or_create(case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=dict(
-                report=instance.deployment_reports.filter(
-                    status=DeploymentReport.STATUS_DEPLOYED).order_by('-id')[0].id))
-            schedule_update = True
-    if schedule_update:
-        update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
+    case = Case.objects.get(id=case_id, release__isnull=False)
+    if case:
+        schedule_update = False
+        tags = set(case.tags.names())
+        for instance in case.ci_project.instances.all():
+            if 'deployed-{0}'.format(instance.name) not in tags:
+                CaseEdit.objects.get_or_create(case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=dict(
+                    report=instance.deployment_reports.filter(
+                        status=DeploymentReport.STATUS_DEPLOYED).order_by('-id')[0].id))
+                schedule_update = True
+        if schedule_update:
+            update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
     logger.info("Task finished")
 
 
@@ -100,14 +101,15 @@ def notify_deployed_case(case_id):
 def notify_migrated_case(case_id):
     """Notify previously not notified case whose migration were applied."""
     logger.info("Start notifying migrated but not notified case")
-    case = Case.objects.get(id=case_id)
-    schedule_update = False
-    tags = set(case.tags.names())
-    for instance in case.ci_project.instances.all():
-        if 'migration-applied-{0}'.format(instance.name) not in tags:
-            CaseEdit.objects.get_or_create(case=case, type=CaseEdit.TYPE_MIGRATION_REPORT, params=dict(
-                instance=instance.id))
-            schedule_update = True
-    if schedule_update:
-        update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
+    case = Case.objects.get(id=case_id, migration__isnull=False)
+    if case:
+        schedule_update = False
+        tags = set(case.tags.names())
+        for instance in case.ci_project.instances.all():
+            if 'migration-applied-{0}'.format(instance.name) not in tags:
+                CaseEdit.objects.get_or_create(case=case, type=CaseEdit.TYPE_MIGRATION_REPORT, params=dict(
+                    instance=instance.id))
+                schedule_update = True
+        if schedule_update:
+            update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
     logger.info("Task finished")
