@@ -37,10 +37,10 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         """Case 'deployed on' column."""
         return mark_safe(
             '<ul>{0}</ul>'.format(
-                "".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
-                    url=reverse("admin:core_deploymentreport_change", args=(instance.deployment_reports.last().id,)),
-                    name=instance.name, datetime=instance.deployment_reports.last().datetime,
-                    status=instance.deployment_reports.last().get_status_display()
+                "".join('<li><a href="{url}">{ci_project}: {name}</a></li>'.format(
+                    url=reverse("admin:core_instance_change", args=(instance.id,)),
+                    ci_project=self.ci_project,
+                    name=instance.name,
                 ) for instance in (
                     self.ci_project.instances.filter(
                         deployment_reports__release=self.release,
