@@ -83,8 +83,11 @@ def update_cases_to_fogbugz():
 def notify_deployed_case(case_id):
     """Notify previously not notified case which was deployed."""
     logger.info("Start notifying deployed but not notified case")
-    case = Case.objects.get(id=case_id, release__isnull=False)
-    if case:
+    try:
+        case = Case.objects.get(id=case_id, release__isnull=False)
+    except Case.DoesNotExist:
+        pass
+    else:
         schedule_update = False
         tags = set(case.tags.names())
         for instance in case.ci_project.instances.all():
@@ -105,8 +108,11 @@ def notify_deployed_case(case_id):
 def notify_migrated_case(case_id):
     """Notify previously not notified case whose migration were applied."""
     logger.info("Start notifying migrated but not notified case")
-    case = Case.objects.get(id=case_id, migration__isnull=False)
-    if case:
+    try:
+        case = Case.objects.get(id=case_id, migration__isnull=False)
+    except Case.DoesNotExist:
+        pass
+    else:
         schedule_update = False
         tags = set(case.tags.names())
         for instance in case.ci_project.instances.all():
