@@ -19,5 +19,8 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 if hasattr(settings, 'RAVEN_CONFIG'):
     # Celery signal registration
-    client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
-    register_signal(client)
+    try:
+        client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
+        register_signal(client)
+    except ValueError:
+        pass

@@ -35,6 +35,7 @@ class Release(models.Model):
     class Meta:
         verbose_name = _("Release")
         verbose_name_plural = _("Releases")
+        ordering = ['number']
 
     number = models.PositiveIntegerField(blank=False, unique=True, db_index=True)
     datetime = models.DateTimeField(blank=False, default=timezone.now)
@@ -57,6 +58,7 @@ class CIProject(models.Model):
     class Meta:
         verbose_name = _("CI project")
         verbose_name_plural = _("CI projects")
+        ordering = ['name']
 
     name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
     description = models.TextField(blank=True)
@@ -87,6 +89,7 @@ class Instance(models.Model):
         verbose_name_plural = _("Instances")
         unique_together = (("name", "ci_project"),)
         index_together = (("id", "name"),)
+        ordering = ['name', 'ci_project']
 
     @staticmethod
     def autocomplete_search_fields():

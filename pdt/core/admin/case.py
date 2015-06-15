@@ -4,7 +4,10 @@ from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from ..models import Case
+from ..models import (
+    Case,
+    DeploymentReport,
+)
 from ..tasks import update_case_to_fogbugz
 
 from .mixins import (
@@ -37,7 +40,8 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
                 url=reverse("admin:core_deploymentreport_change", args=(report.id,)),
                 name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
             ) for report in (self.release.deployment_reports.filter(
-                instance__ci_project=self.ci_project) if self.release else []))))
+                instance__ci_project=self.ci_project, status=DeploymentReport.STATUS_DEPLOYED)
+                if self.release else []))))
 
     list_display = (
         'id', title, ci_project_column(), release_column(), migration_column(), 'project', 'area', tags, deployed_on)
