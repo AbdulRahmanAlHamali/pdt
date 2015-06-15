@@ -88,7 +88,9 @@ def notify_deployed_case(case_id):
         schedule_update = False
         tags = set(case.tags.names())
         for instance in case.ci_project.instances.all():
-            report = instance.deployment_reports.filter(status=DeploymentReport.STATUS_DEPLOYED).order_by('-id').first()
+            report = case.release.deployment_reports.filter(
+                instance=instance,
+                status=DeploymentReport.STATUS_DEPLOYED).order_by('-id').first()
             if report and 'deployed-{0}'.format(instance.name) not in tags:
                 CaseEdit.objects.get_or_create(
                     case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=dict(

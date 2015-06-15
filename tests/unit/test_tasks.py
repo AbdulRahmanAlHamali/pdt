@@ -17,13 +17,16 @@ def test_notify_deployed_case(mocked_update_case_to_fogbugz, db, case_factory, d
     deployed_case = case_factory(tags=['deployed-{0}'.format(instance.name)], ci_project=instance.ci_project)
     deployment_report_factory(
         status=DeploymentReport.STATUS_DEPLOYED,
+        release=deployed_case.release,
         instance=instance)
     not_deployed_case = case_factory(ci_project=instance.ci_project)
     deployment_report_factory(
         status=DeploymentReport.STATUS_DEPLOYED,
+        release=not_deployed_case.release,
         instance=instance)
     new_report = deployment_report_factory(
         status=DeploymentReport.STATUS_DEPLOYED,
+        release=not_deployed_case.release,
         instance=instance)
     deployed_case.edits.all().delete()
     not_deployed_case.edits.all().delete()
