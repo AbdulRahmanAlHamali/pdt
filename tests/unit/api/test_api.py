@@ -15,7 +15,8 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
     mr2 = migration_report_factory(
         status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project, instance__name='2')
     data = admin_client.get(
-        '/api/migrations/', dict(exclude_status='apl', ci_project=mr1.instance.ci_project.name)).data
+        '/api/migrations/', dict(
+            exclude_status='apl', instance=mr1.instance.name, ci_project=mr1.instance.ci_project.name)).data
     assert len(data) == 1
     migration = mr2.migration
     assert data[0] == {

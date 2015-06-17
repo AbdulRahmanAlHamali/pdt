@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django_ace import AceWidget
 
 from ..models import (
+    FinalMigrationStep,
     Instance,
     Migration,
     MigrationReport,
@@ -71,6 +72,14 @@ class PostDeployMigrationStepForm(MigrationStepForm):
         model = PostDeployMigrationStep
 
 
+class FinalMigrationStepForm(MigrationStepForm):
+
+    """Final phase migration step form."""
+
+    class Meta(MigrationStepForm.Meta):
+        model = FinalMigrationStep
+
+
 class PreDeployMigrationStepInline(admin.StackedInline):
 
     """Pre-deploy migration step inline."""
@@ -89,6 +98,18 @@ class PostDeployMigrationStepInline(admin.StackedInline):
 
     form = PostDeployMigrationStepForm
     model = PostDeployMigrationStep
+    extra = 0
+    sortable_field_name = "position"
+    classes = ('grp-collapse grp-open',)
+    inline_classes = ('grp-collapse grp-open',)
+
+
+class FinalMigrationStepInline(admin.StackedInline):
+
+    """Final migration step inline."""
+
+    form = FinalMigrationStepForm
+    model = FinalMigrationStep
     extra = 0
     sortable_field_name = "position"
     classes = ('grp-collapse grp-open',)
@@ -118,7 +139,7 @@ class MigrationAdmin(admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['case', 'parent'],
     }
-    inlines = [PreDeployMigrationStepInline, PostDeployMigrationStepInline]
+    inlines = [PreDeployMigrationStepInline, PostDeployMigrationStepInline, FinalMigrationStepInline]
     actions = ['mark_migrations_reviewed', 'mark_migrations_not_reviewed', 'stamp_migrations']
 
     class Media:

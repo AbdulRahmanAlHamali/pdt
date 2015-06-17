@@ -4,7 +4,10 @@ import logging
 from django.db.models import Q
 
 import django_filters
-from rest_framework import viewsets
+from rest_framework import (
+    exceptions,
+    viewsets,
+)
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -149,6 +152,8 @@ class MigrationFilter(django_filters.FilterSet):
 
     def filter_exclude_status(self, queryset, value):
         """Implement ``exclude`` filter by status."""
+        if not self.form.cleaned_data['instance']:
+            raise exceptions.ValidationError('Instance is required to exclude status')
         return queryset.filter(
             Q(reports__status__gt=value) | Q(reports__status__lt=value) |
             Q(reports__isnull=True))

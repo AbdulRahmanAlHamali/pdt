@@ -714,7 +714,7 @@ class MigrationStepReport(models.Model):
         ordering = ["report", "step", "datetime", "id"]
 
     report = models.ForeignKey(MigrationReport, blank=False, related_name='step_reports')
-    step = models.ForeignKey(MigrationStep, blank=False)
+    step = models.ForeignKey(MigrationStep, blank=False, related_name='reports')
     status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False, db_index=True)
     datetime = models.DateTimeField(default=timezone.now, db_index=True)
     log = models.TextField(blank=True)

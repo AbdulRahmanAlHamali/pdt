@@ -2,6 +2,7 @@
 import logging
 
 from django.utils import timezone
+from django.db.models import Q
 
 from rest_framework import serializers
 
@@ -78,12 +79,27 @@ class CIProjectSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'name', 'description')
 
 
+class MigrationStepListSerializer(serializers.ListSerializer):  # pylint: disable=W0223
+
+    """List serializer which filters out applied steps."""
+
+    def to_representation(self, data):
+        """Filter out applied steps."""
+        exclude_status = self.context['request'].REQUEST.get('exclude_status')
+        if exclude_status:
+            data = data.filter(
+                ~Q(reports__status=exclude_status)
+            )
+        return super(MigrationStepListSerializer, self).to_representation(data)
+
+
 class MigrationStepSerializer(serializers.HyperlinkedModelSerializer):
 
     """Migration step serializer."""
 
     class Meta:
         fields = ('id', 'position', 'type', 'code', 'path')
+        list_serializer_class = MigrationStepListSerializer
 
 
 class PreDeployMigrationStepSerializer(MigrationStepSerializer):
