@@ -4,16 +4,24 @@ import json
 from django.utils.dateparse import parse_datetime
 import pytest
 
-from pdt.core.models import Case, MigrationReport, DeploymentReport
+from pdt.core.models import (
+    Case,
+    DeploymentReport,
+    MigrationReport,
+    MigrationStepReport,
+)
 
 
 def test_migration_filter_exclude_status(admin_client, migration_report_factory, equals_any):
     """Test migration filter when exclude status parameter is used."""
     mr1 = migration_report_factory(status='apl', instance__name='1')
-    mr1.status = 'apl'
+    mr1.status = MigrationReport.STATUS_APPLIED
     mr1.save()
     mr2 = migration_report_factory(
-        status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project, instance__name='2')
+        status=MigrationReport.STATUS_ERROR, migration=mr1.migration,
+        instance__ci_project=mr1.instance.ci_project, instance__name='2')
+    applied_step_ids = {
+        report.step.id for report in mr2.step_reports.all() if report.status == MigrationStepReport.STATUS_APPLIED}
     data = admin_client.get(
         '/api/migrations/', dict(
             exclude_status='apl', instance=mr1.instance.name, ci_project=mr1.instance.ci_project.name)).data
@@ -31,13 +39,13 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
         },
         'pre_deploy_steps': [
             {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
-            for step in migration.pre_deploy_steps.all()],
+            for step in migration.pre_deploy_steps.all() if step.id not in applied_step_ids],
         'post_deploy_steps': [
             {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
-            for step in migration.post_deploy_steps.all()],
+            for step in migration.post_deploy_steps.all() if step.id not in applied_step_ids],
         'final_steps': [
             {'id': step.id, 'type': step.type, 'position': step.position, 'code': step.code, 'path': None}
-            for step in migration.final_steps.all()],
+            for step in migration.final_steps.all() if step.id not in applied_step_ids],
         'category': migration.category,
         'reviewed': False,
         'reports': [{

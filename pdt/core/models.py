@@ -38,8 +38,8 @@ class Release(models.Model):
         verbose_name_plural = _("Releases")
         ordering = ['number', 'id']
 
-    number = models.PositiveIntegerField(blank=False, unique=True, db_index=True)
-    datetime = models.DateTimeField(blank=False, default=timezone.now)
+    number = models.PositiveIntegerField(unique=True, db_index=True)
+    datetime = models.DateTimeField(default=timezone.now)
     description = models.TextField(blank=True)
 
     @staticmethod
@@ -61,7 +61,7 @@ class CIProject(models.Model):
         verbose_name_plural = _("CI projects")
         ordering = ['name', 'id']
 
-    name = models.CharField(max_length=255, blank=False, unique=True, db_index=True)
+    name = models.CharField(max_length=255, unique=True, db_index=True)
     description = models.TextField(blank=True)
 
     @staticmethod
@@ -81,8 +81,9 @@ class Instance(models.Model):
     Instance means the isolated set of physical servers.
     """
 
-    name = models.CharField(max_length=255, blank=False, db_index=True)
-    ci_project = models.ForeignKey(CIProject, blank=False, related_name="instances", verbose_name=_('CI project'))
+    name = models.CharField(max_length=255, db_index=True)
+    ci_project = models.ForeignKey(
+        CIProject, related_name="instances", verbose_name=_('CI project'))
     description = models.TextField(blank=True)
 
     class Meta:
@@ -382,11 +383,12 @@ class Case(models.Model):
     """Bug tracking system case."""
 
     id = models.IntegerField(primary_key=True)
-    title = models.CharField(max_length=255, blank=False, db_index=True)
+    title = models.CharField(max_length=255, db_index=True)
     description = models.TextField(blank=True)
     project = models.CharField(max_length=255, blank=True)
     area = models.CharField(max_length=255, blank=True)
-    ci_project = models.ForeignKey(CIProject, blank=False, related_name='cases', verbose_name=_('CI project'))
+    ci_project = models.ForeignKey(
+        CIProject, related_name='cases', verbose_name=_('CI project'))
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
     tags = TaggableManager(blank=True)
@@ -423,7 +425,7 @@ class CaseEdit(models.Model):
         verbose_name = _("Case edit")
         verbose_name_plural = _("Case edits")
 
-    case = models.ForeignKey(Case, blank=False, related_name='edits')
+    case = models.ForeignKey(Case, related_name='edits')
 
     TYPE_MIGRATION_URL = 'migration-url'
     TYPE_MIGRATION_REVIEWED = 'migration-reviewed'
@@ -439,7 +441,7 @@ class CaseEdit(models.Model):
         (TYPE_DEPLOYMENT_REPORT, _('Deployment report')),
     )
 
-    type = models.CharField(max_length=50, choices=TYPE_CHOICES, blank=False)
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     params = JSONField(default=None)
 
     def __str__(self):
@@ -458,7 +460,7 @@ class CaseCategory(models.Model):
         verbose_name_plural = _("Case categories")
 
     position = models.PositiveSmallIntegerField(db_index=True)
-    title = models.CharField(max_length=255, blank=False, db_index=True)
+    title = models.CharField(max_length=255, db_index=True)
     is_hidden = models.BooleanField(default=False)
     is_default = models.BooleanField(default=False)
     tags = TaggableManager(blank=True)
@@ -499,11 +501,11 @@ class Migration(models.Model):
         ('onl', 'Online'),
     )
 
-    uid = models.CharField(max_length=255, blank=False, unique=True)
+    uid = models.CharField(max_length=255, unique=True)
     parent = models.ForeignKey("self", null=True, blank=True)
-    case = models.OneToOneField(Case, blank=False, unique=True)
-    category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, blank=False, default='onl', db_index=True)
-    reviewed = models.BooleanField(blank=False, default=False, db_index=True)
+    case = models.OneToOneField(Case, unique=True)
+    category = models.CharField(max_length=3, choices=CATEGORY_CHOICES, default='onl', db_index=True)
+    reviewed = models.BooleanField(default=False, db_index=True)
 
     tracker = FieldTracker()
 
@@ -561,8 +563,8 @@ class MigrationStep(models.Model):
         ('sh', 'Shell'),
     )
 
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES, blank=False)
-    code = models.TextField(blank=False)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    code = models.TextField()
     path = models.CharField(max_length=255, blank=True, null=True)
     position = models.PositiveSmallIntegerField(db_index=True)
 
@@ -589,7 +591,7 @@ class PreDeployMigrationStep(MigrationStep):
         verbose_name = _("Pre-deploy migration step")
         verbose_name_plural = _("Pre-deploy migration steps")
 
-    migration = models.ForeignKey(Migration, blank=False, related_name="pre_deploy_steps")
+    migration = models.ForeignKey(Migration, related_name="pre_deploy_steps")
 
 
 class PostDeployMigrationStep(MigrationStep):
@@ -600,7 +602,7 @@ class PostDeployMigrationStep(MigrationStep):
         verbose_name = _("Post-deploy migration step")
         verbose_name_plural = _("Post-deploy migration steps")
 
-    migration = models.ForeignKey(Migration, blank=False, related_name="post_deploy_steps")
+    migration = models.ForeignKey(Migration, related_name="post_deploy_steps")
 
 
 class FinalMigrationStep(MigrationStep):
@@ -611,7 +613,7 @@ class FinalMigrationStep(MigrationStep):
         verbose_name = _("Final migration step")
         verbose_name_plural = _("Final migration steps")
 
-    migration = models.ForeignKey(Migration, blank=False, related_name="final_steps")
+    migration = models.ForeignKey(Migration, related_name="final_steps")
 
 
 class MigrationReport(models.Model):
@@ -635,9 +637,9 @@ class MigrationReport(models.Model):
         index_together = (("id", "migration"), ("migration", "instance", "datetime", "id"))
         ordering = ['migration', 'instance', 'datetime', 'id']
 
-    migration = models.ForeignKey(Migration, blank=False, related_name='reports')
-    instance = models.ForeignKey(Instance, blank=False, related_name='migration_reports')
-    status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
+    migration = models.ForeignKey(Migration, related_name='reports')
+    instance = models.ForeignKey(Instance, related_name='migration_reports')
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(db_index=True, auto_now=True)
     log = models.TextField(blank=True)
 
@@ -713,9 +715,9 @@ class MigrationStepReport(models.Model):
         index_together = (("report", "step", "status"), ("report", "step", "datetime", "id"))
         ordering = ["report", "step", "datetime", "id"]
 
-    report = models.ForeignKey(MigrationReport, blank=False, related_name='step_reports')
-    step = models.ForeignKey(MigrationStep, blank=False, related_name='reports')
-    status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False, db_index=True)
+    report = models.ForeignKey(MigrationReport, related_name='step_reports')
+    step = models.ForeignKey(MigrationStep, related_name='reports')
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES, db_index=True)
     datetime = models.DateTimeField(default=timezone.now, db_index=True)
     log = models.TextField(blank=True)
 
@@ -752,9 +754,9 @@ class DeploymentReport(models.Model):
         index_together = (("release", "instance", "datetime", "id"),)
         ordering = ['release', 'instance', 'datetime', "id"]
 
-    release = models.ForeignKey(Release, blank=False, related_name='deployment_reports')
-    instance = models.ForeignKey(Instance, blank=False, related_name='deployment_reports')
-    status = models.CharField(max_length=3, choices=STATUS_CHOICES, blank=False)
+    release = models.ForeignKey(Release, related_name='deployment_reports')
+    instance = models.ForeignKey(Instance, related_name='deployment_reports')
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
 

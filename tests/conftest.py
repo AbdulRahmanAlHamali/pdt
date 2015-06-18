@@ -8,7 +8,12 @@ import pytest
 import py
 from pytest_factoryboy import register
 
-from pdt.core.models import MigrationStep
+from pdt.core.models import (
+    DeploymentReport,
+    MigrationReport,
+    MigrationStep,
+    MigrationStepReport,
+)
 
 fake = Factory.create()
 
@@ -155,6 +160,7 @@ class MigrationStepReportFactory(factory.django.DjangoModelFactory):
         model = 'core.MigrationStepReport'
 
     step = factory.LazyAttribute(lambda o: o.report.migration.pre_deploy_steps.first())
+    status = MigrationStepReport.STATUS_APPLIED
 
 
 @register
@@ -169,6 +175,7 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
     migration = factory.SubFactory(
         MigrationFactory, case__ci_project=factory.SelfAttribute('...instance.ci_project'))
     step_reports = factory.RelatedFactory(MigrationStepReportFactory, 'report')
+    status = MigrationReport.STATUS_APPLIED
 
 
 @register
@@ -181,3 +188,4 @@ class DeploymentReportFactory(factory.django.DjangoModelFactory):
 
     instance = factory.SubFactory(InstanceFactory)
     release = factory.SubFactory(ReleaseFactory)
+    status = DeploymentReport.STATUS_DEPLOYED
