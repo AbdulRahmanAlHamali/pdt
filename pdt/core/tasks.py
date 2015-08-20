@@ -11,9 +11,6 @@ import fogbugz
 from pdt.celery import app
 from pdt.core.models import (
     Case,
-    CaseEdit,
-    DeploymentReport,
-    MigrationReport,
     Release,
 )
 
@@ -29,9 +26,6 @@ def update_case_from_fogbugz(case_id):
     except IntegrityError:
         # can be the case without ci project assigned
         pass
-    else:
-        notify_deployed_case.apply_async(kwargs=dict(case_id=case_id))
-        notify_migrated_case.apply_async(kwargs=dict(case_id=case_id))
     logger.info("Task finished")
 
 
@@ -82,52 +76,4 @@ def update_cases_to_fogbugz():
     logger.info("Found %s cases to update to fogbugz", len(cases))
     for case in cases:
         update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
-    logger.info("Task finished")
-
-
-@app.task(base=QueueOnce, once=dict(keys=('case_id',), graceful=True))
-def notify_deployed_case(case_id):
-    """Notify previously not notified case which was deployed."""
-    logger.info("Start notifying deployed but not notified case")
-    try:
-        case = Case.objects.get(id=case_id, release__isnull=False)
-    except Case.DoesNotExist:
-        pass
-    else:
-        schedule_update = False
-        tags = set(case.tags.names())
-        for instance in case.ci_project.instances.all():
-            report = case.release.deployment_reports.filter(
-                instance=instance,
-                status=DeploymentReport.STATUS_DEPLOYED).order_by('-id').first()
-            if report and 'deployed-{0}'.format(instance.name) not in tags:
-                CaseEdit.objects.get_or_create(
-                    case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=dict(
-                        report=report.id))
-                schedule_update = True
-        if schedule_update:
-            update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
-    logger.info("Task finished")
-
-
-@app.task(base=QueueOnce, once=dict(keys=('case_id',), graceful=True))
-def notify_migrated_case(case_id):
-    """Notify previously not notified case whose migration were applied."""
-    logger.info("Start notifying migrated but not notified case")
-    try:
-        case = Case.objects.get(id=case_id, migration__isnull=False)
-    except Case.DoesNotExist:
-        pass
-    else:
-        schedule_update = False
-        tags = set(case.tags.names())
-        for instance in case.ci_project.instances.all():
-            report = instance.migration_reports.filter(
-                migration__case=case, status=MigrationReport.STATUS_APPLIED).order_by('-id').first()
-            if report and 'migration-applied-{0}'.format(instance.name) not in tags:
-                CaseEdit.objects.get_or_create(case=case, type=CaseEdit.TYPE_MIGRATION_REPORT, params=dict(
-                    instance=instance.id))
-                schedule_update = True
-        if schedule_update:
-            update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
     logger.info("Task finished")

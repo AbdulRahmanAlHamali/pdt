@@ -1,9 +1,13 @@
 """Test PDT tasks."""
 import mock
+import pytest
 
 from pdt.core.tasks import (
-    notify_deployed_case,
-    notify_migrated_case,
+    update_case_to_fogbugz,
+    update_cases_to_fogbugz,
+    update_case_from_fogbugz,
+    update_cases_from_fogbugz,
+    fetch_cases,
 )
 from pdt.core.models import (
     DeploymentReport,
@@ -11,58 +15,85 @@ from pdt.core.models import (
 )
 
 
-@mock.patch('pdt.core.tasks.update_case_to_fogbugz.apply_async')
-def test_notify_deployed_case(mocked_update_case_to_fogbugz, db, case_factory, deployment_report_factory, instance):
-    """Test notify deployed cases task."""
+def test_update_case_to_fogbugz(
+        transactional_db, mocked_fogbugz, case_factory, migration_factory, deployment_report_factory,
+        migration_report_factory, instance):
+    """Test update case to fogbugz task."""
     deployed_case = case_factory(tags=['deployed-{0}'.format(instance.name)], ci_project=instance.ci_project)
+    migration_factory(case=deployed_case)
+    mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
+    mocked_case.attrs = dict(ixbug=deployed_case.id)
+    mocked_case.sfixfor.string = '1516'
+    mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
+    mocked_case.dtlastupdated.string = '2015-01-18T23:00:00Z'
+    mocked_case.stitle.string = 'Some title'
+    mocked_case.soriginaltitle.string = 'Some original title'
+    mocked_case.cixproject.string = 'some-ci-project'
+    mocked_case.sproject.string = 'Some project'
+    mocked_case.sarea.string = 'Some area'
     deployment_report_factory(
         status=DeploymentReport.STATUS_DEPLOYED,
         release=deployed_case.release,
         instance=instance)
+    migration_report_factory(
+        status=MigrationReport.STATUS_APPLIED,
+        migration=deployed_case.migration,
+        instance=instance)
     not_deployed_case = case_factory(ci_project=instance.ci_project)
-    deployment_report_factory(
-        status=DeploymentReport.STATUS_DEPLOYED,
-        release=not_deployed_case.release,
-        instance=instance)
-    new_report = deployment_report_factory(
-        status=DeploymentReport.STATUS_DEPLOYED,
-        release=not_deployed_case.release,
-        instance=instance)
-    deployed_case.edits.all().delete()
-    not_deployed_case.edits.all().delete()
-    mocked_update_case_to_fogbugz.reset_mock()
-    notify_deployed_case(deployed_case.id)
-    notify_deployed_case(not_deployed_case.id)
+    edits = deployed_case.edits.all()
+    assert edits
+    assert not not_deployed_case.edits.all()
+    update_case_to_fogbugz(deployed_case.id)
     edits = not_deployed_case.edits.all()
-    assert len(edits) == 1
-    assert edits[0].params['report'] == new_report.id
-    mocked_update_case_to_fogbugz.assert_called_once_with(kwargs={'case_id': not_deployed_case.id})
+    assert len(edits) == 0
 
 
-@mock.patch('pdt.core.tasks.update_case_to_fogbugz.apply_async')
-def test_notify_migrated_cases(
-        mocked_update_case_to_fogbugz, db, case_factory, migration_factory, migration_report_factory, instance):
-    """Test notify cases task."""
-    migrated_case = case_factory(tags=['migration-applied-{0}'.format(instance.name)], ci_project=instance.ci_project)
-    report = migration_report_factory(
-        migration=migration_factory(case=migrated_case),
-        status=MigrationReport.STATUS_APPLIED,
-        instance=instance)
-    report.status = MigrationReport.STATUS_APPLIED
-    report.save()
-    not_migrated_case = case_factory(ci_project=instance.ci_project)
-    report = migration_report_factory(
-        status=MigrationReport.STATUS_APPLIED,
-        migration=migration_factory(case=not_migrated_case),
-        instance=instance)
-    report.status = MigrationReport.STATUS_APPLIED
-    report.save()
-    migrated_case.edits.all().delete()
-    not_migrated_case.edits.all().delete()
-    mocked_update_case_to_fogbugz.reset_mock()
-    notify_migrated_case(migrated_case.id)
-    notify_migrated_case(not_migrated_case.id)
-    edits = not_migrated_case.edits.all()
-    assert len(edits) == 1
-    assert edits[0].params['instance'] == instance.id
-    mocked_update_case_to_fogbugz.assert_called_once_with(kwargs={'case_id': not_migrated_case.id})
+@mock.patch('pdt.core.tasks.update_case_to_fogbugz')
+def test_update_cases_to_fogbugz(mocked_update, transactional_db, case):
+    """Test update cases to fogbugz task."""
+    update_cases_to_fogbugz()
+    mocked_update.apply_async.assert_called_once_with(kwargs=dict(case_id=case.id))
+
+
+def test_update_case_from_fogbugz(
+        transactional_db, mocked_fogbugz, case_factory, deployment_report_factory, instance, case):
+    """Test update case from fogbugz task."""
+    mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
+    mocked_case.attrs = dict(ixbug=case.id)
+    mocked_case.sfixfor.string = '1516'
+    mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
+    mocked_case.dtlastupdated.string = '2015-01-18T23:00:00Z'
+    mocked_case.stitle.string = 'Some title'
+    mocked_case.soriginaltitle.string = 'Some original title'
+    mocked_case.cixproject.string = 'some-ci-project'
+    mocked_case.sproject.string = 'Some project'
+    mocked_case.sarea.string = 'Some area'
+    update_case_from_fogbugz(case.id)
+    case.refresh_from_db()
+    assert case.title == 'Some title'
+
+
+@mock.patch('pdt.core.tasks.update_case_from_fogbugz')
+@pytest.mark.parametrize('case__release', [None])
+def test_update_cases_from_fogbugz(mocked_update, transactional_db, case):
+    """Test update cases from fogbugz task."""
+    update_cases_from_fogbugz()
+    mocked_update.apply_async.assert_called_once_with(kwargs=dict(case_id=case.id))
+
+
+@mock.patch('pdt.core.tasks.update_case_from_fogbugz')
+def test_fetch_cases(mocked_update, mocked_fogbugz, transactional_db, case):
+    """Test fetch cases from fogbugz task."""
+    mocked_case = mock.Mock()
+    mocked_fogbugz.return_value.search.return_value.findAll.return_value = [mocked_case]
+    mocked_case.attrs = dict(ixbug=case.id)
+    mocked_case.sfixfor.string = '1516'
+    mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
+    mocked_case.dtlastupdated.string = '2015-01-18T23:00:00Z'
+    mocked_case.stitle.string = 'Some title'
+    mocked_case.soriginaltitle.string = 'Some original title'
+    mocked_case.cixproject.string = 'some-ci-project'
+    mocked_case.sproject.string = 'Some project'
+    mocked_case.sarea.string = 'Some area'
+    fetch_cases()
+    mocked_update.apply_async.assert_called_once_with(kwargs=dict(case_id=case.id))
