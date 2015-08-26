@@ -1,6 +1,6 @@
 {% load i18n %}
 <p style="font-style: italic">
-    {% blocktrans with release_number=release.number release_date=release.datetime|date:"M d, Y" %}Release {{ release_number }} is expected to go live on {{ release_date }}.{% endblocktrans %}
+    {% blocktrans with release_number=release.number release_date=release.datetime|date:"l, F j, Y" %}Release {{ release_number }} is expected to go live on {{ release_date }}.{% endblocktrans %}
     {{ release.description | safe }}
 </p>
 {% for category in categories %}
