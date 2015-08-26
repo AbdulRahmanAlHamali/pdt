@@ -515,6 +515,7 @@ class Migration(models.Model):
         verbose_name = _("Migration")
         verbose_name_plural = _("Migrations")
         index_together = (("id", "uid", "case"), ("category", "reviewed"))
+        ordering = ['-case__release']
 
     @staticmethod
     def autocomplete_search_fields():
