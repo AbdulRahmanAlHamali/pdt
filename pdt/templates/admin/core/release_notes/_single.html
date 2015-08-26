@@ -1,8 +1,13 @@
 {% load i18n %}
+
 <p style="font-style: italic">
     {% blocktrans with release_number=release.number release_date=release.datetime|date:"l, F j, Y" %}Release {{ release_number }} is expected to go live on {{ release_date }}.{% endblocktrans %}
-    {{ release.description | safe }}
 </p>
+
+{% if release.description %}
+    <p style="font-style: italic">{{ release.description | safe }}</p>
+{% endif %}
+
 {% for category in categories %}
     {% if category.cases %}
     <strong>{{ category.title }}:</strong>
