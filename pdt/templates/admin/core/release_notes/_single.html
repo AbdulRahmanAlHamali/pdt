@@ -10,14 +10,14 @@
 
 {% for category in categories %}
     {% if category.cases %}
-    <strong>{{ category.title }}:</strong>
-        <br />
+    <p>
+    <strong>{{ category.title }}:</strong><br>
         {% for case in category.cases %}
             {% if case.unmerged %}<span style="text-decoration: line-through">{% endif %}
             <a target="_blank" href="https://case.paylogic.eu/fogbugz/?{{ case.id }}">{% trans 'Case' %} {{ case.id }}</a> - {{ case.title }}
             {% if case.unmerged %}</span>{% endif %}
             <br>
         {% endfor %}
-    <br>
+    </p>
     {% endif %}
 {% endfor %}
