@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django_object_actions',
     'adminplus',
     'taggit',
+    'taggit_helpers',
     'constance',
     'constance.backends.database',
 )

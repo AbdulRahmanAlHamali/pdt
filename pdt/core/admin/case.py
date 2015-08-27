@@ -20,6 +20,8 @@ from .columns import (
     tags
 )
 
+from taggit_helpers import TaggitListFilter
+
 
 class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
 
@@ -51,7 +53,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     list_display = (
         'id', title, ci_project_column(), release_column(), migration_column(), 'project', 'area', tags, deployed_on)
-    list_filter = ('ci_project__name', 'release', 'project', 'area')
+    list_filter = ('ci_project__name', 'release', 'project', 'area', TaggitListFilter)
     search_fields = ('id', 'title')
     raw_id_fields = ('ci_project', 'release')
     ordering = ['-release__number', 'ci_project__name', '-id']
