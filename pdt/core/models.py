@@ -36,7 +36,7 @@ class Release(models.Model):
     class Meta:
         verbose_name = _("Release")
         verbose_name_plural = _("Releases")
-        ordering = ['-number']
+        ordering = ['number', 'id']
 
     number = models.PositiveIntegerField(unique=True, db_index=True)
     datetime = models.DateTimeField(default=timezone.now)
