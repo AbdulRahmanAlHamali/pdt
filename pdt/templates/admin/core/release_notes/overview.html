@@ -29,7 +29,7 @@
     </ul>
     <br>
     {% for release, note in notes %}
-        <h3><a href="#{{ release.number }}">{% blocktrans %}Release {{ release.number }}{% endblocktrans %}</a></h3>
+        <h3><a href="#{{ release.number }}">{% blocktrans with release_number=release.number %}Release {{ release_number }}{% endblocktrans %}</a></h3>
         {{ note | safe }}
     {% endfor %}
 {% endblock %}
