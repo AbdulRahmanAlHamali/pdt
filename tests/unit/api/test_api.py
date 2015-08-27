@@ -48,6 +48,7 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             for step in migration.final_steps.all() if step.id not in applied_step_ids],
         'category': migration.category,
         'reviewed': False,
+        'release_number': migration.case.release.number,
         'reports': [{
             'id': mr1.id,
             'ci_project': migration.case.ci_project.name,
