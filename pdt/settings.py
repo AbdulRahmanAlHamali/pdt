@@ -65,6 +65,12 @@ WSGI_APPLICATION = 'pdt.wsgi.application'
 
 LANGUAGE_CODE = 'en-us'
 
+from django.utils.translation import ugettext_lazy as _
+
+LANGUAGES = (
+    ('en', _('English')),
+)
+
 TIME_ZONE = 'Europe/Amsterdam'
 
 USE_I18N = True
