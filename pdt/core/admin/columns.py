@@ -59,7 +59,7 @@ def case_column(getter=lambda obj: obj.case, order='case__id', short_description
     return column
 
 
-def release_column(getter=lambda obj: obj.release, order='release__name', short_description=_('Release')):
+def release_column(getter=lambda obj: obj.release, order='release__number', short_description=_('Release')):
     """Return release column function.
 
     :param getter: function to get the Release object for given context object
