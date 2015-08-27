@@ -24,6 +24,7 @@ class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     list_display = ('id', 'number', 'datetime', deployed_on)
     list_filter = ('datetime',)
+    ordering = ['-number']
     search_fields = ('id', 'number', 'datetime')
 
     def generate_release_notes(self, request, obj):

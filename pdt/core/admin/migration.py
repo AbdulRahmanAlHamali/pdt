@@ -133,7 +133,8 @@ class MigrationAdmin(admin.ModelAdmin):
         case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
         release_column(lambda obj: obj.case.release, 'case__release__number'),
         'category', 'reviewed', applied_on)
-    list_filter = ('case__id', 'category', 'reviewed')
+    list_filter = ('case__id', 'category', 'reviewed', 'case__release')
+    ordering = ['-case__release', '-case__id']
     search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
     raw_id_fields = ('case', 'parent')
     autocomplete_lookup_fields = {
