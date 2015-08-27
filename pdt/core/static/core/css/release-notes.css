@@ -10,3 +10,7 @@ ul.nested-list ul {
 ul.nested-list li {
     padding-left: 15px;
 }
+
+p {
+  margin-bottom: 10px;
+}
