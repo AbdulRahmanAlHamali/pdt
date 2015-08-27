@@ -12,7 +12,7 @@ def tags(obj):
     :return: comma separated list of tag names for the given object
     :rtype: str
     """
-    return ', '.join(tag.name for tag in obj.tags.all())
+    return ', '.join(item.tag.name for item in obj.tagged_items.all())
 
 
 def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name', short_description=_('CI project')):

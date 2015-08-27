@@ -27,6 +27,11 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     """Case admin interface class."""
 
+    def get_queryset(self, request):
+        """Optimize the number of queries made."""
+        qs = super(CaseAdmin, self).get_queryset(request)
+        return qs.select_related('release', 'ci_project', 'migration').prefetch_related('tagged_items__tag')
+
     def title(self):
         """Get case title link."""
         return mark_safe(
