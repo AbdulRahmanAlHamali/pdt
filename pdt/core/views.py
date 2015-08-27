@@ -96,8 +96,8 @@ def get_case_categories():
             hidden=category.is_hidden,
             title=category.title,
             default=category.is_default,
-            tags=category.tags.names(),
-        ) for category in CaseCategory.objects.all()]
+            tags=frozenset(item.tag.name for item in category.tagged_items.all()),
+        ) for category in CaseCategory.objects.prefetch_related('tagged_items__tag').all()]
 
 
 @login_required(login_url='admin:login')
