@@ -131,7 +131,9 @@ yam_config = cfg['pdt']
 
 DEBUG = yam_config['debug']
 
-if DEBUG:
+import os
+
+if DEBUG and not os.environ.get('TESTING'):
     INSTALLED_APPS += ('debug_toolbar', )
 
 DEBUG_TOOLBAR_CONFIG = {
