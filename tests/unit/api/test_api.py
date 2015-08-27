@@ -48,7 +48,6 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             for step in migration.final_steps.all() if step.id not in applied_step_ids],
         'category': migration.category,
         'reviewed': False,
-        'release_number': migration.case.release.number,
         'reports': [{
             'id': mr1.id,
             'ci_project': migration.case.ci_project.name,
@@ -63,7 +62,13 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
             'status': mr2.status,
             'datetime': equals_any,
             'log': mr2.log
-        }]
+        }],
+        'release': {
+            'id': migration.case.release.id,
+            'number': migration.case.release.number,
+            # Ugly, but that's how rest framework does it too.
+            'datetime': migration.case.release.datetime.isoformat().replace('+00:00', 'Z')
+        }
     }
 
 

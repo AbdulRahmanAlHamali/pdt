@@ -183,13 +183,13 @@ class MigrationSerializer(CaseFieldMixin):
     final_steps = FinalMigrationStepSerializer(many=True)
     reports = MigrationReportSerializer(read_only=True, many=True)
     parent = serializers.CharField(source='parent.uid', allow_null=True)
-    release_number = serializers.IntegerField(source='case.release.number', read_only=True)
+    release = ReleaseSerializer(source='case.release', read_only=True)
 
     class Meta:
         model = Migration
         fields = (
             'id', 'uid', 'parent', 'case', 'category', 'pre_deploy_steps', 'post_deploy_steps', 'final_steps',
-            'reports', 'reviewed', 'release_number')
+            'reports', 'reviewed', 'release')
         extra_kwargs = {
             'uid': {'validators': []},
             'category': {'read_only': True},
