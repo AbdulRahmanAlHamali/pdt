@@ -1,7 +1,12 @@
 """PDT admin."""
+from django.contrib.admin import ModelAdmin
 from adminplus.sites import AdminSitePlus
 
 from .forms import UserAdminAuthenticationForm
+
+
+# default django's list per page is quite too high
+ModelAdmin.list_per_page = 25
 
 
 class UserAdmin(AdminSitePlus):
