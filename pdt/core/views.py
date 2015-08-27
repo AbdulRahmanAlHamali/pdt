@@ -122,6 +122,6 @@ def release_notes_overview(request):
     return render(
         request, 'admin/core/release_notes/overview.html', dict(
             categories=(
-                category for category in case_categories if not category.is_default and not category.is_hidden),
+                category for category in case_categories if not category['default'] and not category['hidden']),
             notes=notes,
             title=_('Release notes overview')))
