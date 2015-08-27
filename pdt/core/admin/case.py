@@ -54,7 +54,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
     list_filter = ('ci_project__name', 'release', 'project', 'area')
     search_fields = ('id', 'title')
     raw_id_fields = ('ci_project', 'release')
-    ordering = ['-release__number', 'project__name', '-id']
+    ordering = ['-release__number', 'ci_project__name', '-id']
     autocomplete_lookup_fields = {
         'fk': ['ci_project', 'release'],
     }

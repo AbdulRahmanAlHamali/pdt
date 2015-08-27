@@ -7,8 +7,6 @@ import pprint
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.template import RequestContext
-from django.core.urlresolvers import reverse
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404, render
 
@@ -22,19 +20,6 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 login_required = functools.partial(login_required, login_url='admin:login')
-
-
-def release_column(getter=lambda obj: obj.release, order='release__name'):
-    """Return release column function."""
-    def release(self):
-        """Get release name."""
-        release = getter(self)
-        return mark_safe(
-            '<a href="{url}">{name}</a>'.format(
-                url=reverse("admin:core_release_change", args=(release.id,)),
-                name=release)) if release else ''
-    release.admin_order_field = order
-    return release
 
 
 def normalize_case_title(case_title):
