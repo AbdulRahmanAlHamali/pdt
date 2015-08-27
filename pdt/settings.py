@@ -131,6 +131,14 @@ yam_config = cfg['pdt']
 
 DEBUG = yam_config['debug']
 
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar', )
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": lambda x: DEBUG,
+    "RENDER_PANELS": True
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

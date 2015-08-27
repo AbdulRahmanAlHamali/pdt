@@ -1,6 +1,7 @@
 """PDT url configuration."""
 from django.utils.translation import ugettext_lazy as _
-from django.conf.urls import include, url
+from django.conf.urls import include, url, patterns
+from django.conf import settings
 from django.contrib import admin
 
 from .admin import UserAdmin
@@ -17,3 +18,10 @@ urlpatterns = [
     url(r'^core/', include('pdt.core.urls')),
     url(r'^', include(admin.site.urls)),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += patterns(
+        '',
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    )
