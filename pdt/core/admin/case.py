@@ -32,6 +32,7 @@ class ExcludeTaggitListFilter(TaggitListFilter):
     parameter_name = 'exclude_tag'
 
     def queryset(self, request, queryset):
+        """Exclude items with given tag."""
         if self.value() is not None:
             return queryset.filter(~Q(tags__name=self.value()))
 
