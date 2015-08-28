@@ -8,6 +8,9 @@ from .forms import UserAdminAuthenticationForm
 # default django's list per page is quite too high
 ModelAdmin.list_per_page = 25
 
+# show current filter on the side bar
+ModelAdmin.change_list_template = "admin/change_list_filter_sidebar.html"
+
 
 class UserAdmin(AdminSitePlus):
 
