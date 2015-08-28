@@ -28,6 +28,7 @@ from .columns import (
     migration_column,
     release_column,
 )
+from .filters import release_filter
 
 
 class MigrationStepForm(forms.ModelForm):
@@ -133,7 +134,7 @@ class MigrationAdmin(admin.ModelAdmin):
         case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
         release_column(lambda obj: obj.case.release, 'case__release__number'),
         'category', 'reviewed', applied_on)
-    list_filter = ('case__id', 'category', 'reviewed', 'case__release')
+    list_filter = ('category', 'reviewed', release_filter('case__release'))
     ordering = ['-case__release__number', '-case__id']
     search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
     raw_id_fields = ('case', 'parent')
@@ -145,6 +146,11 @@ class MigrationAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('core/js/admin/migration_inline.js',)
+
+    def get_queryset(self, request):
+        """Optimize the number of queries made."""
+        qs = super(MigrationAdmin, self).get_queryset(request)
+        return qs.select_related('case__release', 'case__ci_project', 'parent').prefetch_related('reports')
 
     def save_model(self, request, obj, form, change):
         """Only allow to edit is_reviewed flag."""
