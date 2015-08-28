@@ -1,6 +1,7 @@
 """PDT core case admin interface."""
 from django.contrib import admin
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -21,6 +22,18 @@ from .columns import (
 )
 
 from taggit_helpers import TaggitListFilter
+
+
+class ExcludeTaggitListFilter(TaggitListFilter):
+
+    """Filter records by excluded Taggit tags for the current model only."""
+
+    title = 'Exclude tags'
+    parameter_name = 'exclude_tag'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(~Q(tags__name=self.value()))
 
 
 class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
@@ -58,7 +71,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
 
     list_display = (
         'id', title, ci_project_column(), release_column(), migration_column(), 'project', 'area', tags, deployed_on)
-    list_filter = ('ci_project__name', 'release', 'project', 'area', TaggitListFilter)
+    list_filter = ('ci_project__name', 'release', 'project', 'area', TaggitListFilter, ExcludeTaggitListFilter)
     search_fields = ('id', 'title')
     raw_id_fields = ('ci_project', 'release')
     ordering = ['-release__number', 'ci_project__name', '-id']
