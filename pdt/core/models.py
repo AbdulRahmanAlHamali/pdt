@@ -311,7 +311,7 @@ class CaseManager(models.Manager):
         }
         kwargs = {}
         tags = {'deployed-{0}'.format(report.instance.name)}
-        if not tags.issubset(case_info['tags']):
+        if report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']):
             if report.status == DeploymentReport.STATUS_DEPLOYED:
                 kwargs['sTags'] = ','.join(case_info['tags'].union(tags))
             response = fb.edit(
@@ -773,7 +773,7 @@ def deployment_report_changes(sender, instance, **kwargs):
     changed = instance.tracker.changed()
     if instance.log != changed.get('log', instance.log):
         from .tasks import update_case_to_fogbugz
-        for case in instance.release.cases.all():
+        for case in instance.release.cases.filter(ci_project=instance.instance.ci_project):
             params = dict(report=instance.id)
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)
