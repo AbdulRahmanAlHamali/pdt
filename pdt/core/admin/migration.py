@@ -157,6 +157,7 @@ class MigrationAdmin(admin.ModelAdmin):
         if change:
             obj.refresh_from_db()
             obj.reviewed = form.cleaned_data['reviewed']
+            obj.category = form.cleaned_data['category']
         return super(MigrationAdmin, self).save_model(request, obj, form, change)
 
     def save_related(self, request, form, formsets, change):
