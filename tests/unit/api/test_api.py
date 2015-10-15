@@ -181,6 +181,7 @@ def test_create_migration(mocked_fogbugz, admin_client):
     case.cixproject.string = 'some-ci-project'
     case.sproject.string = 'Some project'
     case.sarea.string = 'Some area'
+    case.revision.string = '123123'
     data = admin_client.post(
         '/api/migrations/', data=json.dumps({
             "uid": "234234234234234",

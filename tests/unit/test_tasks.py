@@ -68,9 +68,11 @@ def test_update_case_from_fogbugz(
     mocked_case.cixproject.string = 'some-ci-project'
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
+    mocked_case.revision.string = '123123'
     update_case_from_fogbugz(case.id)
     case.refresh_from_db()
     assert case.title == 'Some title'
+    assert case.revision == '123123'
 
 
 @mock.patch('pdt.core.tasks.update_case_from_fogbugz')
