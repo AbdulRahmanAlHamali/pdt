@@ -100,6 +100,20 @@ class CIProjectViewSet(viewsets.ModelViewSet):
     ordering = ('name',)
 
 
+class CaseFilter(django_filters.FilterSet):
+
+    """Case filter to allow lookups for relese, ci_project."""
+
+    release = django_filters.NumberFilter(name="release__number", lookup_type='exact')
+    ci_project = django_filters.CharFilter(
+        name="ci_project__name", lookup_type='exact')
+
+    class Meta:
+        model = Case
+        fields = [
+            'id', 'title', 'release', 'project', 'ci_project', 'revision']
+
+
 class CaseViewSet(viewsets.ModelViewSet):
 
     """Return a list of all fogbugz cases in the system.
@@ -110,6 +124,7 @@ class CaseViewSet(viewsets.ModelViewSet):
     * title
     * project
     * release
+    * ci_project
 
     Orderings (via **`order_by`** query string parameter):
 
@@ -117,12 +132,14 @@ class CaseViewSet(viewsets.ModelViewSet):
     * title
     * project
     * release
+    * ci_project
     """
 
     queryset = Case.objects.all()
     serializer_class = CaseSerializer
     filter_fields = ('id', 'title', 'project', 'release', 'ci_project')
     ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')
+    filter_class = CaseFilter
     ordering = ('id',)
 
     @detail_route(methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
@@ -137,7 +154,7 @@ class MigrationFilter(django_filters.FilterSet):
     """Migration filter to allow lookups for case, status, ci_project."""
 
     case = django_filters.NumberFilter(name="case__id", lookup_type='exact')
-    release = django_filters.CharFilter(name="case__release__number", lookup_type='lte')
+    release = django_filters.NumberFilter(name="case__release__number", lookup_type='lte')
     reviewed = django_filters.BooleanFilter(name="reviewed", lookup_type='exact')
     status = django_filters.CharFilter(name="reports__status")
     exclude_status = django_filters.MethodFilter(action="filter_exclude_status")

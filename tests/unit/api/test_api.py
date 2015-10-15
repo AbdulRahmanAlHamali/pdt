@@ -386,3 +386,40 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
         }), content_type='application/json').data
     assert data['status'] == DeploymentReport.STATUS_DEPLOYED
     assert DeploymentReport.objects.get(id=data['id'])
+
+
+def test_case_filter_ci_project(admin_client, case_factory):
+    """Test case filter when CI project parameter is used."""
+    case_factory(ci_project__name='some-other-project')
+    case_factory(ci_project__name='some-project')
+    data = admin_client.get(
+        '/api/cases/', dict(ci_project='some-project')).data
+    assert len(data) == 1
+    data = admin_client.get(
+        '/api/cases/', dict(ci_project='some-other-project')).data
+    assert len(data) == 1
+
+
+def test_case_filter_release(admin_client, case_factory):
+    """Test case filter when release parameter is used."""
+    case_factory(release__number=20)
+    case_factory(release__number=10)
+    data = admin_client.get(
+        '/api/cases/', dict(release=10)).data
+    assert len(data) == 1
+    data = admin_client.get(
+        '/api/cases/', dict(release=20)).data
+    assert len(data) == 1
+
+
+def test_case_filter_revision(admin_client, case_factory):
+    """Test case filter when release parameter is used."""
+    case_factory(revision='123')
+    case_factory(revision='456')
+    data = admin_client.get(
+        '/api/cases/', dict(revision='123')).data
+    assert len(data) == 1
+    data = admin_client.get(
+        '/api/cases/', dict(revision='456')).data
+    assert len(data) == 1
+    assert data[0]['revision'] == '456'

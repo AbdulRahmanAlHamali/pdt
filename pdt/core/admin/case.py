@@ -60,9 +60,10 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         )
 
     list_display = (
-        'id', title, ci_project_column(), release_column(), migration_column(), 'project', 'area', tags, deployed_on)
+        'id', title, ci_project_column(), release_column(), migration_column(), 'project', 'area', tags, deployed_on,
+        'revision')
     list_filter = ('ci_project__name', release_filter(), 'project', 'area', TaggitListFilter, ExcludeTaggitListFilter)
-    search_fields = ('id', 'title')
+    search_fields = ('id', 'title', 'revision')
     raw_id_fields = ('ci_project', 'release')
     ordering = ['-release__number', 'ci_project__name', '-id']
     autocomplete_lookup_fields = {

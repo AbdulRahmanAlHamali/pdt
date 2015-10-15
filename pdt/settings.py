@@ -248,6 +248,7 @@ CELERY_TIMEZONE = 'UTC'
 FOGBUGZ_TOKEN = yam_config['fogbugz']['token']
 FOGBUGZ_CI_PROJECT_FIELD_ID = yam_config['fogbugz']['ci_project_field_id']
 FOGBUGZ_MIGRATION_URL_FIELD_ID = yam_config['fogbugz']['migration_url_field_id']
+FOGBUGZ_REVISION_FIELD_ID = yam_config['fogbugz']['revision_field_id']
 AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = yam_config['fogbugz']['url']
 
 ALLOWED_HOSTS = ['.{0}'.format(yam_config['hostname'])] if yam_config['hostname'] else []

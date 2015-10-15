@@ -89,6 +89,7 @@ class CaseFactory(factory.django.DjangoModelFactory):
 
     release = factory.SubFactory(ReleaseFactory)
     ci_project = factory.SubFactory(CIProjectFactory)
+    revision = factory.fuzzy.FuzzyText(length=42)
 
     @factory.post_generation
     def tags(self, create, extracted, **kwargs):

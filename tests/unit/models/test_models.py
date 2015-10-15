@@ -17,9 +17,11 @@ def test_get_or_create_case(mocked_fogbugz, release):
     mocked_case.sproject.string = 'Some project'
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
+    mocked_case.approvedxrevision.string = '123123'
     case, created = Case.objects.get_or_create_from_fogbugz(case_id=1234)
     assert case.release.datetime == release.datetime
     assert created
+    assert case.revision == '123123'
 
 
 @pytest.mark.django_db

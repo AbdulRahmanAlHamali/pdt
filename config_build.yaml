@@ -16,6 +16,7 @@ pdt:
         url: http://fogbugz.example.com
         ci_project_field_id: cixproject
         migration_url_field_id: dbxmigration
+        revision_field_id: revision
     hostname: localhost
     debug: false
     celery:

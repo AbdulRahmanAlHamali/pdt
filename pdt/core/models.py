@@ -120,8 +120,10 @@ class CaseManager(models.Manager):
                 settings.FOGBUGZ_TOKEN)
         resp = fb.search(
             q=case_id,
-            cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,dtLastUpdated,tags,' +
-            settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
+            cols='sTitle,sOriginalTitle,sFixFor,dtFixFor,sProject,sArea,dtLastUpdated,tags,{0},{1}'.format(
+                settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
+                settings.FOGBUGZ_REVISION_FIELD_ID,
+            ),
             max=1
         )
         case = resp.cases.find('case')
@@ -141,6 +143,7 @@ class CaseManager(models.Manager):
         if not case.sfixfor.string:
             raise ValidationError('Case milestone is not set', case_id)
         ci_project = getattr(case, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
+        revision = getattr(case, settings.FOGBUGZ_REVISION_FIELD_ID).string
         release_datetime = parse_datetime(case.dtfixfor.string) if case.dtfixfor.string else None
         release_number = case.sfixfor.string if case.sfixfor.string.isdigit() else None
         if release_number:
@@ -153,6 +156,7 @@ class CaseManager(models.Manager):
         info = dict(
             id=int(case_id),
             release=release,
+            revision=revision,
             project=case.sproject.string,
             area=case.sarea.string,
             title=case.stitle.string,
@@ -392,6 +396,7 @@ class Case(models.Model):
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
     tags = TaggableManager(blank=True)
+    revision = models.CharField(max_length=255, blank=True)
 
     class Meta:
         verbose_name = _("Case")

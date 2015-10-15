@@ -132,7 +132,7 @@ class CaseSerializer(CIProjectFieldMixin):
 
     class Meta:
         model = Case
-        fields = ('id', 'title', 'description', 'project', 'release', 'ci_project')
+        fields = ('id', 'title', 'description', 'project', 'release', 'ci_project', 'revision')
 
 
 class CaseFieldMixin(serializers.HyperlinkedModelSerializer):
