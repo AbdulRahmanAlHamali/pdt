@@ -764,6 +764,7 @@ class DeploymentReport(models.Model):
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
+    cases = models.ManyToManyField(Case)
 
     tracker = FieldTracker()
 
@@ -778,7 +779,7 @@ def deployment_report_changes(sender, instance, **kwargs):
     changed = instance.tracker.changed()
     if instance.log != changed.get('log', instance.log):
         from .tasks import update_case_to_fogbugz
-        for case in instance.release.cases.filter(ci_project=instance.instance.ci_project):
+        for case in instance.cases.all() or instance.release.cases.filter(ci_project=instance.instance.ci_project):
             params = dict(report=instance.id)
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)

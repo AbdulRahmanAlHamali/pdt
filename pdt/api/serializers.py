@@ -420,6 +420,32 @@ class DeploymentReportSerializer(ReleaseFieldMixin, InstanceFieldMixin, serializ
 
     """Deployment report serializer."""
 
+    class CaseSerializer(serializers.ModelSerializer):
+
+        id = serializers.IntegerField()
+
+        class Meta:
+            model = Case
+            fields = ('id', 'title', 'description', 'ci_project')
+            extra_kwargs = {
+                'title': {'read_only': True},
+                'description': {'read_only': True},
+                'ci_project': {'read_only': True, 'source': 'ci_project.name'},
+            }
+
+    cases = CaseSerializer(many=True, write_only=True)
+
     class Meta:
         model = DeploymentReport
-        fields = ('id', 'release', 'instance', 'status', 'datetime', 'log')
+        fields = ('id', 'release', 'instance', 'status', 'datetime', 'log', 'cases')
+
+    def create(self, validated_data):
+        """Create or update the instance due to unique key on case."""
+        cases = validated_data.pop('cases')
+        report = super(DeploymentReportSerializer, self).create(validated_data)
+        report.cases.clear()
+        for case_data in cases:
+            case, _ = Case.objects.get_or_create_from_fogbugz(case_data['id'])
+            report.cases.add(case)
+        report.save()
+        return report

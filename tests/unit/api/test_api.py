@@ -369,7 +369,7 @@ def test_create_migration_step_report_update(mocked_fogbugz, admin_client, insta
     assert MigrationReport.objects.get(id=data['id'])
 
 
-def test_create_deployment_report(mocked_fogbugz, admin_client, instance, release):
+def test_create_deployment_report(mocked_fogbugz, admin_client, instance, release, case):
     """Test create deployment report."""
     data = admin_client.post(
         '/api/deployment-reports/', data=json.dumps({
@@ -383,10 +383,13 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
                 "number": release.number
             },
             "status": DeploymentReport.STATUS_DEPLOYED,
-            "log": "some log"
+            "log": "some log",
+            "cases": [{"id": case.id}]
         }), content_type='application/json').data
     assert data['status'] == DeploymentReport.STATUS_DEPLOYED
-    assert DeploymentReport.objects.get(id=data['id'])
+    report = DeploymentReport.objects.get(id=data['id'])
+    report_case, = report.cases.all()
+    assert report_case.id == case.id
 
 
 def test_case_filter_ci_project(admin_client, case_factory):
