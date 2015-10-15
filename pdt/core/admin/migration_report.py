@@ -64,6 +64,11 @@ class MigrationReportAdmin(LogAdminMixin, admin.ModelAdmin):
 
     """MigrationReport admin interface class."""
 
+    def get_queryset(self, request):
+        """Optimize the number of queries made."""
+        qs = super(MigrationReportAdmin, self).get_queryset(request)
+        return qs.select_related('instance', 'instance__ci_project', 'migration')
+
     form = MigrationReportForm
     list_display = (
         'id', migration_column(), case_column(lambda obj: obj.migration.case, 'migration__case__number'),
