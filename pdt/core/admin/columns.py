@@ -76,8 +76,8 @@ def cases_column(getter=lambda obj: obj.cases, short_description=_('Cases')):
                 external_url=case.url,
                 local_url=reverse("admin:core_case_change", args=(case.id,)),
                 id=case.id,
-                title=case.title)
-                for case in cases)
+                title=case.title
+            ) for case in cases)
         )
     column.short_description = short_description
     return column
