@@ -13,6 +13,7 @@ from .mixins import (
 from .columns import (
     instance_column,
     release_column,
+    cases_column,
 )
 
 
@@ -33,12 +34,13 @@ class DeploymentReportAdmin(LogAdminMixin, admin.ModelAdmin):
     """DeploymentReport admin interface class."""
 
     form = DeploymentReportForm
-    list_display = ('id', release_column(), instance_column(), 'status', 'datetime')
+    list_display = ('id', release_column(), instance_column(), 'status', 'datetime', cases_column())
     list_filter = ('release__number', 'instance__name', 'status')
     search_fields = ('release__number', 'instance__name')
-    raw_id_fields = ('release', 'instance')
+    raw_id_fields = ('release', 'instance', 'cases')
     autocomplete_lookup_fields = {
         'fk': ['release', 'instance'],
+        'm2m': ['cases'],
     }
 
 
