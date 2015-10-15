@@ -396,12 +396,12 @@ class Case(models.Model):
     release = models.ForeignKey(Release, blank=True, null=True, related_name='cases')
     modified_date = models.DateTimeField(default=timezone.now)
     tags = TaggableManager(blank=True)
-    revision = models.CharField(max_length=255, blank=True)
+    revision = models.CharField(max_length=255, blank=True, db_index=True)
 
     class Meta:
         verbose_name = _("Case")
         verbose_name_plural = _("Cases")
-        index_together = (("ci_project", "release"), ("id", "title"))
+        index_together = (("ci_project", "release"), ("id", "title", "revision"))
 
     objects = CaseManager()
 
