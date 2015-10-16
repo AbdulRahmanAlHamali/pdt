@@ -164,7 +164,7 @@ class CaseViewSet(viewsets.ModelViewSet):
     * ci_project
     """
 
-    queryset = Case.objects.all()
+    queryset = Case.objects.all().distinct()
     serializer_class = CaseSerializer
     filter_fields = ('id', 'title', 'project', 'release', 'ci_project', 'revision')
     ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')
