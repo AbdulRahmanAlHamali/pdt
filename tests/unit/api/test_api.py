@@ -433,7 +433,7 @@ def test_case_filter_revision(admin_client, case_factory):
 
 def test_case_filter_deployed_on(admin_client, case_factory, deployment_report_factory, instance):
     """Test case filter when deployed_on parameter is used."""
-    case = case_factory(ci_project=instance.ci_project)
+    case = case_factory(ci_project=instance.ci_projects.all()[0])
     case_factory()
     deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
     deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)
@@ -448,7 +448,7 @@ def test_case_filter_deployed_on(admin_client, case_factory, deployment_report_f
 
 def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_report_factory, instance):
     """Test case filter when exclude_deployed_on parameter is used."""
-    case = case_factory(ci_project=instance.ci_project)
+    case = case_factory(ci_project=instance.ci_projects.all()[0])
     case_factory()
     report = deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
     deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)

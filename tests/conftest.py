@@ -150,7 +150,7 @@ class InstanceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'core.Instance'
 
-    ci_project = factory.SubFactory(CIProjectFactory)
+    ci_projects = factory.RelatedFactory(CIProjectFactory)
 
 
 class MigrationStepReportFactory(factory.django.DjangoModelFactory):
@@ -174,7 +174,8 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
 
     instance = factory.SubFactory(InstanceFactory)
     migration = factory.SubFactory(
-        MigrationFactory, case__ci_project=factory.SelfAttribute('...instance.ci_project'))
+        MigrationFactory, case__ci_project=factory.LazyAttribute(
+            lambda obj: obj.factory_parent.factory_parent.instance.ci_projects.all()[0]))
     step_reports = factory.RelatedFactory(MigrationStepReportFactory, 'report')
     status = MigrationReport.STATUS_APPLIED
 

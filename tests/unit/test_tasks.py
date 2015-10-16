@@ -39,7 +39,7 @@ def test_update_case_to_fogbugz(
         status=MigrationReport.STATUS_APPLIED,
         migration=deployed_case.migration,
         instance=instance)
-    not_deployed_case = case_factory(ci_project=instance.ci_project)
+    not_deployed_case = case_factory(ci_project=instance.ci_projects.all()[0])
     edits = deployed_case.edits.all()
     assert edits
     assert not not_deployed_case.edits.all()

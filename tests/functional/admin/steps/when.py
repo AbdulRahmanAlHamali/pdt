@@ -20,7 +20,7 @@ def i_fill_instance_form(browser, ci_project, instance__name):
     browser.fill_form({
         'name': instance__name,
     })
-    browser.find_by_id('id_ci_project-autocomplete').type('{0}'.format(ci_project.id))
+    browser.find_by_id('id_ci_projects-autocomplete').type('{0}'.format(ci_project.id))
     browser.find_by_xpath('//a[@class="ui-corner-all" and text()="{0}"]'.format(ci_project.name)).click()
 
 

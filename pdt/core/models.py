@@ -81,17 +81,16 @@ class Instance(models.Model):
     Instance means the isolated set of physical servers.
     """
 
-    name = models.CharField(max_length=255, db_index=True)
-    ci_project = models.ForeignKey(
-        CIProject, related_name="instances", verbose_name=_('CI project'))
+    name = models.CharField(max_length=255, db_index=True, unique=True)
+    ci_projects = models.ManyToManyField(
+        CIProject, related_name="instances", verbose_name=_('CI projects'), blank=False)
     description = models.TextField(blank=True)
 
     class Meta:
         verbose_name = _("Instance")
         verbose_name_plural = _("Instances")
-        unique_together = (("name", "ci_project"),)
         index_together = (("id", "name"),)
-        ordering = ['name', 'ci_project', 'id']
+        ordering = ['name', 'id']
 
     @staticmethod
     def autocomplete_search_fields():
@@ -100,7 +99,7 @@ class Instance(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.ci_project}: {self.name}'.format(self=self)
+        return '{self.id}: {self.name}'.format(self=self)
 
 
 class CaseManager(models.Manager):
@@ -780,7 +779,7 @@ def deployment_report_changes(sender, instance, **kwargs):
     changed = instance.tracker.changed()
     if instance.log != changed.get('log', instance.log):
         from .tasks import update_case_to_fogbugz
-        for case in instance.cases.all() or instance.release.cases.filter(ci_project=instance.instance.ci_project):
+        for case in instance.cases.all():
             params = dict(report=instance.id)
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)

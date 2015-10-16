@@ -7,7 +7,7 @@ from ..models import (
     DeploymentReport,
     Instance,
 )
-from .columns import ci_project_column
+from .columns import ci_projects_column
 
 
 class InstanceAdmin(admin.ModelAdmin):
@@ -24,12 +24,12 @@ class InstanceAdmin(admin.ModelAdmin):
                 datetime=report.datetime,
             )) if report else ''
 
-    list_display = ('id', 'name', 'description', ci_project_column(), last_deployed_release)
-    list_filter = ('ci_project__name',)
+    list_display = ('id', 'name', 'description', ci_projects_column(), last_deployed_release)
+    list_filter = ('ci_projects__name',)
     search_fields = ('id', 'name', 'description')
-    raw_id_fields = ('ci_project',)
+    raw_id_fields = ('ci_projects',)
     autocomplete_lookup_fields = {
-        'fk': ['ci_project'],
+        'm2m': ['ci_projects'],
     }
 
 admin.site.register(Instance, InstanceAdmin)

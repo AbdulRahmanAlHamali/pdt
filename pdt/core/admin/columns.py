@@ -35,6 +35,46 @@ def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name
     return column
 
 
+def ci_projects_column(getter=lambda obj: obj.ci_projects, short_description=_('CI projects')):
+    """Get CI projects column function.
+
+    :param getter: function to get the CI projects list for given context object
+    :param order: order field name for column to be used for ordering
+
+    :return: column function
+    :rtype: callable
+    """
+    def column(self):
+        ci_projects = getter(self).all()
+        return mark_safe(
+            ', '.join('<a href="{url}">{name}</a>'.format(
+                url=reverse("admin:core_ciproject_change", args=(ci_project.id,)),
+                name=ci_project.name)
+                for ci_project in ci_projects))
+    column.short_description = short_description
+    return column
+
+
+def instances_column(getter=lambda obj: obj.instances, short_description=_('Instances')):
+    """Get instances column function.
+
+    :param getter: function to get the instances list for given context object
+    :param order: order field name for column to be used for ordering
+
+    :return: column function
+    :rtype: callable
+    """
+    def column(self):
+        instances = getter(self).all()
+        return mark_safe(
+            ', '.join('<a href="{url}">{name}</a>'.format(
+                url=reverse("admin:core_instance_change", args=(instance.id,)),
+                name=instance.name)
+                for instance in instances))
+    column.short_description = short_description
+    return column
+
+
 def case_column(getter=lambda obj: obj.case, order='case__id', short_description=_('Case')):
     """Get case column function.
 
