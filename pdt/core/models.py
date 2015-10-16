@@ -756,7 +756,7 @@ class DeploymentReport(models.Model):
     class Meta:
         verbose_name = _("Deployment report")
         verbose_name_plural = _("Deployment reports")
-        index_together = (("release", "instance", "datetime", "id"),)
+        index_together = (("release", "instance", "datetime", "id", "revision"),)
         ordering = ['release', 'instance', 'datetime', "id"]
 
     release = models.ForeignKey(Release, related_name='deployment_reports')
@@ -765,6 +765,7 @@ class DeploymentReport(models.Model):
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
     cases = models.ManyToManyField(Case)
+    revision = models.CharField(max_length=255, blank=True, db_index=True)
 
     tracker = FieldTracker()
 

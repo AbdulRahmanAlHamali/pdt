@@ -111,7 +111,33 @@ class CaseFilter(django_filters.FilterSet):
     class Meta:
         model = Case
         fields = [
-            'id', 'title', 'release', 'project', 'ci_project', 'revision']
+            'id', 'title', 'release', 'project', 'ci_project', 'revision', 'deployed_on']
+
+    exclude_deployed_on = django_filters.MethodFilter(action="filter_exclude_deployed_on")
+    deployed_on = django_filters.MethodFilter(action="filter_deployed_on")
+
+    def filter_exclude_deployed_on(self, queryset, value):
+        """Implement ``exclude`` filter by deployed on instance."""
+        if not self.form.cleaned_data['ci_project']:
+            raise exceptions.ValidationError('CI project is required to exclude by deployed on')
+        return queryset.filter(
+            Q(release__deployment_reports__instance__name=value) & (
+                Q(release__deployment_reports__status__gt=DeploymentReport.STATUS_DEPLOYED)
+                | Q(release__deployment_reports__status__lt=DeploymentReport.STATUS_DEPLOYED))
+            | Q(release__deployment_reports__isnull=True))
+
+    def filter_deployed_on(self, queryset, value):
+        """Implement filter by deployed on instance."""
+        if not self.form.cleaned_data['ci_project']:
+            raise exceptions.ValidationError('CI project is required to filter by deployed on')
+        return queryset.filter(
+            Q(release__deployment_reports__instance__name=value) & (
+                Q(release__deployment_reports__status=DeploymentReport.STATUS_DEPLOYED)))
+
+    def filter_instance(self, queryset, value):
+        """Implement filter by instance."""
+        return queryset.filter(
+            Q(reports__instance__name=value) | Q(reports__isnull=True) | Q(case__ci_project__instances__name=value))
 
 
 class CaseViewSet(viewsets.ModelViewSet):
@@ -125,6 +151,9 @@ class CaseViewSet(viewsets.ModelViewSet):
     * project
     * release
     * ci_project
+    * revision
+    * deployed_on
+    * exclude_deployed_on
 
     Orderings (via **`order_by`** query string parameter):
 
@@ -137,7 +166,7 @@ class CaseViewSet(viewsets.ModelViewSet):
 
     queryset = Case.objects.all()
     serializer_class = CaseSerializer
-    filter_fields = ('id', 'title', 'project', 'release', 'ci_project')
+    filter_fields = ('id', 'title', 'project', 'release', 'ci_project', 'revision')
     ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')
     filter_class = CaseFilter
     ordering = ('id',)
@@ -277,6 +306,7 @@ class DeploymentReportViewSet(viewsets.ModelViewSet):
     * instance
     * status
     * datetime
+    * revision
 
     Orderings (via **`order_by`** query string parameter):
 
@@ -288,6 +318,6 @@ class DeploymentReportViewSet(viewsets.ModelViewSet):
 
     queryset = DeploymentReport.objects.all()
     serializer_class = DeploymentReportSerializer
-    filter_fields = ('release', 'instance', 'status', 'datetime')
+    filter_fields = ('release', 'instance', 'status', 'datetime', 'revision')
     ordering_fields = ('release', 'instance', 'status', 'datetime')
     ordering = ('release', 'instance', 'datetime', 'id')

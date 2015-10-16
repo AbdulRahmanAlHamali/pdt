@@ -437,7 +437,7 @@ class DeploymentReportSerializer(ReleaseFieldMixin, InstanceFieldMixin, serializ
 
     class Meta:
         model = DeploymentReport
-        fields = ('id', 'release', 'instance', 'status', 'datetime', 'log', 'cases')
+        fields = ('id', 'release', 'instance', 'status', 'datetime', 'log', 'cases', 'revision')
 
     def create(self, validated_data):
         """Create or update the instance due to unique key on case."""
