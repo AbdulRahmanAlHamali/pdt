@@ -150,7 +150,17 @@ class InstanceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'core.Instance'
 
-    ci_projects = factory.RelatedFactory(CIProjectFactory)
+    @factory.post_generation
+    def ci_projects(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+        if not extracted:
+            extracted = CIProjectFactory()
+        if extracted:
+            # A list of groups were passed in, use them
+            for ci_project in extracted:
+                self.ci_projects.add(ci_project)
 
 
 class MigrationStepReportFactory(factory.django.DjangoModelFactory):
@@ -172,10 +182,11 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'core.MigrationReport'
 
-    instance = factory.SubFactory(InstanceFactory)
+    instance = factory.SubFactory(InstanceFactory, ci_projects=factory.LazyAttribute(
+        lambda obj: [obj.factory_parent._ci_project]))
+    _ci_project = factory.SubFactory(CIProjectFactory)
     migration = factory.SubFactory(
-        MigrationFactory, case__ci_project=factory.LazyAttribute(
-            lambda obj: obj.factory_parent.factory_parent.instance.ci_projects.all()[0]))
+        MigrationFactory, case__ci_project=factory.SelfAttribute('..._ci_project'))
     step_reports = factory.RelatedFactory(MigrationStepReportFactory, 'report')
     status = MigrationReport.STATUS_APPLIED
 
