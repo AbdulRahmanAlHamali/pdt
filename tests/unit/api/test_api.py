@@ -24,7 +24,7 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
         report.step.id for report in mr2.step_reports.all() if report.status == MigrationStepReport.STATUS_APPLIED}
     data = admin_client.get(
         '/api/migrations/', dict(
-            exclude_status='apl', instance=mr1.instance.name, ci_project=mr1.instance.ci_projects.first().name)).data
+            exclude_status='apl', instance=mr1.instance.name)).data
     assert len(data) == 1
     migration = mr2.migration
     assert data[0] == {
