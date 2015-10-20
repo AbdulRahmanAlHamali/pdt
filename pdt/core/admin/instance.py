@@ -18,8 +18,9 @@ class InstanceAdmin(admin.ModelAdmin):
         """Last deployed release column."""
         report = self.deployment_reports.filter(status=DeploymentReport.STATUS_DEPLOYED).order_by('-datetime').first()
         try:
-            max_release = max(case.release.number for case in report.cases().all() if case.release)
-        except ValueError:
+            max_release = max(
+                (case.release for case in report.cases.all() if case.release), key=lambda case: case.release.number)
+        except (ValueError, AttributeError):
             return ''
         return mark_safe(
             '<a href="{url}">{number}: {datetime}</a>'.format(
