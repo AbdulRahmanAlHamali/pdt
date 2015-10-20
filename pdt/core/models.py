@@ -315,8 +315,8 @@ class CaseManager(models.Manager):
         }
         kwargs = {}
         tags = {'deployed-{0}'.format(report.instance.name)}
-        if (report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags'])
-                and report.cases.filter(id=case.id).count()):
+        if (report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']) and
+                report.cases.filter(id=case.id).count()):
             if report.status == DeploymentReport.STATUS_DEPLOYED:
                 kwargs['sTags'] = ','.join(case_info['tags'].union(tags))
             response = fb.edit(
