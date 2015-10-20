@@ -19,12 +19,12 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
     mr1.save()
     mr2 = migration_report_factory(
         status=MigrationReport.STATUS_ERROR, migration=mr1.migration,
-        instance__ci_project=mr1.instance.ci_project, instance__name='2')
+        instance__ci_projects=mr1.instance.ci_projects.all(), instance__name='2')
     applied_step_ids = {
         report.step.id for report in mr2.step_reports.all() if report.status == MigrationStepReport.STATUS_APPLIED}
     data = admin_client.get(
         '/api/migrations/', dict(
-            exclude_status='apl', instance=mr1.instance.name, ci_project=mr1.instance.ci_project.name)).data
+            exclude_status='apl', instance=mr1.instance.name, ci_project=mr1.instance.ci_projects.first().name)).data
     assert len(data) == 1
     migration = mr2.migration
     assert data[0] == {
@@ -50,15 +50,31 @@ def test_migration_filter_exclude_status(admin_client, migration_report_factory,
         'reviewed': False,
         'reports': [{
             'id': mr1.id,
-            'ci_project': migration.case.ci_project.name,
-            'instance': mr1.instance.name,
+            'instance': {
+                'id': mr1.instance.id,
+                'name': mr1.instance.name,
+                'description': mr1.instance.description,
+                'ci_projects': [{
+                    'id': migration.case.ci_project.id,
+                    'name': migration.case.ci_project.name,
+                    'description': migration.case.ci_project.description,
+                }],
+            },
             'status': mr1.status,
             'datetime': equals_any,
             'log': mr1.log
         }, {
             'id': mr2.id,
-            'ci_project': migration.case.ci_project.name,
-            'instance': mr2.instance.name,
+            'instance': {
+                'id': mr2.instance.id,
+                'name': mr2.instance.name,
+                'description': mr2.instance.description,
+                'ci_projects': [{
+                    'id': migration.case.ci_project.id,
+                    'name': migration.case.ci_project.name,
+                    'description': migration.case.ci_project.description,
+                }],
+            },
             'status': mr2.status,
             'datetime': equals_any,
             'log': mr2.log
@@ -78,9 +94,9 @@ def test_migration_filter_status(admin_client, migration_report_factory):
     mr1.status = 'apl'
     mr1.save()
     migration_report_factory(
-        status='err', migration=mr1.migration, instance__ci_project=mr1.instance.ci_project)
+        status='err', migration=mr1.migration, instance__ci_projects=mr1.instance.ci_projects.all())
     data = admin_client.get(
-        '/api/migrations/', dict(status='apl', ci_project=mr1.instance.ci_project.name)).data
+        '/api/migrations/', dict(status='apl', ci_project=mr1.instance.ci_projects.first().name)).data
     assert len(data) == 1
     assert data[0]['id'] == mr1.id
 
@@ -114,7 +130,7 @@ def test_migration_filter_reviewed(admin_client, migration_factory):
 def test_migration_filter_instance(admin_client, migration_report_factory, instance_factory):
     """Test migration filter when instance parameter is used."""
     mr1 = migration_report_factory()
-    instance = instance_factory(ci_project=mr1.migration.case.ci_project)
+    instance = instance_factory(ci_projects=[mr1.migration.case.ci_project])
     data = admin_client.get(
         '/api/migrations/', dict(instance=instance.name)).data
     assert len(data) == 1
@@ -244,9 +260,9 @@ def test_create_instance(admin_client, ci_project):
         '/api/instances/', data=json.dumps({
             "name": "Some instance name",
             "description": "Some instance description",
-            "ci_project": {
+            "ci_projects": [{
                 "name": ci_project.name
-            }
+            }],
         }), content_type='application/json').data
     assert data['id']
 
@@ -257,9 +273,9 @@ def test_create_instance_no_ci_project(admin_client):
         '/api/instances/', data=json.dumps({
             "name": "Some instance name",
             "description": "Some instance description",
-            "ci_project": {
+            "ci_projects": [{
                 "name": 'not-there'
-            }
+            }],
         }), content_type='application/json').data
     assert data['id']
 
@@ -272,7 +288,7 @@ def test_create_migration_step_report(mocked_fogbugz, admin_client, instance, ca
     mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
     mocked_case.stitle.string = 'Some title'
     mocked_case.soriginaltitle.string = 'Some original title'
-    mocked_case.cixproject.string = instance.ci_project.name
+    mocked_case.cixproject.string = instance.ci_projects.first().name
     mocked_case.sproject.string = 'Some project'
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
@@ -281,9 +297,9 @@ def test_create_migration_step_report(mocked_fogbugz, admin_client, instance, ca
             "report": {
                 "instance": {
                     "name": instance.name,
-                    "ci_project": {
-                        "name": instance.ci_project.name
-                    },
+                    "ci_projects": [{
+                        "name": instance.ci_projects.first().name
+                    }],
                 },
                 "migration": {
                     "uid": migration.uid
@@ -307,7 +323,7 @@ def test_create_migration_step_report_no_migration(mocked_fogbugz, admin_client,
     mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
     mocked_case.stitle.string = 'Some title'
     mocked_case.soriginaltitle.string = 'Some original title'
-    mocked_case.cixproject.string = instance.ci_project.name
+    mocked_case.cixproject.string = instance.ci_projects.first().name
     mocked_case.sproject.string = 'Some project'
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
@@ -316,9 +332,9 @@ def test_create_migration_step_report_no_migration(mocked_fogbugz, admin_client,
             "report": {
                 "instance": {
                     "name": instance.name,
-                    "ci_project": {
-                        "name": instance.ci_project.name
-                    },
+                    "ci_projects": [{
+                        "name": instance.ci_projects.first().name
+                    }],
                 },
                 "migration": {
                     "uid": 1231
@@ -341,7 +357,7 @@ def test_create_migration_step_report_update(mocked_fogbugz, admin_client, insta
     mocked_case.dtfixfor.string = '2015-01-18T23:00:00Z'
     mocked_case.stitle.string = 'Some title'
     mocked_case.soriginaltitle.string = 'Some original title'
-    mocked_case.cixproject.string = instance.ci_project.name
+    mocked_case.cixproject.string = instance.ci_projects.first().name
     mocked_case.sproject.string = 'Some project'
     mocked_case.sproject.string = 'Some project'
     mocked_case.sarea.string = 'Some area'
@@ -350,9 +366,9 @@ def test_create_migration_step_report_update(mocked_fogbugz, admin_client, insta
             "report": {
                 "instance": {
                     "name": instance.name,
-                    "ci_project": {
-                        "name": instance.ci_project.name
-                    },
+                    "ci_projects": [{
+                        "name": instance.ci_projects.first().name
+                    }],
                 },
                 "migration": {
                     "uid": migration_report.migration.uid
@@ -375,9 +391,9 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
         '/api/deployment-reports/', data=json.dumps({
             "instance": {
                 "name": instance.name,
-                "ci_project": {
-                    "name": instance.ci_project.name
-                },
+                "ci_projects": [{
+                    "name": instance.ci_projects.first().name
+                }],
             },
             "release": {
                 "number": release.number
@@ -433,30 +449,51 @@ def test_case_filter_revision(admin_client, case_factory):
 
 def test_case_filter_deployed_on(admin_client, case_factory, deployment_report_factory, instance):
     """Test case filter when deployed_on parameter is used."""
-    case = case_factory(ci_project=instance.ci_projects.all()[0])
+    case = case_factory(ci_project=instance.ci_projects.first())
     case_factory()
-    deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
-    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
+    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            deployed_on=instance.name, ci_project=instance.ci_projects.first().name,
+            release=case.release.number)).data
     assert len(data) == 0
-    deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED)
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            deployed_on=instance.name, ci_project=instance.ci_projects.first().name, release=case.release.number)).data
     assert len(data) == 1
 
 
-def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_report_factory, instance):
+def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_report_factory, instance, release):
     """Test case filter when exclude_deployed_on parameter is used."""
-    case = case_factory(ci_project=instance.ci_projects.all()[0])
+    case = case_factory(ci_project=instance.ci_projects.first(), release=release)
     case_factory()
-    report = deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
-    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)
+    # no deployment reports for the case
     data = admin_client.get(
-        '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            exclude_deployed_on=instance.name,
+            ci_project=instance.ci_projects.first().name, release=release.number)).data
     assert len(data) == 1
-    report.delete()
-    deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED)
+    assert data[0]['id'] == case.id
+    # 2 deployment reports, both errored
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR,
+        cases=[case])
+    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            exclude_deployed_on=instance.name, ci_project=instance.ci_projects.first().name,
+            release=release.number)).data
+    assert len(data) == 1
+    assert data[0]['id'] == case.id
+    # 2 deployment reports, one errored, one succeeded
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
+    data = admin_client.get(
+        '/api/cases/', dict(
+            exclude_deployed_on=instance.name, ci_project=instance.ci_projects.first().name,
+            release=release.number)).data
     assert len(data) == 0

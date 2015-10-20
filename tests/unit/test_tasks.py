@@ -19,7 +19,7 @@ def test_update_case_to_fogbugz(
         transactional_db, mocked_fogbugz, case_factory, migration_factory, deployment_report_factory,
         migration_report_factory, instance):
     """Test update case to fogbugz task."""
-    deployed_case = case_factory(tags=['deployed-{0}'.format(instance.name)], ci_project=instance.ci_project)
+    deployed_case = case_factory(tags=['deployed-{0}'.format(instance.name)], ci_project=instance.ci_projects.first())
     migration_factory(case=deployed_case)
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.attrs = dict(ixbug=deployed_case.id)

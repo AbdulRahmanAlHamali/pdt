@@ -152,11 +152,12 @@ class InstanceFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def ci_projects(self, create, extracted, **kwargs):
+        """CIProject relation."""
         if not create:
             # Simple build, do nothing.
             return
         if not extracted:
-            extracted = CIProjectFactory()
+            extracted = [CIProjectFactory()]
         if extracted:
             # A list of groups were passed in, use them
             for ci_project in extracted:
@@ -181,9 +182,10 @@ class MigrationReportFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = 'core.MigrationReport'
+        exclude = ('_ci_project',)
 
     instance = factory.SubFactory(InstanceFactory, ci_projects=factory.LazyAttribute(
-        lambda obj: [obj.factory_parent._ci_project]))
+        lambda obj: [obj.factory_parent._ci_project]))  # pylint: disable=W0212
     _ci_project = factory.SubFactory(CIProjectFactory)
     migration = factory.SubFactory(
         MigrationFactory, case__ci_project=factory.SelfAttribute('..._ci_project'))
@@ -202,3 +204,15 @@ class DeploymentReportFactory(factory.django.DjangoModelFactory):
     instance = factory.SubFactory(InstanceFactory)
     release = factory.SubFactory(ReleaseFactory)
     status = DeploymentReport.STATUS_DEPLOYED
+
+    @factory.post_generation
+    def cases(self, create, extracted, **kwargs):
+        """Case relation."""
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if extracted:
+            # A list of groups were passed in, use them
+            for case in extracted:
+                self.cases.add(case)

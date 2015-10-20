@@ -120,24 +120,25 @@ class CaseFilter(django_filters.FilterSet):
         """Implement ``exclude`` filter by deployed on instance."""
         if not self.form.cleaned_data['ci_project']:
             raise exceptions.ValidationError('CI project is required to exclude by deployed on')
-        return queryset.filter(
-            Q(release__deployment_reports__instance__name=value) & (
-                Q(release__deployment_reports__status__gt=DeploymentReport.STATUS_DEPLOYED) |
-                Q(release__deployment_reports__status__lt=DeploymentReport.STATUS_DEPLOYED)) |
-            Q(release__deployment_reports__isnull=True))
+        if not self.form.cleaned_data['release']:
+            raise exceptions.ValidationError('Release is required to exclude by deployed on')
+        return queryset.exclude(
+            deployment_reports__instance__name=value,
+            deployment_reports__status=DeploymentReport.STATUS_DEPLOYED,
+            deployment_reports__release__number=self.form.cleaned_data['release'],
+        )
 
     def filter_deployed_on(self, queryset, value):
         """Implement filter by deployed on instance."""
         if not self.form.cleaned_data['ci_project']:
             raise exceptions.ValidationError('CI project is required to filter by deployed on')
+        if not self.form.cleaned_data['release']:
+            raise exceptions.ValidationError('Release is required to exclude by deployed on')
         return queryset.filter(
-            Q(release__deployment_reports__instance__name=value) & (
-                Q(release__deployment_reports__status=DeploymentReport.STATUS_DEPLOYED)))
-
-    def filter_instance(self, queryset, value):
-        """Implement filter by instance."""
-        return queryset.filter(
-            Q(reports__instance__name=value) | Q(reports__isnull=True) | Q(case__ci_project__instances__name=value))
+            deployment_reports__instance__name=value,
+            deployment_reports__status=DeploymentReport.STATUS_DEPLOYED,
+            deployment_reports__release__number=self.form.cleaned_data['release'],
+        )
 
 
 class CaseViewSet(viewsets.ModelViewSet):
@@ -164,7 +165,7 @@ class CaseViewSet(viewsets.ModelViewSet):
     * ci_project
     """
 
-    queryset = Case.objects.all()
+    queryset = Case.objects.all().distinct()
     serializer_class = CaseSerializer
     filter_fields = ('id', 'title', 'project', 'release', 'ci_project', 'revision')
     ordering_fields = ('id', 'title', 'project', 'release', 'ci_project')

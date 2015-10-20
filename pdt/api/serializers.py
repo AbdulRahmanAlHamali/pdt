@@ -61,13 +61,52 @@ class CIProjectFieldMixin(serializers.HyperlinkedModelSerializer):
         return value
 
 
-class InstanceSerializer(CIProjectFieldMixin):
+class CIProjectsFieldMixin(serializers.HyperlinkedModelSerializer):
+
+    """Add custom ci_projects field handling."""
+
+    class CIProjectSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = CIProject
+            fields = ('id', 'name', 'description')
+            extra_kwargs = {
+                'id': {'read_only': True},
+                'name': {'validators': []},
+                'description': {'read_only': True},
+            }
+
+    ci_projects = CIProjectSerializer(many=True, required=False)
+
+    def validate_ci_projects(self, values):
+        """Validate ci_project complex type."""
+        result = []
+        for value in values:
+            name = value['name']
+            try:
+                value, _ = CIProject.objects.get_or_create(name=name)
+            except Exception as e:  # pragma: no cover
+                logger.exception('Failed to get or create the ci project')
+                raise serializers.ValidationError(e)
+            result.append(value)
+        return result
+
+
+class InstanceSerializer(CIProjectsFieldMixin):
 
     """Instance serializer."""
 
     class Meta:
         model = Instance
-        fields = ('id', 'name', 'description', 'ci_project')
+        fields = ('id', 'name', 'description', 'ci_projects')
+
+    def create(self, validated_data):
+        """Create or update the instance due to unique key on case."""
+        ci_projects = validated_data.pop('ci_projects')
+        instance = super(InstanceSerializer, self).create(validated_data)
+        instance.save()
+        instance.ci_projects = ci_projects
+        return instance
 
 
 class CIProjectSerializer(serializers.HyperlinkedModelSerializer):
@@ -165,18 +204,47 @@ class CaseFieldMixin(serializers.HyperlinkedModelSerializer):
         return value
 
 
+class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
+
+    """Add custom instance field handling."""
+
+    class InstanceSerializer(CIProjectsFieldMixin):
+
+        name = serializers.CharField()
+
+        class Meta:
+            model = Instance
+            validators = []
+            fields = ('id', 'name', 'ci_projects', 'description')
+            extra_kwargs = {
+                'id': {'read_only': True},
+                "name": {'read_only': True},
+                "ci_projects": {'read_only': True},
+                'description': {'read_only': True}
+            }
+
+    instance = InstanceSerializer()
+
+    def validate_instance(self, value):
+        """Validate instance complex type."""
+        name = value['name']
+        try:
+            value = Instance.objects.get(name=name)
+        except Exception as e:  # pragma: no cover
+            logger.exception('Failed to get an instance')
+            raise serializers.ValidationError(e)
+        return value
+
+
 class MigrationSerializer(CaseFieldMixin):
 
     """Migration serializer."""
 
-    class MigrationReportSerializer(serializers.ModelSerializer):
-
-        ci_project = serializers.CharField(source='instance.ci_project.name')
-        instance = serializers.CharField(source='instance.name')
+    class MigrationReportSerializer(InstanceFieldMixin):
 
         class Meta:
             model = MigrationReport
-            fields = ('id', 'ci_project', 'instance', 'status', 'datetime', 'log')
+            fields = ('id', 'instance', 'status', 'datetime', 'log')
 
     pre_deploy_steps = PreDeployMigrationStepSerializer(many=True)
     post_deploy_steps = PostDeployMigrationStepSerializer(many=True)
@@ -237,38 +305,6 @@ class MigrationSerializer(CaseFieldMixin):
             for index, step_data in enumerate(final_steps)
         ]
         return migration
-
-
-class InstanceFieldMixin(serializers.HyperlinkedModelSerializer):
-
-    """Add custom instance field handling."""
-
-    class InstanceSerializer(CIProjectFieldMixin):
-
-        name = serializers.CharField()
-
-        class Meta:
-            model = Instance
-            validators = []
-            fields = ('id', 'name', 'ci_project', 'description')
-            extra_kwargs = {
-                'id': {'read_only': True},
-                "name": {'read_only': True},
-                "ci_project": {'read_only': True},
-                'description': {'read_only': True}
-            }
-
-    instance = InstanceSerializer()
-
-    def validate_instance(self, value):
-        """Validate instance complex type."""
-        name = value['name']
-        try:
-            value = Instance.objects.get(name=name, ci_project=value['ci_project'])
-        except Exception as e:  # pragma: no cover
-            logger.exception('Failed to get an instance')
-            raise serializers.ValidationError(e)
-        return value
 
 
 class MigrationReportSerializer(InstanceFieldMixin):

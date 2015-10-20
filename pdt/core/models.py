@@ -99,7 +99,7 @@ class Instance(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.id}: {self.name}'.format(self=self)
+        return '{self.id}: {self.name}'.format(self=self)  # pylint: disable=W1306
 
 
 class CaseManager(models.Manager):
@@ -314,7 +314,8 @@ class CaseManager(models.Manager):
         }
         kwargs = {}
         tags = {'deployed-{0}'.format(report.instance.name)}
-        if report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']):
+        if (report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']) and
+                report.cases.filter(id=case.id).count()):
             if report.status == DeploymentReport.STATUS_DEPLOYED:
                 kwargs['sTags'] = ','.join(case_info['tags'].union(tags))
             response = fb.edit(
@@ -763,7 +764,7 @@ class DeploymentReport(models.Model):
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
-    cases = models.ManyToManyField(Case)
+    cases = models.ManyToManyField(Case, related_name='deployment_reports')
     revision = models.CharField(max_length=255, blank=True, db_index=True)
 
     tracker = FieldTracker()

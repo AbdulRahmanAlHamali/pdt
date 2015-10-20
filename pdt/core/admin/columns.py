@@ -49,8 +49,7 @@ def ci_projects_column(getter=lambda obj: obj.ci_projects, short_description=_('
         return mark_safe(
             ', '.join('<a href="{url}">{name}</a>'.format(
                 url=reverse("admin:core_ciproject_change", args=(ci_project.id,)),
-                name=ci_project.name)
-                for ci_project in ci_projects))
+                name=ci_project.name) for ci_project in ci_projects))
     column.short_description = short_description
     return column
 
@@ -69,8 +68,7 @@ def instances_column(getter=lambda obj: obj.instances, short_description=_('Inst
         return mark_safe(
             ', '.join('<a href="{url}">{name}</a>'.format(
                 url=reverse("admin:core_instance_change", args=(instance.id,)),
-                name=instance.name)
-                for instance in instances))
+                name=instance.name) for instance in instances))
     column.short_description = short_description
     return column
 

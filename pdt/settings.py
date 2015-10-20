@@ -139,6 +139,7 @@ if DEBUG and not os.environ.get('TESTING'):
 
 DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": lambda x: DEBUG,
+    "SHOW_COLLAPSED": True,
     "RENDER_PANELS": True
 }
 
