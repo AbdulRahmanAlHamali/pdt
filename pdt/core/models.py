@@ -764,7 +764,7 @@ class DeploymentReport(models.Model):
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
-    cases = models.ManyToManyField(Case)
+    cases = models.ManyToManyField(Case, related_name='deployment_reports')
     revision = models.CharField(max_length=255, blank=True, db_index=True)
 
     tracker = FieldTracker()

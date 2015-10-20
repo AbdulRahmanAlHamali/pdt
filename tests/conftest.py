@@ -190,3 +190,15 @@ class DeploymentReportFactory(factory.django.DjangoModelFactory):
     instance = factory.SubFactory(InstanceFactory)
     release = factory.SubFactory(ReleaseFactory)
     status = DeploymentReport.STATUS_DEPLOYED
+
+    @factory.post_generation
+    def cases(self, create, extracted, **kwargs):
+        """Case relation."""
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if extracted:
+            # A list of groups were passed in, use them
+            for case in extracted:
+                self.cases.add(case)

@@ -435,34 +435,48 @@ def test_case_filter_deployed_on(admin_client, case_factory, deployment_report_f
     """Test case filter when deployed_on parameter is used."""
     case = case_factory(ci_project=instance.ci_project)
     case_factory()
-    deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
-    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
+    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            deployed_on=instance.name, ci_project=instance.ci_project.name,
+            release=case.release.number)).data
     assert len(data) == 0
-    deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED)
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            deployed_on=instance.name, ci_project=instance.ci_project.name, release=case.release.number)).data
     assert len(data) == 1
 
 
-def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_report_factory, instance):
+def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_report_factory, instance, release):
     """Test case filter when exclude_deployed_on parameter is used."""
-    case = case_factory(ci_project=instance.ci_project)
+    case = case_factory(ci_project=instance.ci_project, release=release)
     case_factory()
     # no deployment reports for the case
     data = admin_client.get(
-        '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            exclude_deployed_on=instance.name, ci_project=instance.ci_project.name, release=release.number)).data
     assert len(data) == 1
+    assert data[0]['id'] == case.id
     # 2 deployment reports, both errored
-    report = deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
-    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR,
+        cases=[case])
+    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            exclude_deployed_on=instance.name, ci_project=instance.ci_project.name,
+            release=release.number)).data
     assert len(data) == 1
-    report.delete()
+    assert data[0]['id'] == case.id
     # 2 deployment reports, one errored, one succeeded
-    deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED)
+    deployment_report_factory(
+        instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
     data = admin_client.get(
-        '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+        '/api/cases/', dict(
+            exclude_deployed_on=instance.name, ci_project=instance.ci_project.name,
+            release=release.number)).data
     assert len(data) == 0
