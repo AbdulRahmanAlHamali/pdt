@@ -17,12 +17,16 @@ class InstanceAdmin(admin.ModelAdmin):
     def last_deployed_release(self):
         """Last deployed release column."""
         report = self.deployment_reports.filter(status=DeploymentReport.STATUS_DEPLOYED).order_by('-datetime').first()
+        try:
+            max_release = max(case.release.number for case in report.cases().all() if case.release)
+        except ValueError:
+            return ''
         return mark_safe(
             '<a href="{url}">{number}: {datetime}</a>'.format(
                 url=reverse("admin:core_release_change", args=(report.id,)),
-                number=report.release.number,
+                number=max_release.number,
                 datetime=report.datetime,
-            )) if report else ''
+            ))
 
     list_display = ('id', 'name', 'description', ci_projects_column(), last_deployed_release)
     list_filter = ('ci_projects__name',)
