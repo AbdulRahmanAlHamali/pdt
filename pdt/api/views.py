@@ -120,11 +120,9 @@ class CaseFilter(django_filters.FilterSet):
         """Implement ``exclude`` filter by deployed on instance."""
         if not self.form.cleaned_data['ci_project']:
             raise exceptions.ValidationError('CI project is required to exclude by deployed on')
-        return queryset.filter(
-            Q(release__deployment_reports__instance__name=value) & (
-                Q(release__deployment_reports__status__gt=DeploymentReport.STATUS_DEPLOYED) |
-                Q(release__deployment_reports__status__lt=DeploymentReport.STATUS_DEPLOYED)) |
-            Q(release__deployment_reports__isnull=True))
+        return queryset.exclude(
+            Q(release__deployment_reports__instance__name=value) &
+            Q(release__deployment_reports__status=DeploymentReport.STATUS_DEPLOYED))
 
     def filter_deployed_on(self, queryset, value):
         """Implement filter by deployed on instance."""

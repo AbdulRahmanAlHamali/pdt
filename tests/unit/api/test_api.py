@@ -450,12 +450,18 @@ def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_
     """Test case filter when exclude_deployed_on parameter is used."""
     case = case_factory(ci_project=instance.ci_project)
     case_factory()
+    # no deployment reports for the case
+    data = admin_client.get(
+        '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
+    assert len(data) == 1
+    # 2 deployment reports, both errored
     report = deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR)
     deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR)
     data = admin_client.get(
         '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
     assert len(data) == 1
     report.delete()
+    # 2 deployment reports, one errored, one succeeded
     deployment_report_factory(instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED)
     data = admin_client.get(
         '/api/cases/', dict(exclude_deployed_on=instance.name, ci_project=instance.ci_project.name)).data
