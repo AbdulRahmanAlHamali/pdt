@@ -395,19 +395,14 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
                     "name": instance.ci_projects.first().name
                 }],
             },
-            "release": {
-                "number": release.number
-            },
             "status": DeploymentReport.STATUS_DEPLOYED,
             "log": "some log",
-            "revision": "some-revision",
             "cases": [{"id": case.id}]
         }), content_type='application/json').data
     assert data['status'] == DeploymentReport.STATUS_DEPLOYED
     report = DeploymentReport.objects.get(id=data['id'])
     report_case, = report.cases.all()
     assert report_case.id == case.id
-    assert report.revision == "some-revision"
 
 
 def test_case_filter_ci_project(admin_client, case_factory):
@@ -452,15 +447,15 @@ def test_case_filter_deployed_on(admin_client, case_factory, deployment_report_f
     case = case_factory(ci_project=instance.ci_projects.first())
     case_factory()
     deployment_report_factory(
-        instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
-    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
+        instance=instance, status=DeploymentReport.STATUS_ERROR, cases=[case])
+    deployment_report_factory(status=DeploymentReport.STATUS_ERROR, cases=[case])
     data = admin_client.get(
         '/api/cases/', dict(
             deployed_on=instance.name, ci_project=instance.ci_projects.first().name,
             release=case.release.number)).data
     assert len(data) == 0
     deployment_report_factory(
-        instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
+        instance=instance, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
     data = admin_client.get(
         '/api/cases/', dict(
             deployed_on=instance.name, ci_project=instance.ci_projects.first().name, release=case.release.number)).data
@@ -480,9 +475,9 @@ def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_
     assert data[0]['id'] == case.id
     # 2 deployment reports, both errored
     deployment_report_factory(
-        instance=instance, release=case.release, status=DeploymentReport.STATUS_ERROR,
+        instance=instance, status=DeploymentReport.STATUS_ERROR,
         cases=[case])
-    deployment_report_factory(release=case.release, status=DeploymentReport.STATUS_ERROR, cases=[case])
+    deployment_report_factory(status=DeploymentReport.STATUS_ERROR, cases=[case])
     data = admin_client.get(
         '/api/cases/', dict(
             exclude_deployed_on=instance.name, ci_project=instance.ci_projects.first().name,
@@ -491,7 +486,7 @@ def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_
     assert data[0]['id'] == case.id
     # 2 deployment reports, one errored, one succeeded
     deployment_report_factory(
-        instance=instance, release=case.release, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
+        instance=instance, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
     data = admin_client.get(
         '/api/cases/', dict(
             exclude_deployed_on=instance.name, ci_project=instance.ci_projects.first().name,

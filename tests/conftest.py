@@ -202,7 +202,6 @@ class DeploymentReportFactory(factory.django.DjangoModelFactory):
         model = 'core.DeploymentReport'
 
     instance = factory.SubFactory(InstanceFactory)
-    release = factory.SubFactory(ReleaseFactory)
     status = DeploymentReport.STATUS_DEPLOYED
 
     @factory.post_generation

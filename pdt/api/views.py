@@ -125,7 +125,6 @@ class CaseFilter(django_filters.FilterSet):
         return queryset.exclude(
             deployment_reports__instance__name=value,
             deployment_reports__status=DeploymentReport.STATUS_DEPLOYED,
-            deployment_reports__release__number=self.form.cleaned_data['release'],
         )
 
     def filter_deployed_on(self, queryset, value):
@@ -137,7 +136,6 @@ class CaseFilter(django_filters.FilterSet):
         return queryset.filter(
             deployment_reports__instance__name=value,
             deployment_reports__status=DeploymentReport.STATUS_DEPLOYED,
-            deployment_reports__release__number=self.form.cleaned_data['release'],
         )
 
 
@@ -303,15 +301,12 @@ class DeploymentReportViewSet(viewsets.ModelViewSet):
 
     Filters (via **`<parameter>`** query string arguments):
 
-    * release
     * instance
     * status
     * datetime
-    * revision
 
     Orderings (via **`order_by`** query string parameter):
 
-    * release
     * instance
     * status
     * datetime
@@ -319,6 +314,6 @@ class DeploymentReportViewSet(viewsets.ModelViewSet):
 
     queryset = DeploymentReport.objects.all()
     serializer_class = DeploymentReportSerializer
-    filter_fields = ('release', 'instance', 'status', 'datetime', 'revision')
-    ordering_fields = ('release', 'instance', 'status', 'datetime')
-    ordering = ('release', 'instance', 'datetime', 'id')
+    filter_fields = ('release', 'instance', 'status', 'datetime')
+    ordering_fields = ('instance', 'status', 'datetime')
+    ordering = ('instance', 'datetime', 'id')

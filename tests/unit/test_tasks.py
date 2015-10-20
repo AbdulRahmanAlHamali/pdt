@@ -33,7 +33,6 @@ def test_update_case_to_fogbugz(
     mocked_case.sarea.string = 'Some area'
     deployment_report_factory(
         status=DeploymentReport.STATUS_DEPLOYED,
-        release=deployed_case.release,
         instance=instance)
     migration_report_factory(
         status=MigrationReport.STATUS_APPLIED,
@@ -56,7 +55,7 @@ def test_update_cases_to_fogbugz(mocked_update, transactional_db, case):
 
 
 def test_update_case_from_fogbugz(
-        transactional_db, mocked_fogbugz, case_factory, deployment_report_factory, instance, case):
+        transactional_db, mocked_fogbugz, case_factory, instance, case):
     """Test update case from fogbugz task."""
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.attrs = dict(ixbug=case.id)

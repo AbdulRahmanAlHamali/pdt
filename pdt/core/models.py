@@ -756,22 +756,20 @@ class DeploymentReport(models.Model):
     class Meta:
         verbose_name = _("Deployment report")
         verbose_name_plural = _("Deployment reports")
-        index_together = (("release", "instance", "datetime", "id", "revision"),)
-        ordering = ['release', 'instance', 'datetime', "id"]
+        index_together = (("instance", "datetime", "id"),)
+        ordering = ['instance', 'datetime', "id"]
 
-    release = models.ForeignKey(Release, related_name='deployment_reports')
     instance = models.ForeignKey(Instance, related_name='deployment_reports')
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
     cases = models.ManyToManyField(Case, related_name='deployment_reports')
-    revision = models.CharField(max_length=255, blank=True, db_index=True)
 
     tracker = FieldTracker()
 
     def __str__(self):
         """String representation."""
-        return '{id}: {self.release}: {self.instance}: {self.datetime}: {status}'.format(
+        return '{id}: {self.instance}: {self.datetime}: {status}'.format(
             id=self.id, self=self, status=self.get_status_display())
 
 
