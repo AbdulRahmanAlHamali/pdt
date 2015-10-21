@@ -3,6 +3,7 @@ from pytest_bdd import then, parsers
 
 from pdt.core.models import (
     Case,
+    CIProject,
     Instance,
 )
 
@@ -17,6 +18,12 @@ def i_should_see_an_instance_in_the_list(browser, instance):
 def i_should_see_a_case_in_the_list(browser, case):
     """I should see a case in the list."""
     assert browser.find_by_xpath('//table[@id="result_list"]//tr//*[text()="{0}"]'.format(case.id))
+
+
+@then('I should see a ci project in the list')
+def i_should_see_a_ci_project_in_the_list(browser, ci_project):
+    """I should see a ci project in the list."""
+    assert browser.find_by_xpath('//table[@id="result_list"]//tr//*[text()="{0}"]'.format(ci_project.name))
 
 
 @then(parsers.parse('I should see a "{message_type}" message'))
@@ -36,3 +43,9 @@ def instance_should_be_created(browser, instance__name):
 def case_should_be_created(browser, case__id):
     """Case should be created."""
     assert Case.objects.get(id=case__id)
+
+
+@then(parsers.parse('the ci project should be created'))
+def ci_project_should_be_created(browser, ci_project__name):
+    """CI project should be created."""
+    assert CIProject.objects.get(name=ci_project__name)

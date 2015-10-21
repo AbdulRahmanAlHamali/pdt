@@ -43,6 +43,18 @@ def case__revision(faker):
 
 
 @pytest.fixture
+def ci_project__name(faker):
+    """CI project name."""
+    return 'CI project - {0}'.format(faker.md5())
+
+
+@pytest.fixture
+def ci_project__description(faker):
+    """CI project description."""
+    return faker.text(max_nb_chars=255)
+
+
+@pytest.fixture
 def browser(base_url, request, user_role, admin_user, browser):
     """Pre-log in with given user role."""
     browser.visit(base_url + '/login/')

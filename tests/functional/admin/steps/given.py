@@ -7,7 +7,7 @@ def instance(instance_factory):
     """Instance."""
     return instance_factory()
 
-given('I have a CI project', fixture='ci_project')
+given('I have a ci project', fixture='ci_project')
 
 given('I have a release', fixture='release')
 
