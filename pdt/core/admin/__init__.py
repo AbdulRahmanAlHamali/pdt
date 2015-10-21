@@ -8,3 +8,4 @@ from .instance import InstanceAdmin  # NOQA
 from .migration import MigrationAdmin  # NOQA
 from .migration_report import MigrationReportAdmin  # NOQA
 from .release import ReleaseAdmin  # NOQA
+from .notification import NotificationTemplateAdmin  # NOQA

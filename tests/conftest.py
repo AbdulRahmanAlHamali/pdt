@@ -141,11 +141,39 @@ class MigrationFactory(factory.django.DjangoModelFactory):
 
 
 @register
+class EmailTemplateFactory(factory.django.DjangoModelFactory):
+
+    """Email template factory."""
+
+    class Meta:
+        model = 'post_office.EmailTemplate'
+
+    name = factory.fuzzy.FuzzyText(prefix='email-template-')
+    subject = factory.fuzzy.FuzzyText()
+
+
+@register
+class NotificationTemplateFactory(factory.django.DjangoModelFactory):
+
+    """Notification template factory."""
+
+    class Meta:
+        model = 'core.NotificationTemplate'
+
+    template = factory.SubFactory(EmailTemplateFactory)
+    from_email = factory.LazyAttribute(lambda obj: fake.email())
+    to = factory.LazyAttribute(lambda obj: [fake.email()])
+    cc = ''
+    bcc = ''
+
+
+@register
 class InstanceFactory(factory.django.DjangoModelFactory):
 
     """Instance factory."""
 
     name = factory.fuzzy.FuzzyText(prefix='instance-')
+    notification_template = factory.SubFactory(NotificationTemplateFactory)
 
     class Meta:
         model = 'core.Instance'

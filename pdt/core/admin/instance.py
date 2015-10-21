@@ -29,12 +29,13 @@ class InstanceAdmin(admin.ModelAdmin):
                 datetime=report.datetime,
             ))
 
-    list_display = ('id', 'name', 'description', ci_projects_column(), last_deployed_release)
+    list_display = ('id', 'name', 'description', ci_projects_column(), last_deployed_release, 'notification_template')
     list_filter = ('ci_projects__name',)
     search_fields = ('id', 'name', 'description')
-    raw_id_fields = ('ci_projects',)
+    raw_id_fields = ('ci_projects', 'notification_template')
     autocomplete_lookup_fields = {
         'm2m': ['ci_projects'],
+        'fk': ['notification_template']
     }
 
 admin.site.register(Instance, InstanceAdmin)

@@ -20,7 +20,7 @@ django-taggit-helpers==0.1.2
 django-taggit==0.14.0
 django==1.8.3
 djangorestframework==3.1.2
-djano-post_office==2.0.3
+django-post_office==2.0.3
 hiredis==0.2.0
 jsonfield==1.0.3
 markdown==2.6

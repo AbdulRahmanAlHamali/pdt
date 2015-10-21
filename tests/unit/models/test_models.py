@@ -1,4 +1,5 @@
 """Test core models."""
+import mock
 import pytest
 
 from pdt.core.models import Case
@@ -45,3 +46,15 @@ def test_deployment_report_unicode(deployment_report):
     """Test deployment report unicode."""
     assert str(deployment_report) == '{self.id}: {self.instance}: {self.datetime}: {status}'.format(
         self=deployment_report, status=deployment_report.get_status_display())
+
+
+@pytest.mark.django_db
+@mock.patch('post_office.mail.send')
+def test_deloyment_report_email(mocked_send, deployment_report_factory):
+    """Test migration report email notice."""
+    report = deployment_report_factory()
+    notification_template = report.instance.notification_template
+    mocked_send.assert_called_once_with(
+        template=notification_template.template.name,
+        sender=notification_template.from_email, context={'deployment_report': report},
+        recipients=notification_template.to)

@@ -19,6 +19,14 @@ class CustomIndexDashboard(Dashboard):
             models=('pdt.core.*',),
         ))
 
+        # append an app list module for "Applications"
+        self.children.append(modules.ModelList(
+            _('Notifications'),
+            collapsible=False,
+            column=1,
+            models=('post_office.*',),
+        ))
+
         # append an app list module for "Administration"
         self.children.append(modules.ModelList(
             _('Administration'),

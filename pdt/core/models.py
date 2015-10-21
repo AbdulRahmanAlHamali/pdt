@@ -13,6 +13,10 @@ from django.utils.translation import ugettext_lazy as _, ugettext as __
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 
+from post_office import mail
+from post_office.models import EmailTemplate
+from post_office.validators import validate_email_with_name
+from post_office.fields import CommaSeparatedEmailField
 
 from colorama import Fore
 from toposort import toposort_flatten
@@ -85,6 +89,7 @@ class Instance(models.Model):
     ci_projects = models.ManyToManyField(
         CIProject, related_name="instances", verbose_name=_('CI projects'), blank=False)
     description = models.TextField(blank=True)
+    notification_template = models.ForeignKey('NotificationTemplate', null=True, blank=True)
 
     class Meta:
         verbose_name = _("Instance")
@@ -100,6 +105,31 @@ class Instance(models.Model):
     def __str__(self):
         """String representation."""
         return '{self.id}: {self.name}'.format(self=self)  # pylint: disable=W1306
+
+
+class NotificationTemplate(models.Model):
+
+    """Notification template."""
+
+    template = models.ForeignKey(EmailTemplate, blank=False)
+    from_email = models.CharField(_("Email From"), max_length=254,
+                                  validators=[validate_email_with_name])
+    to = CommaSeparatedEmailField(_("Email To"), null=False, blank=False)
+    cc = CommaSeparatedEmailField(_("Cc"), null=True, blank=True)
+    bcc = CommaSeparatedEmailField(("Bcc"), null=True, blank=True)
+
+    def __str__(self):
+        """String representation."""
+        return '{self.template}'.format(self=self)
+
+    @staticmethod
+    def autocomplete_search_fields():
+        """Auto complete search fields."""
+        return ("id__iexact", "template__name",)
+
+    def notify(self, context):
+        """Notify with given context."""
+        mail.send(template=self.template.name, recipients=self.to, sender=self.from_email, context=context)
 
 
 class CaseManager(models.Manager):
@@ -778,11 +808,14 @@ def deployment_report_changes(sender, instance, **kwargs):
     changed = instance.tracker.changed()
     if instance.log != changed.get('log', instance.log):
         from .tasks import update_case_to_fogbugz
-        for case in instance.cases.all():
+        cases = instance.cases.all()
+        for case in cases:
             params = dict(report=instance.id)
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)
             update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
+        if instance.instance.notification_template:
+            instance.instance.notification_template.notify(dict(deployment_report=instance))
 
 
 post_save.connect(deployment_report_changes, sender=DeploymentReport)
