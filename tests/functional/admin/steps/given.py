@@ -2,7 +2,10 @@
 from pytest_bdd import given, parsers
 
 
-given('I have an instance', fixture='instance')
+@given('I have an instance')
+def instance(instance_factory):
+    """Instance."""
+    return instance_factory()
 
 given('I have a CI project', fixture='ci_project')
 

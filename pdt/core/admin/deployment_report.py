@@ -12,7 +12,6 @@ from .mixins import (
 )
 from .columns import (
     instance_column,
-    release_column,
     cases_column,
 )
 
@@ -34,19 +33,19 @@ class DeploymentReportAdmin(LogAdminMixin, admin.ModelAdmin):
     """DeploymentReport admin interface class."""
 
     form = DeploymentReportForm
-    list_display = ('id', release_column(), instance_column(), 'status', 'datetime', cases_column())
-    list_filter = ('release__number', 'instance__name', 'status')
-    search_fields = ('release__number', 'instance__name')
-    raw_id_fields = ('release', 'instance', 'cases')
+    list_display = ('id', instance_column(), 'status', 'datetime', cases_column())
+    list_filter = ('cases__release__number', 'instance__name', 'status')
+    search_fields = ('instance__name',)
+    raw_id_fields = ('instance', 'cases')
     autocomplete_lookup_fields = {
-        'fk': ['release', 'instance'],
+        'fk': ['instance'],
         'm2m': ['cases'],
     }
 
     def get_queryset(self, request):
         """Optimize the number of queries made."""
         qs = super(DeploymentReportAdmin, self).get_queryset(request)
-        return qs.select_related('release', 'instance', 'instance__ci_project').prefetch_related('cases')
+        return qs.select_related('release', 'instance').prefetch_related('cases', 'instance__ci_projects')
 
 
 admin.site.register(DeploymentReport, DeploymentReportAdmin)

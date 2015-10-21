@@ -67,7 +67,7 @@ class MigrationReportAdmin(LogAdminMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         """Optimize the number of queries made."""
         qs = super(MigrationReportAdmin, self).get_queryset(request)
-        return qs.select_related('instance', 'instance__ci_project', 'migration')
+        return qs.select_related('instance', 'migration').prefetch_related('instance__ci_projects')
 
     form = MigrationReportForm
     list_display = (

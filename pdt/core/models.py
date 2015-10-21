@@ -81,17 +81,16 @@ class Instance(models.Model):
     Instance means the isolated set of physical servers.
     """
 
-    name = models.CharField(max_length=255, db_index=True)
-    ci_project = models.ForeignKey(
-        CIProject, related_name="instances", verbose_name=_('CI project'))
+    name = models.CharField(max_length=255, db_index=True, unique=True)
+    ci_projects = models.ManyToManyField(
+        CIProject, related_name="instances", verbose_name=_('CI projects'), blank=False)
     description = models.TextField(blank=True)
 
     class Meta:
         verbose_name = _("Instance")
         verbose_name_plural = _("Instances")
-        unique_together = (("name", "ci_project"),)
         index_together = (("id", "name"),)
-        ordering = ['name', 'ci_project', 'id']
+        ordering = ['name', 'id']
 
     @staticmethod
     def autocomplete_search_fields():
@@ -100,7 +99,7 @@ class Instance(models.Model):
 
     def __str__(self):
         """String representation."""
-        return '{self.ci_project}: {self.name}'.format(self=self)
+        return '{self.id}: {self.name}'.format(self=self)  # pylint: disable=W1306
 
 
 class CaseManager(models.Manager):
@@ -315,7 +314,8 @@ class CaseManager(models.Manager):
         }
         kwargs = {}
         tags = {'deployed-{0}'.format(report.instance.name)}
-        if report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']):
+        if (report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']) and
+                report.cases.filter(id=case.id).count()):
             if report.status == DeploymentReport.STATUS_DEPLOYED:
                 kwargs['sTags'] = ','.join(case_info['tags'].union(tags))
             response = fb.edit(
@@ -756,21 +756,20 @@ class DeploymentReport(models.Model):
     class Meta:
         verbose_name = _("Deployment report")
         verbose_name_plural = _("Deployment reports")
-        index_together = (("release", "instance", "datetime", "id"),)
-        ordering = ['release', 'instance', 'datetime', "id"]
+        index_together = (("instance", "datetime", "id"),)
+        ordering = ['instance', 'datetime', "id"]
 
-    release = models.ForeignKey(Release, related_name='deployment_reports')
     instance = models.ForeignKey(Instance, related_name='deployment_reports')
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     datetime = models.DateTimeField(default=timezone.now)
     log = models.TextField(blank=True)
-    cases = models.ManyToManyField(Case)
+    cases = models.ManyToManyField(Case, related_name='deployment_reports')
 
     tracker = FieldTracker()
 
     def __str__(self):
         """String representation."""
-        return '{id}: {self.release}: {self.instance}: {self.datetime}: {status}'.format(
+        return '{id}: {self.instance}: {self.datetime}: {status}'.format(
             id=self.id, self=self, status=self.get_status_display())
 
 
@@ -779,7 +778,7 @@ def deployment_report_changes(sender, instance, **kwargs):
     changed = instance.tracker.changed()
     if instance.log != changed.get('log', instance.log):
         from .tasks import update_case_to_fogbugz
-        for case in instance.cases.all() or instance.release.cases.filter(ci_project=instance.instance.ci_project):
+        for case in instance.cases.all():
             params = dict(report=instance.id)
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)

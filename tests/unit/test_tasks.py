@@ -19,7 +19,7 @@ def test_update_case_to_fogbugz(
         transactional_db, mocked_fogbugz, case_factory, migration_factory, deployment_report_factory,
         migration_report_factory, instance):
     """Test update case to fogbugz task."""
-    deployed_case = case_factory(tags=['deployed-{0}'.format(instance.name)], ci_project=instance.ci_project)
+    deployed_case = case_factory(tags=['deployed-{0}'.format(instance.name)], ci_project=instance.ci_projects.first())
     migration_factory(case=deployed_case)
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.attrs = dict(ixbug=deployed_case.id)
@@ -33,13 +33,12 @@ def test_update_case_to_fogbugz(
     mocked_case.sarea.string = 'Some area'
     deployment_report_factory(
         status=DeploymentReport.STATUS_DEPLOYED,
-        release=deployed_case.release,
         instance=instance)
     migration_report_factory(
         status=MigrationReport.STATUS_APPLIED,
         migration=deployed_case.migration,
         instance=instance)
-    not_deployed_case = case_factory(ci_project=instance.ci_project)
+    not_deployed_case = case_factory(ci_project=instance.ci_projects.all()[0])
     edits = deployed_case.edits.all()
     assert edits
     assert not not_deployed_case.edits.all()
@@ -56,7 +55,7 @@ def test_update_cases_to_fogbugz(mocked_update, transactional_db, case):
 
 
 def test_update_case_from_fogbugz(
-        transactional_db, mocked_fogbugz, case_factory, deployment_report_factory, instance, case):
+        transactional_db, mocked_fogbugz, case_factory, instance, case):
     """Test update case from fogbugz task."""
     mocked_case = mocked_fogbugz.return_value.search.return_value.cases.find.return_value
     mocked_case.attrs = dict(ixbug=case.id)

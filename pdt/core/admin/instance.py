@@ -7,7 +7,7 @@ from ..models import (
     DeploymentReport,
     Instance,
 )
-from .columns import ci_project_column
+from .columns import ci_projects_column
 
 
 class InstanceAdmin(admin.ModelAdmin):
@@ -17,19 +17,24 @@ class InstanceAdmin(admin.ModelAdmin):
     def last_deployed_release(self):
         """Last deployed release column."""
         report = self.deployment_reports.filter(status=DeploymentReport.STATUS_DEPLOYED).order_by('-datetime').first()
+        try:
+            max_release = max(
+                (case.release for case in report.cases.all() if case.release), key=lambda case: case.release.number)
+        except (ValueError, AttributeError):
+            return ''
         return mark_safe(
             '<a href="{url}">{number}: {datetime}</a>'.format(
                 url=reverse("admin:core_release_change", args=(report.id,)),
-                number=report.release.number,
+                number=max_release.number,
                 datetime=report.datetime,
-            )) if report else ''
+            ))
 
-    list_display = ('id', 'name', 'description', ci_project_column(), last_deployed_release)
-    list_filter = ('ci_project__name',)
+    list_display = ('id', 'name', 'description', ci_projects_column(), last_deployed_release)
+    list_filter = ('ci_projects__name',)
     search_fields = ('id', 'name', 'description')
-    raw_id_fields = ('ci_project',)
+    raw_id_fields = ('ci_projects',)
     autocomplete_lookup_fields = {
-        'fk': ['ci_project'],
+        'm2m': ['ci_projects'],
     }
 
 admin.site.register(Instance, InstanceAdmin)
