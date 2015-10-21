@@ -56,7 +56,7 @@ class CIProjectFieldMixin(serializers.HyperlinkedModelSerializer):
         try:
             value, _ = CIProject.objects.get_or_create(name=name)
         except Exception as e:  # pragma: no cover
-            logger.exception('Failed to get or create the ci project')
+            logger.exception('Failed to get or create the CI project')
             raise serializers.ValidationError(e)
         return value
 
@@ -86,7 +86,7 @@ class CIProjectsFieldMixin(serializers.HyperlinkedModelSerializer):
             try:
                 value, _ = CIProject.objects.get_or_create(name=name)
             except Exception as e:  # pragma: no cover
-                logger.exception('Failed to get or create the ci project')
+                logger.exception('Failed to get or create the CI project')
                 raise serializers.ValidationError(e)
             result.append(value)
         return result
@@ -111,7 +111,7 @@ class InstanceSerializer(CIProjectsFieldMixin):
 
 class CIProjectSerializer(serializers.HyperlinkedModelSerializer):
 
-    """CI Project serializer."""
+    """CI project serializer."""
 
     class Meta:
         model = CIProject

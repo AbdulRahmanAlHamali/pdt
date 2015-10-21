@@ -14,9 +14,9 @@ def i_go_to_case_list_admin_page(browser, base_url):
     browser.visit(base_url + '/core/case/')
 
 
-@when('I go to ci project list admin page')
+@when('I go to CI project list admin page')
 def i_go_to_ci_project_list_admin_page(browser, base_url):
-    """I go to ci project list admin page."""
+    """I go to CI project list admin page."""
     browser.visit(base_url + '/core/ciproject/')
 
 
@@ -38,9 +38,9 @@ def i_go_to_add_case_admin_page(browser, base_url):
     browser.visit(base_url + '/core/case/add')
 
 
-@when('I go to add ci project admin page')
+@when('I go to add CI project admin page')
 def i_go_to_add_ci_project_admin_page(browser, base_url):
-    """I go to add ci project admin page."""
+    """I go to add CI project admin page."""
     browser.visit(base_url + '/core/ciproject/add')
 
 
@@ -60,9 +60,9 @@ def i_fill_instance_form(browser, ci_project, instance__name):
     browser.find_by_xpath('//a[@class="ui-corner-all" and text()="{0}"]'.format(ci_project.name)).click()
 
 
-@when('I fill ci project form')
+@when('I fill CI project form')
 def i_fill_ci_project_form(browser, ci_project__name, ci_project__description):
-    """I fill ci project form."""
+    """I fill CI project form."""
     browser.fill_form({
         'name': ci_project__name,
         'description': ci_project__description,

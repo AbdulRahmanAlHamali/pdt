@@ -21,9 +21,9 @@ def i_should_see_a_case_in_the_list(browser, case):
     assert browser.find_by_xpath('//table[@id="result_list"]//tr//*[text()="{0}"]'.format(case.id))
 
 
-@then('I should see a ci project in the list')
+@then('I should see a CI project in the list')
 def i_should_see_a_ci_project_in_the_list(browser, ci_project):
-    """I should see a ci project in the list."""
+    """I should see a CI project in the list."""
     assert browser.find_by_xpath('//table[@id="result_list"]//tr//*[text()="{0}"]'.format(ci_project.name))
 
 
@@ -52,7 +52,7 @@ def case_should_be_created(browser, case__id):
     assert Case.objects.get(id=case__id)
 
 
-@then(parsers.parse('the ci project should be created'))
+@then(parsers.parse('the CI project should be created'))
 def ci_project_should_be_created(browser, ci_project__name):
     """CI project should be created."""
     assert CIProject.objects.get(name=ci_project__name)

@@ -3,20 +3,20 @@ Feature: CI project admin interface
     Scenario: CI project list
 
         Given I am superuser
-        And I have a ci project
+        And I have a CI project
 
-        When I go to ci project list admin page
+        When I go to CI project list admin page
 
-        Then I should see a ci project in the list
+        Then I should see a CI project in the list
 
 
     Scenario: Create CI project
 
         Given I am superuser
 
-        When I go to add ci project admin page
-        And I fill ci project form
+        When I go to add CI project admin page
+        And I fill CI project form
         And I submit the form
 
         Then I should see a "success" message
-        And the ci project should be created
+        And the CI project should be created

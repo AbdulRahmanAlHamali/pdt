@@ -7,7 +7,7 @@ from .columns import instances_column
 
 class CIProjectAdmin(admin.ModelAdmin):
 
-    """CI Project admin interface class."""
+    """CI project admin interface class."""
 
     list_display = ('id', 'name', 'description', instances_column())
     list_filter = ('instances__name',)

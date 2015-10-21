@@ -96,9 +96,9 @@ def test_migration_filter_status(admin_client, migration_report_factory):
     migration_report_factory(
         status='err', migration=mr1.migration, instance__ci_projects=mr1.instance.ci_projects.all())
     data = admin_client.get(
-        '/api/migrations/', dict(status='apl', ci_project=mr1.instance.ci_projects.first().name)).data
+        '/api/migrations/', dict(status='apl', instance=mr1.instance.name)).data
     assert len(data) == 1
-    assert data[0]['id'] == mr1.id
+    assert data[0]['id'] == mr1.migration.id
 
 
 def test_migration_filter_ci_project(admin_client, migration_factory):

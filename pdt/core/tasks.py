@@ -25,7 +25,7 @@ def update_case_from_fogbugz(case_id):
     try:
         Case.objects.update_from_fogbugz(case_id)
     except IntegrityError:
-        # can be the case without ci project assigned
+        # can be the case without CI project assigned
         pass
     logger.info("Task finished")
 
