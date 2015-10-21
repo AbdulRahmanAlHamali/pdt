@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'pdt.api',
     'django_ace',
     'django_object_actions',
+    'post_office',
     'adminplus',
     'taggit',
     'taggit_helpers',
@@ -93,6 +94,8 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'django_auth_fogbugz.backend.FogBugzBackend',
 )
+
+EMAIL_BACKEND = 'post_office.EmailBackend'
 
 AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = 'https://fogbugz.example.com'
 
