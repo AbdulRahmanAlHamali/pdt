@@ -19,11 +19,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='notificationtemplate',
             name='bcc',
-            field=post_office.fields.CommaSeparatedEmailField(blank=True, verbose_name='Bcc', null=True),
+            field=post_office.fields.CommaSeparatedEmailField(blank=True, verbose_name='Bcc'),
         ),
         migrations.AlterField(
             model_name='notificationtemplate',
             name='cc',
-            field=post_office.fields.CommaSeparatedEmailField(blank=True, verbose_name='Cc', null=True),
+            field=post_office.fields.CommaSeparatedEmailField(blank=True, verbose_name='Cc'),
         ),
     ]

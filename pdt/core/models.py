@@ -114,9 +114,9 @@ class NotificationTemplate(models.Model):
     template = models.ForeignKey(EmailTemplate, blank=False)
     from_email = models.CharField(_("Email From"), max_length=254,
                                   validators=[validate_email_with_name])
-    to = CommaSeparatedEmailField(_("Email To"), null=False, blank=False)
-    cc = CommaSeparatedEmailField(_("Cc"), null=True, blank=True)
-    bcc = CommaSeparatedEmailField(("Bcc"), null=True, blank=True)
+    to = CommaSeparatedEmailField(_("Email To"), null=False, blank=False, default=[])
+    cc = CommaSeparatedEmailField(_("Cc"), blank=True, default=[])
+    bcc = CommaSeparatedEmailField(("Bcc"), blank=True, default=[])
 
     def __str__(self):
         """String representation."""
