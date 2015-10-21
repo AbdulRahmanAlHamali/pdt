@@ -53,7 +53,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
                     name=instance.name,
                 ) for instance in (
                     self.ci_project.instances.filter(
-                        deployment_reports__release=self.release,
+                        deployment_reports__cases__in=(self,),
                         deployment_reports__status=DeploymentReport.STATUS_DEPLOYED).distinct()
                     if self.release else []))
             )

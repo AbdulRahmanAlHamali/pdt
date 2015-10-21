@@ -174,6 +174,7 @@ TEMPLATES = [
 
 TEMPLATE_VISIBLE_SETTINGS = (
     'VERSION',
+    'FOGBUGZ_URL',
 )
 
 with open(os.path.join(BASE_DIR, 'VERSION')) as fd:

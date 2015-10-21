@@ -125,11 +125,12 @@ class NotificationTemplate(models.Model):
     @staticmethod
     def autocomplete_search_fields():
         """Auto complete search fields."""
-        return ("id__iexact", "template__name",)
+        return ("id__iexact", "template__name__icontains",)
 
     def notify(self, context):
         """Notify with given context."""
-        mail.send(template=self.template.name, recipients=self.to, sender=self.from_email, context=context)
+        mail.send(
+            template=self.template.name, recipients=self.to, sender=self.from_email, context=context)
 
 
 class CaseManager(models.Manager):
@@ -814,8 +815,8 @@ def deployment_report_changes(sender, instance, **kwargs):
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)
             update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
-        if instance.instance.notification_template:
-            instance.instance.notification_template.notify(dict(deployment_report=instance))
+    if instance.cases.count() and instance.instance.notification_template:
+        instance.instance.notification_template.notify(dict(deployment_report=instance))
 
 
 post_save.connect(deployment_report_changes, sender=DeploymentReport)

@@ -480,8 +480,10 @@ class DeploymentReportSerializer(ReleaseFieldMixin, InstanceFieldMixin, serializ
         cases = validated_data.pop('cases')
         report = super(DeploymentReportSerializer, self).create(validated_data)
         report.cases.clear()
+        report_cases = []
         for case_data in cases:
             case, _ = Case.objects.get_or_create_from_fogbugz(case_data['id'])
-            report.cases.add(case)
+            report_cases.append(case)
+        report.cases = report_cases
         report.save()
         return report

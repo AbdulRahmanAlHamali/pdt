@@ -50,9 +50,9 @@ def test_deployment_report_unicode(deployment_report):
 
 @pytest.mark.django_db
 @mock.patch('post_office.mail.send')
-def test_deloyment_report_email(mocked_send, deployment_report_factory):
+def test_deloyment_report_email(mocked_send, deployment_report_factory, case):
     """Test migration report email notice."""
-    report = deployment_report_factory()
+    report = deployment_report_factory(cases=[case])
     notification_template = report.instance.notification_template
     mocked_send.assert_called_once_with(
         template=notification_template.template.name,
