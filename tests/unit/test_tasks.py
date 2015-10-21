@@ -3,11 +3,12 @@ import mock
 import pytest
 
 from pdt.core.tasks import (
-    update_case_to_fogbugz,
-    update_cases_to_fogbugz,
-    update_case_from_fogbugz,
-    update_cases_from_fogbugz,
     fetch_cases,
+    send_emails,
+    update_case_from_fogbugz,
+    update_case_to_fogbugz,
+    update_cases_from_fogbugz,
+    update_cases_to_fogbugz,
 )
 from pdt.core.models import (
     DeploymentReport,
@@ -98,3 +99,10 @@ def test_fetch_cases(mocked_update, mocked_fogbugz, transactional_db, case):
     mocked_case.sarea.string = 'Some area'
     fetch_cases()
     mocked_update.apply_async.assert_called_once_with(kwargs=dict(case_id=case.id))
+
+
+@mock.patch('pdt.core.tasks.call_command')
+def test_send_emails(mocked_call_command, transactional_db):
+    """Test send emails task."""
+    send_emails()
+    mocked_call_command.assert_called_once_with('send_queued_mail', interactive=False)
