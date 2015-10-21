@@ -9,7 +9,7 @@ import post_office.validators
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('post_office', '0003_auto_20151021_0300'),
+        ('post_office', '0002_add_i18n_and_backend_alias'),
         ('core', '0038_auto_20151020_1644'),
     ]
 
