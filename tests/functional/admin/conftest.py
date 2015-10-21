@@ -25,6 +25,24 @@ def instance__name(faker):
 
 
 @pytest.fixture
+def case__id(faker):
+    """Case id."""
+    return faker.pyint()
+
+
+@pytest.fixture
+def case__title(faker):
+    """Case title."""
+    return faker.text(max_nb_chars=255)
+
+
+@pytest.fixture
+def case__revision(faker):
+    """Case revision."""
+    return faker.md5()
+
+
+@pytest.fixture
 def browser(base_url, request, user_role, admin_user, browser):
     """Pre-log in with given user role."""
     browser.visit(base_url + '/login/')
