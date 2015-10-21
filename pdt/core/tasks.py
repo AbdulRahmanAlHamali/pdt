@@ -5,6 +5,7 @@ from celery_once import QueueOnce
 
 from django.conf import settings
 from django.db import IntegrityError
+from django.core.management import call_command
 
 import fogbugz
 
@@ -76,4 +77,12 @@ def update_cases_to_fogbugz():
     logger.info("Found %s cases to update to fogbugz", len(cases))
     for case in cases:
         update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
+    logger.info("Task finished")
+
+
+@app.task(base=QueueOnce, once=dict(graceful=True))
+def send_emails():
+    """Send queued emails."""
+    logger.info("Start sending queued emails")
+    call_command('send_queued_mail', interactive=False)
     logger.info("Task finished")

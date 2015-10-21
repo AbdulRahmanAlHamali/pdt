@@ -22,3 +22,9 @@ def i_am(user_role):
 def case(case_factory):
     """Case."""
     return case_factory()
+
+
+@given('I have a migration')
+def migration(migration_factory):
+    """Migration."""
+    return migration_factory()

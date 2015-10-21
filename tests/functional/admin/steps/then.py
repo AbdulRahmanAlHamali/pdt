@@ -5,6 +5,7 @@ from pdt.core.models import (
     Case,
     CIProject,
     Instance,
+    Migration,
 )
 
 
@@ -24,6 +25,12 @@ def i_should_see_a_case_in_the_list(browser, case):
 def i_should_see_a_ci_project_in_the_list(browser, ci_project):
     """I should see a ci project in the list."""
     assert browser.find_by_xpath('//table[@id="result_list"]//tr//*[text()="{0}"]'.format(ci_project.name))
+
+
+@then('I should see a migration in the list')
+def i_should_see_a_migration_in_the_list(browser, migration):
+    """I should see a migration in the list."""
+    assert browser.find_by_xpath('//table[@id="result_list"]//tr//*[text()="{0}"]'.format(migration.uid))
 
 
 @then(parsers.parse('I should see a "{message_type}" message'))
@@ -49,3 +56,9 @@ def case_should_be_created(browser, case__id):
 def ci_project_should_be_created(browser, ci_project__name):
     """CI project should be created."""
     assert CIProject.objects.get(name=ci_project__name)
+
+
+@then(parsers.parse('the migration should be created'))
+def migration_should_be_created(browser, migration__uid):
+    """Migration should be created."""
+    assert Migration.objects.get(uid=migration__uid)

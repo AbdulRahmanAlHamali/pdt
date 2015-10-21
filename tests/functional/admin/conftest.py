@@ -55,6 +55,12 @@ def ci_project__description(faker):
 
 
 @pytest.fixture
+def migration__uid(faker):
+    """Migration uid."""
+    return faker.md5()
+
+
+@pytest.fixture
 def browser(base_url, request, user_role, admin_user, browser):
     """Pre-log in with given user role."""
     browser.visit(base_url + '/login/')

@@ -248,6 +248,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=1),
         'args': ()
     },
+    'send_emails': {
+        'task': 'pdt.core.tasks.send_emails',
+        'schedule': timedelta(minutes=1),
+        'args': (),
+    }
 }
 CELERY_TIMEZONE = 'UTC'
 # Token to use for fogbugz communication
