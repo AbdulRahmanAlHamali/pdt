@@ -17,6 +17,7 @@ class CustomIndexDashboard(Dashboard):
             collapsible=False,
             column=1,
             models=('pdt.core.*',),
+            exclude=('pdt.core.models.NotificationTemplate',),
         ))
 
         # append an app list module for "Applications"
@@ -24,7 +25,7 @@ class CustomIndexDashboard(Dashboard):
             _('Notifications'),
             collapsible=False,
             column=1,
-            models=('post_office.*',),
+            models=('post_office.*', 'pdt.core.models.NotificationTemplate'),
         ))
 
         # append an app list module for "Administration"
