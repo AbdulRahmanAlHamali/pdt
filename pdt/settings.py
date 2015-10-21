@@ -32,6 +32,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_auth_fogbugz',
+    'reversion',
     'raven.contrib.django.raven_compat',
     'rest_framework',
     'post_office',
