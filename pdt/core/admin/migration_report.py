@@ -77,6 +77,7 @@ class MigrationReportAdmin(LogAdminMixin, admin.ModelAdmin):
     list_filter = ('instance__name', 'status')
     search_fields = ('migration__uid', 'migration__case__id')
     raw_id_fields = ('migration', 'instance')
+    ordering = ['-id']
     autocomplete_lookup_fields = {
         'fk': ['migration', 'instance'],
     }

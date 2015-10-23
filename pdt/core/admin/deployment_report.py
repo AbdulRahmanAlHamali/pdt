@@ -36,6 +36,7 @@ class DeploymentReportAdmin(LogAdminMixin, admin.ModelAdmin):
     list_display = ('id', instance_column(), 'status', 'datetime', cases_column())
     list_filter = ('cases__release__number', 'instance__name', 'status')
     search_fields = ('instance__name',)
+    ordering = ['-id']
     raw_id_fields = ('instance', 'cases')
     autocomplete_lookup_fields = {
         'fk': ['instance'],
