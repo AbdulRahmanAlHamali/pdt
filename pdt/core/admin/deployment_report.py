@@ -45,7 +45,7 @@ class DeploymentReportAdmin(LogAdminMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         """Optimize the number of queries made."""
         qs = super(DeploymentReportAdmin, self).get_queryset(request)
-        return qs.select_related('instance').prefetch_related('cases', 'instance__ci_projects')
+        return qs.select_related('instance').prefetch_related('cases')
 
 
 admin.site.register(DeploymentReport, DeploymentReportAdmin)
