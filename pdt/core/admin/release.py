@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 
 from django_object_actions import DjangoObjectActions
 
-from ..models import Release
+from ..models import Release, DeploymentReport
 
 
 class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
@@ -20,7 +20,7 @@ class ReleaseAdmin(DjangoObjectActions, admin.ModelAdmin):
             '<ul>{0}</ul>'.format("".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
                 url=reverse("admin:core_deploymentreport_change", args=(report.id,)),
                 name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
-            ) for report in self.deployment_reports.all())))
+            ) for report in DeploymentReport.objects.filter(cases__in=self.cases.all()).distinct())))
 
     list_display = ('id', 'number', 'datetime', deployed_on)
     list_filter = ('datetime',)

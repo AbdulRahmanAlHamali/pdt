@@ -6,6 +6,7 @@ import pytest
 
 from pdt.core.models import (
     Case,
+    CaseEdit,
     DeploymentReport,
     MigrationReport,
     MigrationStepReport,
@@ -403,6 +404,7 @@ def test_create_deployment_report(mocked_fogbugz, admin_client, instance, releas
     report = DeploymentReport.objects.get(id=data['id'])
     report_case, = report.cases.all()
     assert report_case.id == case.id
+    assert CaseEdit.objects.filter(case=case).first().type == CaseEdit.TYPE_DEPLOYMENT_REPORT
 
 
 def test_case_filter_ci_project(admin_client, case_factory):

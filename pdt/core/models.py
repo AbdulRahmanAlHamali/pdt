@@ -345,8 +345,7 @@ class CaseManager(models.Manager):
         }
         kwargs = {}
         tags = {'deployed-{0}'.format(report.instance.name)}
-        if (report.instance.ci_project == case.ci_project and not tags.issubset(case_info['tags']) and
-                report.cases.filter(id=case.id).count()):
+        if not tags.issubset(case_info['tags']) and report.cases.filter(id=case.id).count():
             if report.status == DeploymentReport.STATUS_DEPLOYED:
                 kwargs['sTags'] = ','.join(case_info['tags'].union(tags))
             response = fb.edit(
@@ -806,17 +805,14 @@ class DeploymentReport(models.Model):
 
 def deployment_report_changes(sender, instance, **kwargs):
     """Send case updates about the deployment status."""
-    changed = instance.tracker.changed()
-    if instance.log != changed.get('log', instance.log):
+    if instance.cases.count() and instance.instance.notification_template:
+        instance.instance.notification_template.notify(dict(deployment_report=instance))
         from .tasks import update_case_to_fogbugz
-        cases = instance.cases.all()
-        for case in cases:
+        for case in instance.cases.all():
             params = dict(report=instance.id)
             CaseEdit.objects.get_or_create(
                 case=case, type=CaseEdit.TYPE_DEPLOYMENT_REPORT, params=params)
             update_case_to_fogbugz.apply_async(kwargs=dict(case_id=case.id))
-    if instance.cases.count() and instance.instance.notification_template:
-        instance.instance.notification_template.notify(dict(deployment_report=instance))
 
 
 post_save.connect(deployment_report_changes, sender=DeploymentReport)
