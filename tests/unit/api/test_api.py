@@ -464,7 +464,8 @@ def test_case_filter_deployed_on(admin_client, case_factory, deployment_report_f
     assert len(data) == 1
 
 
-def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_report_factory, instance, release):
+def test_case_filter_exclude_deployed_on(
+        admin_client, case_factory, deployment_report_factory, instance, instance_factory, release):
     """Test case filter when exclude_deployed_on parameter is used."""
     case = case_factory(ci_project=instance.ci_projects.first(), release=release)
     case_factory()
@@ -475,11 +476,13 @@ def test_case_filter_exclude_deployed_on(admin_client, case_factory, deployment_
             ci_project=instance.ci_projects.first().name, release=release.number)).data
     assert len(data) == 1
     assert data[0]['id'] == case.id
-    # 2 deployment reports, both errored
+    # 3 deployment reports, 2 errored, one successful but for other instance
     deployment_report_factory(
         instance=instance, status=DeploymentReport.STATUS_ERROR,
         cases=[case])
-    deployment_report_factory(status=DeploymentReport.STATUS_ERROR, cases=[case])
+    deployment_report_factory(instance=instance, status=DeploymentReport.STATUS_ERROR, cases=[case])
+    other_instance = instance_factory(ci_projects=instance.ci_projects.all())
+    deployment_report_factory(instance=other_instance, status=DeploymentReport.STATUS_DEPLOYED, cases=[case])
     data = admin_client.get(
         '/api/cases/', dict(
             exclude_deployed_on=instance.name, ci_project=instance.ci_projects.first().name,

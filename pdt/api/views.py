@@ -122,10 +122,13 @@ class CaseFilter(django_filters.FilterSet):
             raise exceptions.ValidationError('CI project is required to exclude by deployed on')
         if not self.form.cleaned_data['release']:
             raise exceptions.ValidationError('Release is required to exclude by deployed on')
-        return queryset.exclude(
-            deployment_reports__instance__name=value,
-            deployment_reports__status=DeploymentReport.STATUS_DEPLOYED,
-        )
+        return queryset.extra(where=["""
+            not exists(
+                select dr.id from core_deploymentreport dr
+                join core_deploymentreport_cases drc on drc.deploymentreport_id = dr.id
+                join core_instance i on dr.instance_id = i.id
+                where dr.status=%s and drc.case_id = core_case.id and i.name = %s)
+        """], params=(DeploymentReport.STATUS_DEPLOYED, value))
 
     def filter_deployed_on(self, queryset, value):
         """Implement filter by deployed on instance."""
