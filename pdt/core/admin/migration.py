@@ -134,7 +134,7 @@ class MigrationAdmin(admin.ModelAdmin):
         case_column(), ci_project_column(lambda obj: obj.case.ci_project, 'case__ci_project__name'),
         release_column(lambda obj: obj.case.release, 'case__release__number'),
         'category', 'reviewed', applied_on)
-    list_filter = ('category', 'reviewed', release_filter('case__release'))
+    list_filter = ('category', 'reviewed', release_filter('case__release__number'))
     ordering = ['-case__release__number', '-case__id']
     search_fields = ('id', 'uid', 'case__id', 'case__title', 'category')
     raw_id_fields = ('case', 'parent')
