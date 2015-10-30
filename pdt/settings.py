@@ -298,6 +298,7 @@ LOGGING = {
             'class': 'logging.handlers.SysLogHandler',
             'facility': 'local7',
             'formatter': 'django',
+            'address': '/dev/log'
         },
     },
     'loggers': {
