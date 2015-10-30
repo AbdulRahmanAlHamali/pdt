@@ -277,10 +277,10 @@ LOGGING = {
     },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': 'pdt[%(process)d]: %(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
         'django': {
-            'format': 'django: %(message)s',
+            'format': 'pdt[%(process)d]: %(levelname)s: %(name)s: %(message)s',
         },
     },
     'handlers': {
