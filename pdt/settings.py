@@ -221,7 +221,10 @@ BROKER_URL = celery_cfg['broker_url']
 
 # Using the database to store task state and results.
 CELERY_RESULT_BACKEND = celery_cfg['result_backend']
-CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
+CELERY_ANNOTATIONS = {
+    'pdt.core.tasks.update_case_from_fogbugz': {'rate_limit': '60/s'},
+    'pdt.core.tasks.update_case_to_fogbugz': {'rate_limit': '60/s'}
+}
 BROKER_TRANSPORT_OPTIONS = {
     'fanout_prefix': True,
     'fanout_patterns': True,
