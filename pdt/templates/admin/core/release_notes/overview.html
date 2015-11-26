@@ -15,7 +15,7 @@
                 {% endfor %}
             </ul>
         </li>
-        {{ settings.RELEASE_NOTES_DISCLAIMER }}
+        {{ settings.RELEASE_NOTES_DISCLAIMER|safe }}
     </ul>
     <br>
     {% for release, note in notes %}
