@@ -320,18 +320,10 @@ LOGGING = {
 
 CONSTANCE_CONFIG = {
     'TAGS_FOR_UNMERGED_CASES': ('unmerged, removed', 'Tags for unmerged cases'),
-    'RELEASE_NOTES_TITLE': ('Paylogic Platform', 'Release notes title'),
+    'RELEASE_NOTES_TITLE': ('Release notes', 'Release notes title'),
     'RELEASE_NOTES_DISCLAIMER': ("""
         <li>
-            Changes that are made after the release notes were initially written and communicated are marked as such to avoid confusion:
-            <ul>
-                <li>
-                    If a case is marked underlined it was added to the release (after the release initially went to staging.
-                </li>
-                <li>If a case is marked strike through it has been removed from the release.</li>
-            </ul>
-        <li>
-            The release notes are maintained by the Operational IT team, so if you have comments or suggestions feel free to <a href="mailto:operational-it@paylogic.com">contact them</a>.
+            The release notes are maintained by the Operational IT team, so if you have comments or suggestions feel free to <a href="mailto:opit@example.com">contact them</a>.
         </li>
     """, 'Release notes disclaimer')
 }
