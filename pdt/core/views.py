@@ -4,7 +4,6 @@ import functools
 import logging
 import pprint
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext
@@ -112,5 +111,5 @@ def release_notes_overview(request):
             categories=(
                 category for category in case_categories if not category['default'] and not category['hidden']),
             notes=notes,
-            settings=settings,
+            settings=config,
             title=_('Release notes overview')))
