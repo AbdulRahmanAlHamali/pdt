@@ -1,6 +1,8 @@
 """PDT core instance admin interface."""
 from django.contrib import admin
 from django.core.urlresolvers import reverse
+from django.utils.html import escape
+from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
 from ..models import (
@@ -24,9 +26,9 @@ class InstanceAdmin(admin.ModelAdmin):
             return ''
         return mark_safe(
             '<a href="{url}">{number}: {datetime}</a>'.format(
-                url=reverse("admin:core_release_change", args=(report.id,)),
-                number=max_release.number,
-                datetime=report.datetime,
+                url=urlquote(reverse("admin:core_release_change", args=(report.id,))),
+                number=escape(max_release.number),
+                datetime=escape(report.datetime),
             ))
 
     list_display = ('id', 'name', 'description', ci_projects_column(), last_deployed_release, 'notification_template')

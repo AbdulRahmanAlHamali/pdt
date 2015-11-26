@@ -81,7 +81,6 @@ class MigrationReportAdmin(LogAdminMixin, admin.ModelAdmin):
     autocomplete_lookup_fields = {
         'fk': ['migration', 'instance'],
     }
-    # readonly_fields = ('datetime', 'status')
     inlines = [MigrationStepReportInline]
 
 

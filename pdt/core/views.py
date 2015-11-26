@@ -4,11 +4,12 @@ import functools
 import logging
 import pprint
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.template.loader import render_to_string
-from django.template import RequestContext
-from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404, render
+from django.template import RequestContext
+from django.template.loader import render_to_string
+from django.utils.translation import ugettext_lazy as _
 
 from constance import config
 
@@ -23,10 +24,12 @@ login_required = functools.partial(login_required, login_url='admin:login')
 
 
 def normalize_case_title(case_title):
-    """Normalize case title."""
-    # I'm sick of people adding redundant whitespace to case titles :-)
+    """Normalize case title.
+
+    * Remove redundant whitespace from case titles.
+    * Strip trailing dots because case titles aren't sentences.
+    """
     case_title = ' '.join(case_title.split())
-    # I'm sick of people ending case titles with a dot :-)
     case_title = case_title.rstrip('.')
     return case_title
 
@@ -109,4 +112,5 @@ def release_notes_overview(request):
             categories=(
                 category for category in case_categories if not category['default'] and not category['hidden']),
             notes=notes,
+            settings=settings,
             title=_('Release notes overview')))

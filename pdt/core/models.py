@@ -138,7 +138,7 @@ class CaseManager(models.Manager):
     """Case manager to allow automatic fetch from Fogbugz."""
 
     def get_case_info(self, case_id, fb=None):
-        """Get case infor from the Fogbugz API.
+        """Get case info from the Fogbugz API.
 
         :param case_id: Fogbugz case id
         :type case_id: int
@@ -184,7 +184,7 @@ class CaseManager(models.Manager):
         else:
             release = None
         info = dict(
-            id=int(case_id),
+            id=case_id,
             release=release,
             revision=revision,
             project=case.sproject.string,
@@ -532,8 +532,8 @@ class Migration(models.Model):
     """Migration."""
 
     CATEGORY_CHOICES = (
-        ('off', 'Offline'),
-        ('onl', 'Online'),
+        ('off', _('Offline')),
+        ('onl', _('Online')),
     )
 
     uid = models.CharField(max_length=255, unique=True)
@@ -592,10 +592,10 @@ class MigrationStep(models.Model):
         ordering = ['position']
 
     TYPE_CHOICES = (
-        ('mysql', 'MySQL'),
-        ('pgsql', 'pgSQL'),
-        ('python', 'Python'),
-        ('sh', 'Shell'),
+        ('mysql', _('MySQL')),
+        ('pgsql', _('pgSQL')),
+        ('python', _('Python')),
+        ('sh', _('Shell')),
     )
 
     type = models.CharField(max_length=10, choices=TYPE_CHOICES)
@@ -660,9 +660,9 @@ class MigrationReport(models.Model):
     STATUS_APPLIED_PARTIALLY = 'prt'
 
     STATUS_CHOICES = (
-        (STATUS_APPLIED, 'Applied'),
-        (STATUS_APPLIED_PARTIALLY, 'Applied partially'),
-        (STATUS_ERROR, 'Error'),
+        (STATUS_APPLIED, _('Applied')),
+        (STATUS_APPLIED_PARTIALLY, _('Applied partially')),
+        (STATUS_ERROR, _('Error')),
     )
 
     class Meta:
@@ -739,8 +739,8 @@ class MigrationStepReport(models.Model):
     STATUS_ERROR = 'err'
 
     STATUS_CHOICES = (
-        (STATUS_APPLIED, 'Applied'),
-        (STATUS_ERROR, 'Error'),
+        (STATUS_APPLIED, _('Applied')),
+        (STATUS_ERROR, _('Error')),
     )
 
     class Meta:
@@ -779,8 +779,8 @@ class DeploymentReport(models.Model):
     STATUS_ERROR = 'err'
 
     STATUS_CHOICES = (
-        (STATUS_DEPLOYED, 'Deployed'),
-        (STATUS_ERROR, 'Error'),
+        (STATUS_DEPLOYED, _('Deployed')),
+        (STATUS_ERROR, _('Error')),
     )
 
     class Meta:

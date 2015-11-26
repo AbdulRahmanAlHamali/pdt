@@ -1,11 +1,13 @@
 """PDT core migration admin interface."""
-from django.contrib import admin
 from django import forms
-from django.http import HttpResponseRedirect
+from django.contrib import admin
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.utils.html import escape
+from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.shortcuts import render
 
 from django_ace import AceWidget
 
@@ -125,8 +127,9 @@ class MigrationAdmin(admin.ModelAdmin):
         """Migration 'applied on' column."""
         return mark_safe(
             '<ul>{0}</ul>'.format("".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
-                url=reverse("admin:core_migrationreport_change", args=(report.id,)),
-                name=report.instance.name, datetime=report.datetime, status=report.get_status_display()
+                url=urlquote(reverse("admin:core_migrationreport_change", args=(report.id,))),
+                name=escape(report.instance.name), datetime=escape(report.datetime),
+                status=escape(report.get_status_display())
             ) for report in self.reports.all())))
 
     list_display = (
@@ -153,7 +156,7 @@ class MigrationAdmin(admin.ModelAdmin):
         return qs.select_related('case__release', 'case__ci_project', 'parent').prefetch_related('reports')
 
     def save_model(self, request, obj, form, change):
-        """Only allow to edit is_reviewed flag."""
+        """Only allow to edit is_reviewed and category fields."""
         if change:
             obj.refresh_from_db()
             obj.reviewed = form.cleaned_data['reviewed']

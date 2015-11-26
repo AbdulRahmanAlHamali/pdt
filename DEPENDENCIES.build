@@ -1,4 +1,5 @@
-# System package dependencies (apt)
+# Build system package dependencies (apt)
+gcc
+python-virtualenv
 ruby2.0
 ruby2.0-dev
-gcc

@@ -8,7 +8,7 @@ pdt:
         host:
         port:
     raven:
-        dsn: http://some-raven-dsn
+        dsn: # http://some-raven-dsn
     api:
         token: some-api-token
     fogbugz:

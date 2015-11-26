@@ -37,7 +37,7 @@ ifndef local_env
 endif
 
 config:
-	test -a config.yaml || cp config{_example,}.yaml
+	test -f config.yaml || cp config{_example,}.yaml
 
 develop: env config
 	pip install -r requirements-dev.txt $(pip_args)

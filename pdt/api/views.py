@@ -65,12 +65,12 @@ class ReleaseViewSet(viewsets.ModelViewSet):
     Filters (via **`<parameter>`** query string arguments):
 
     * number
-    * date
+    * datetime
 
     Orderings (via **`order_by`** query string parameter):
 
     * number
-    * date
+    * datetime
     """
 
     queryset = Release.objects.all()
@@ -82,7 +82,7 @@ class ReleaseViewSet(viewsets.ModelViewSet):
 
 class CIProjectViewSet(viewsets.ModelViewSet):
 
-    """Return a list of all continuos integration projects in the system.
+    """Return a list of all continuous integration projects in the system.
 
     Filters (via **`<parameter>`** query string arguments):
 
@@ -102,7 +102,7 @@ class CIProjectViewSet(viewsets.ModelViewSet):
 
 class CaseFilter(django_filters.FilterSet):
 
-    """Case filter to allow lookups for relese, ci_project."""
+    """Case filter to allow lookups for release, ci_project."""
 
     release = django_filters.NumberFilter(name="release__number", lookup_type='exact')
     ci_project = django_filters.CharFilter(
@@ -278,15 +278,13 @@ class MigrationStepReportViewSet(viewsets.ModelViewSet):
 
     Filters (via **`<parameter>`** query string arguments):
 
-    * migration
-    * instance
+    * report
     * status
     * datetime
 
     Orderings (via **`order_by`** query string parameter):
 
-    * migration
-    * instance
+    * report
     * status
     * datetime
     """
@@ -304,6 +302,7 @@ class DeploymentReportViewSet(viewsets.ModelViewSet):
 
     Filters (via **`<parameter>`** query string arguments):
 
+    * release
     * instance
     * status
     * datetime

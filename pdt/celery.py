@@ -8,7 +8,7 @@ from raven.contrib.celery import register_signal
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pdt.settings')
 
-from django.conf import settings  # NOQA
+from django.conf import settings
 
 app = Celery('pdt')
 
@@ -17,10 +17,7 @@ app = Celery('pdt')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-if hasattr(settings, 'RAVEN_CONFIG'):
+if hasattr(settings, 'RAVEN_CONFIG') and settings.RAVEN_CONFIG['dsn']:
     # Celery signal registration
-    try:
-        client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
-        register_signal(client)
-    except ValueError:
-        pass
+    client = Client(dsn=settings.RAVEN_CONFIG['dsn'])
+    register_signal(client)

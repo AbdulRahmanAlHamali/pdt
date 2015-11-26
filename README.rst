@@ -49,16 +49,16 @@ This command will create debian package (located in ``./build/pdt_<version from 
 with the application. Important file locations:
 
 ``/etc/pdt/config.yaml``
-    Default configuration located which you need to adjust
+    Default configuration which you need to adjust
 
 ``/etc/pdt/circus.ini``
-    PDT circus supervisor configuration located which you DON'T normally need to adjust
+    PDT circus supervisor configuration (you shouldn't need to change this)
 
 ``/etc/init/pdt.conf``
-    Upstart configuration for PDT circus supervisor located which you DON'T normally need to adjust
+    Upstart configuration for PDT circus supervisor (you shouldn't need to change this)
 
 ``/var/lib/pdt/db.sqlite3``
-    Default PDT sqlite3 database location
+    Default PDT sqlite3 database location (this is only the case if the database backend is sqlite3)
 
 ``/usr/lib/pdt``
     PDT code location
@@ -77,7 +77,7 @@ The preferred method to deploy Django applications is to use WSGI supporting
 web server. Use ``build/wsgi.py`` file as WSGI script.
 
 There is one important thing to remember. Django serves media (static) files
-only in development mode. For running Rietveld in a production environment,
+only in development mode. For running PDT in a production environment,
 you need to setup your web-server to serve the /static/ alias directly from the ``./build/static`` folder.
 
 Here is the tutorial for deployment with `uwsgi <https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/uwsgi/>`_
@@ -122,20 +122,6 @@ pass `index_url` parameter pointing to the same devpi server index you used for 
 Be aware that binary wheels can only be used on exactly same architecture and environment as they were built.
 
 
-Creating the local environment
-------------------------------
-
-In order to create new issues - with patches, descriptions and so on - you need
-to create the local environment.
-
-First of all, you need to create a local settings file.
-This can be done by copying example one:
-
-::
-
-    cp paylogic/settings_local_example.py paylogic/settings_local.py
-
-
 Configuration
 -------------
 
@@ -162,15 +148,26 @@ Example of the configuration
             host:
             port:
         raven:
-            dsn: some-raven-dsn
+            dsn: # http://some-raven-dsn
         api:
             token: some-api-token
         fogbugz:
             token: some-fogbugz-token
             url: http://fogbugz.example.com
             ci_project_field_id: cixproject
+            migration_url_field_id: dbxmigration
+            revision_field_id: revision
         hostname: localhost
         debug: true
+        celery:
+            broker_url: redis://localhost:6379/0
+            result_backend: redis://localhost:6379/0
+            scheduler_url: redis://localhost:6379/1
+        cache:
+            redis:
+                host: localhost
+                port: 6379
+                db: 3
 
 
 License

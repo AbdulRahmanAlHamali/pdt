@@ -1,6 +1,8 @@
 """PDT core case admin interface."""
 from django.contrib import admin
 from django.core.urlresolvers import reverse
+from django.utils.html import escape
+from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -39,8 +41,8 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         """Get case title link."""
         return mark_safe(
             '<a href="{url}" target="_blank">{title}</a>'.format(
-                url=self.url,
-                title=self.title)
+                url=urlquote(self.url),
+                title=escape(self.title))
         )
 
     def deployed_on(self):
@@ -48,9 +50,9 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         return mark_safe(
             '<ul>{0}</ul>'.format(
                 "".join('<li><a href="{url}">{ci_project}: {name}</a></li>'.format(
-                    url=reverse("admin:core_instance_change", args=(instance.id,)),
-                    ci_project=self.ci_project,
-                    name=instance.name,
+                    url=urlquote(reverse("admin:core_instance_change", args=(instance.id,))),
+                    ci_project=escape(self.ci_project),
+                    name=escape(instance.name),
                 ) for instance in (
                     self.ci_project.instances.filter(
                         deployment_reports__cases__in=(self,),

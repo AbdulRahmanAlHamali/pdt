@@ -1,7 +1,7 @@
 {% extends "admin/core/release_notes/base.html" %}
 {% load i18n %}
 {% block content %}
-    <h2>{% trans "Paylogic Platform" %}</h2>
+    <h2>{{ settings.RELEASE_NOTES_TITLE }}</h2>
 
     <h3>{% trans "How to read this document" %}</h3>
     {% trans "Here are some hints about how to read this document:" %}
@@ -15,17 +15,7 @@
                 {% endfor %}
             </ul>
         </li>
-        <li>
-            {% trans "Changes that are made after the release notes were initially written and communicated are marked as such to avoid confusion:" %}
-            <ul>
-                <li>
-                    {% trans "If a case is marked underlined it was added to the release (after the release initially went to staging)." %}
-                </li>
-                <li>{% trans "If a case is marked strike through it has been removed from the release." %}</li>
-            </ul>
-        <li>
-            {% trans 'The release notes are maintained by the Operational IT team, so if you have comments or suggestions feel free to <a href="mailto:operational-it@paylogic.com">contact them</a>.' %}
-        </li>
+        {{ settings.RELEASE_NOTES_DISCLAIMER }}
     </ul>
     <br>
     {% for release, note in notes %}
