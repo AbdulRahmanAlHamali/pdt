@@ -2,7 +2,6 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
-from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -41,7 +40,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         """Get case title link."""
         return mark_safe(
             '<a href="{url}" target="_blank">{title}</a>'.format(
-                url=urlquote(self.url),
+                url=escape(self.url),
                 title=escape(self.title))
         )
 
@@ -50,7 +49,7 @@ class CaseAdmin(TinyMCEMixin, admin.ModelAdmin):
         return mark_safe(
             '<ul>{0}</ul>'.format(
                 "".join('<li><a href="{url}">{ci_project}: {name}</a></li>'.format(
-                    url=urlquote(reverse("admin:core_instance_change", args=(instance.id,))),
+                    url=escape(reverse("admin:core_instance_change", args=(instance.id,))),
                     ci_project=escape(self.ci_project),
                     name=escape(instance.name),
                 ) for instance in (

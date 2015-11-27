@@ -53,6 +53,7 @@ def get_release_notes(request, release, case_categories):
         case = dict(tags=frozenset(item.tag.name for item in case_object.tagged_items.all()), id=case_object.id)
         # Normalize case titles.
         case['title'] = normalize_case_title(case_object.title)
+        case['url'] = case_object.url
         if unmerged_tags.intersection(frozenset(case['tags'])):
             case['unmerged'] = True
         # Remove duplicate tags and provide stable sorting.

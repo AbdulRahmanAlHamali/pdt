@@ -5,7 +5,6 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.html import escape
-from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -127,7 +126,7 @@ class MigrationAdmin(admin.ModelAdmin):
         """Migration 'applied on' column."""
         return mark_safe(
             '<ul>{0}</ul>'.format("".join('<li><a href="{url}">{name}: {datetime}: {status}</a></li>'.format(
-                url=urlquote(reverse("admin:core_migrationreport_change", args=(report.id,))),
+                url=escape(reverse("admin:core_migrationreport_change", args=(report.id,))),
                 name=escape(report.instance.name), datetime=escape(report.datetime),
                 status=escape(report.get_status_display())
             ) for report in self.reports.all())))

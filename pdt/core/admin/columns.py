@@ -1,7 +1,6 @@
 """PDT admin object list column functions."""
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
-from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -30,7 +29,7 @@ def ci_project_column(getter=lambda obj: obj.ci_project, order='ci_project__name
         ci_project = getter(self)
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
-                url=urlquote(reverse("admin:core_ciproject_change", args=(ci_project.id,))),
+                url=escape(reverse("admin:core_ciproject_change", args=(ci_project.id,))),
                 name=escape(ci_project.name)))
     column.admin_order_field = order
     column.short_description = short_description
@@ -50,7 +49,7 @@ def ci_projects_column(getter=lambda obj: obj.ci_projects, short_description=_('
         ci_projects = getter(self).all()
         return mark_safe(
             ', '.join('<a href="{url}">{name}</a>'.format(
-                url=urlquote(reverse("admin:core_ciproject_change", args=(ci_project.id,))),
+                url=escape(reverse("admin:core_ciproject_change", args=(ci_project.id,))),
                 name=escape(ci_project.name)) for ci_project in ci_projects))
     column.short_description = short_description
     return column
@@ -69,7 +68,7 @@ def instances_column(getter=lambda obj: obj.instances, short_description=_('Inst
         instances = getter(self).all()
         return mark_safe(
             ', '.join('<a href="{url}">{name}</a>'.format(
-                url=urlquote(reverse("admin:core_instance_change", args=(instance.id,))),
+                url=escape(reverse("admin:core_instance_change", args=(instance.id,))),
                 name=escape(instance.name)) for instance in instances))
     column.short_description = short_description
     return column
@@ -89,8 +88,8 @@ def case_column(getter=lambda obj: obj.case, order='case__id', short_description
         case = getter(self)
         return mark_safe(
             '<a href="{local_url}">{id}</a>: <a href="{external_url}" target="_blank">{title}</a>'.format(
-                external_url=urlquote(case.url),
-                local_url=urlquote(reverse("admin:core_case_change", args=(case.id,))),
+                external_url=escape(case.url),
+                local_url=escape(reverse("admin:core_case_change", args=(case.id,))),
                 id=escape(case.id),
                 title=escape(case.title))
         )
@@ -113,8 +112,8 @@ def cases_column(getter=lambda obj: obj.cases, short_description=_('Cases')):
         cases = getter(self).all()
         return mark_safe(
             ', '.join('<a href="{local_url}">{id}</a>: <a href="{external_url}" target="_blank">{title}</a>'.format(
-                external_url=urlquote(case.url),
-                local_url=urlquote(reverse("admin:core_case_change", args=(case.id,))),
+                external_url=escape(case.url),
+                local_url=escape(reverse("admin:core_case_change", args=(case.id,))),
                 id=escape(case.id),
                 title=escape(case.title)
             ) for case in cases)
@@ -137,7 +136,7 @@ def release_column(getter=lambda obj: obj.release, order='release__number', shor
         release = getter(self)
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
-                url=urlquote(reverse("admin:core_release_change", args=(release.id,))),
+                url=escape(reverse("admin:core_release_change", args=(release.id,))),
                 name=escape(release))) if release else ''
     column.admin_order_field = order
     column.short_description = short_description
@@ -157,7 +156,7 @@ def migration_column(getter=lambda obj: obj.migration, order='migration__uid', s
         migration = getter(self)
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
-                url=urlquote(reverse("admin:core_migration_change", args=(migration.id,))),
+                url=escape(reverse("admin:core_migration_change", args=(migration.id,))),
                 name=escape(migration.uid))) if migration else ''
     column.admin_order_field = order
     column.short_description = short_description
@@ -177,7 +176,7 @@ def instance_column(getter=lambda obj: obj.instance, order='instance__name', sho
         instance = getter(self)
         return mark_safe(
             '<a href="{url}">{name}</a>'.format(
-                url=urlquote(reverse("admin:core_instance_change", args=(instance.id,))),
+                url=escape(reverse("admin:core_instance_change", args=(instance.id,))),
                 name=escape(instance.name)))
     column.admin_order_field = order
     column.short_description = short_description

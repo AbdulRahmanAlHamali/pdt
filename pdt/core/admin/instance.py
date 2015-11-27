@@ -2,7 +2,6 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
-from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
 from ..models import (
@@ -26,7 +25,7 @@ class InstanceAdmin(admin.ModelAdmin):
             return ''
         return mark_safe(
             '<a href="{url}">{number}: {datetime}</a>'.format(
-                url=urlquote(reverse("admin:core_release_change", args=(report.id,))),
+                url=escape(reverse("admin:core_release_change", args=(report.id,))),
                 number=escape(max_release.number),
                 datetime=escape(report.datetime),
             ))
