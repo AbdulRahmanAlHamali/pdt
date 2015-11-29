@@ -1,4 +1,7 @@
 sudo: false
+services:
+  - elasticsearch
+  - redis-server
 language: python
 env:
   matrix:
