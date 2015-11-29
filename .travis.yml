@@ -1,8 +1,4 @@
 sudo: false
-addons:
-  firefox: "37.0.1"
-before_install:
-  - "export DISPLAY=:99.0"
 services:
   - elasticsearch
   - redis-server
