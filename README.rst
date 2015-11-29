@@ -9,6 +9,9 @@ If you want to use it, please read the documentation below.
    :target: https://travis-ci.org/paylogic/pdt
 .. image:: https://coveralls.io/repos/paylogic/pdt/badge.png?branch=master
    :target: https://coveralls.io/r/paylogic/pdt
+.. image:: https://readthedocs.org/projects/pdt/badge/?version=latest
+    :target: https://readthedocs.org/projects/pdt/?badge=latest
+    :alt: Documentation Status
 
 
 Development Environment
@@ -32,7 +35,6 @@ Then, to run the django development server:
     .env/bin/python manage.py runserver
 
 Open a browser, go to http://127.0.0.1:8000/ and you can use the `PDT`.
-
 
 
 Production Deployment
