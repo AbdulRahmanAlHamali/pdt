@@ -1,7 +1,7 @@
 sudo: false
 services:
-  - elasticsearch
-  - redis-server
+- elasticsearch
+- redis-server
 language: python
 env:
   matrix:
@@ -14,3 +14,5 @@ script: tox -e $TESTENV
 notifications:
   email:
   - opensource-tests@paylogic.com
+  slack:
+    secure: W/GiegWejFQ8s7Yq2zTV6Y/VUok+uirOrtTIgvnHIQ+GLQ+HlY20+7XPHTCgQET6ScfQFlJjwFI7tIKVeimc1UU6DWmU7+3urMn6uD6UIIf5ORBGQVgOgZ5l2EufsKvBg7C6pEe6od+VRi5I2yhwACMNpBcRZ7KJwjXbpbmP4okRqd3UkZ4oe3jPmQ876UJCFyvbUuXCtErEptuxQ3pNdktWJcL3KyxEU2wqTsWpNLXZblX7tpaOUkS3/dACEAKgMeIiCAOsyf1LOupg9e5gmvsB2hXCpIPRWnNWfGS5ABDqbfhB2CG6YqkLZ71LBB1oznRzq0x/m9NXzntVs+7UxZRJ4Q9BCLstpI7kYmNwZjLV3Af0S68L+z0gXbidsLwaS8xoo/XWq8jWAG4u9yz0l+6jmK0pG+JorRNASSSkNfa33lZIju+AIAr5CNhedQADv+XzV2/zDmsW1quyE4kXrgbpjYY/Mj/w9uBPitwhZmdTYzG/s96QY5nlpNqboPOlxKRMb87h5hYCW4NWEvYnPZk+T5DWdznI4pQDDEv26hMmouoGxS5elFX44yJu4nsjNTOaxS2j+mkvJRN/s/d4qjoDfmmBOeGAHZsVFeeG+SKzOw+BpTiMU2/JcvIRWytCmOqlVyIVuJAXPsv5c2wkpbNfWdBLFs9hA0C5zwGc7zQ=
