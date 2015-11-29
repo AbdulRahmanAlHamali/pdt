@@ -17,7 +17,7 @@ If you want to use it, please read the documentation below.
 REST API client
 ---------------
 
-There is a command line REST API client implemented as a separate project, see `pdt-client <https://github.com/paylogic/pdt-client>`
+There is a command line REST API client implemented as a separate project, see `pdt-client <https://github.com/paylogic/pdt-client>`_
 
 
 Development Environment
