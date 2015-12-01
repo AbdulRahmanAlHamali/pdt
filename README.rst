@@ -5,13 +5,18 @@ Paylogic Deployment Tool
 
 If you want to use it, please read the documentation below.
 
-.. image:: https://api.travis-ci.org/paylogic/pdt.png
-   :target: https://travis-ci.org/paylogic/pdt
-.. image:: https://coveralls.io/repos/paylogic/pdt/badge.png?branch=master
+.. image:: http://img.shields.io/pypi/v/pdt.svg
+   :target: https://pypi.python.org/pypi/pdt
+.. image:: http://img.shields.io/coveralls/paylogic/pdt/master.svg
    :target: https://coveralls.io/r/paylogic/pdt
+.. image:: https://travis-ci.org/paylogic/pdt.svg?branch=master
+    :target: https://travis-ci.org/paylogic/pdt
 .. image:: https://readthedocs.org/projects/pdt/badge/?version=latest
-    :target: https://readthedocs.org/projects/pdt/?badge=latest
     :alt: Documentation Status
+    :scale: 100%
+    :target: https://readthedocs.org/projects/pdt/
+
+.. contents::
 
 
 REST API client
