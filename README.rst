@@ -5,8 +5,6 @@ Paylogic Deployment Tool
 
 If you want to use it, please read the documentation below.
 
-.. image:: http://img.shields.io/pypi/v/pdt.svg
-   :target: https://pypi.python.org/pypi/pdt
 .. image:: http://img.shields.io/coveralls/paylogic/pdt/master.svg
    :target: https://coveralls.io/r/paylogic/pdt
 .. image:: https://travis-ci.org/paylogic/pdt.svg?branch=master
